@@ -1,0 +1,83 @@
+:host {
+    all: inherit;
+}
+
+.nav-container {
+    height: 300px;
+    width: 100%;
+    flex-direction: row;
+    margin: 0;
+    position: relative;
+}
+
+.top {
+    height: 300px;
+    width: 300%;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+    margin-bottom: 20px;
+    background-color: #2D2D2D;
+    overflow: hidden;
+    /* added overflow hidden */
+    z-index: 1;
+}
+
+.top:before {
+    height: 300px;
+    width: 100%;
+    background: rgba(40, 38, 38, .55);
+    content: '';
+    display: block;
+}
+
+.navbar {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid transparent;
+    border-radius: 0;
+    position: absolute;
+    top: 250px;
+    /* adjust the top position to move the navbar into view */
+    left: 50%;
+    /* horizontally center the navbar */
+    transform: translateX(-50%);
+    /* horizontally center the navbar */
+}
+
+.brand {
+    top: 0.5rem;
+    font-size: 1.25rem;
+    display: inline-block;
+}
+
+.nav {
+    top: 50px;
+    display: inline-block;
+}
+
+.navbar-light .navbar-nav .nav-link.active {
+    color: blue;
+}
+
+.navbar-light .navbar-nav .nav-link:hover {
+    color: rgba(0, 0, 255, .70);
+}
+
+a {
+    text-decoration: none
+}
+
+a:hover {
+    text-decoration: underline
+}
+
+.header {
+    position: relative;
+    z-index: 2;
+    display: block;
+    bottom: 100px;
+}

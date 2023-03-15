@@ -1,14 +1,13 @@
-/* Text not active */
-a .tooltip-hover {
-    color: purple;
-    font-size: inherit;
-    display: inline-block;
-    cursor: help;
-    text-decoration: none;
-}
-
-a .tooltip-hover:hover {
-    color: blue;
+html,
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 1rem;
+    line-height: 1.5;
+    font-family: Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 /* AI created with theme dark or light */

@@ -1,0 +1,83 @@
+:host {
+    all: inherit;
+}
+
+.background-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 300px;
+    width: 100%;
+    vertical-align: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+    background-color: #2D2D2D;
+    filter: brightness(0.5);
+}
+
+.header {
+    position: relative;
+    height: 300px;
+}
+
+.navbar {
+    position: absolute;
+    top: 30px;
+    margin-left: 3rem;
+    margin-right: 3rem;
+    min-height: 90px;
+    background: #fff;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    padding: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+
+}
+
+.title {
+    font-size: 1.5rem;
+    white-space: nowrap;
+    padding: 0;
+}
+
+.nav {
+    list-style: none;
+    display: flex;
+    justify-content: flex-end;
+    padding: 0;
+    /* adjusted by js code */
+    margin: 0 0 0 auto;
+}
+
+.nav li {
+    margin: 0;
+    padding: 10px;
+    font-size: 1.3rem;
+}
+
+.nav li a {
+    color: grey;
+    text-decoration: none;
+}
+
+.nav li a.active {
+    color: #2980b9;
+    text-decoration: none;
+}
+
+.nav li a:hover {
+    text-decoration: underline;
+}
+
+.page {
+    font-size: 3rem;
+    font-weight: bold;
+    color: white;
+    position: absolute;
+    bottom: 30px;
+    margin-left: 5rem;
+}

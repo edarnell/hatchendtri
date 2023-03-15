@@ -1,37 +1,71 @@
-a,
-.link {
-    text-decoration: none;
-    color: purple;
+:host {
+    all: inherit;
 }
 
-main {
-    margin: 0 4em 0 4em;
-    font-size: 1rem;
-    font-family: 'Helvetica Neue', Arial, sans-serif
-}
-
-.Home {
+.container {
+    margin-right: 5rem;
+    margin-left: 5rem;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: left;
-    width: 100%;
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: 500;
+    margin-bottom: 0;
+}
+
+.enter-button {
+    background-color: #003366;
+    color: #fff;
+    border-radius: 10px;
+    font-size: 1.3rem;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    position: absolute;
+    top: 30px;
+    right: 0;
+}
+
+.enter-button:hover {
+    background-color: #2980b9;
+    /* Darker blue color on hover */
+}
+
+.main {
+    min-width: 70%;
+    margin-right: 3em;
     position: relative;
 }
 
-.content {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
+.updates {
+    min-width: 40%;
 }
 
-.right {
-    margin-left: 2em;
+@media screen and (max-width: 850px) {
+    .container {
+        flex-wrap: wrap;
+    }
+
+    .enter-button {
+        position: relative;
+        top: 0;
+    }
 }
 
-.wireframe {
-    float: right;
-    width: 300px;
-    height: 200px;
-    object-fit: cover;
+.p {
+    margin-top: 1rem;
+    line-height: 1.5;
+    font-size: 1.1rem;
+}
+
+a,
+.link {
+    color: #2980b9;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
 }

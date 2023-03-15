@@ -1,20 +1,17 @@
-import Header from './Header'
-import Home from './Home'
-import css from './css/index.css'
-import tooltipCss from './css/tooltip.css'
+import Nav from './Nav'
+import css from './css/tooltip.css'
+import favicon from './res/jetstreamT.ico';
+
+const link = document.createElement('link');
+link.rel = 'shortcut icon';
+link.href = favicon;
+link.type = 'image/x-icon';
+document.head.appendChild(link);
 
 const style = document.createElement('style')
 style.innerHTML = css;
 document.head.appendChild(style)
-const ttStyle = document.createElement('style')
-style.innerHTML = tooltipCss;
-document.head.appendChild(ttStyle)
 
-customElements.define('fl-header', Header)
-customElements.define('fl-home', Home)
-
-const app = document.querySelector('#app')
-const head = document.createElement('fl-header')
-app.appendChild(head)
-const home = document.createElement('fl-home')
-app.appendChild(home)
+customElements.define('he-nav', Nav)
+const nav = document.querySelector('#nav'), n = document.createElement('he-nav')
+nav.appendChild(n)
