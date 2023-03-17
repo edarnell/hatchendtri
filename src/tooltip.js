@@ -3,6 +3,7 @@ const debug = console.log.bind(console)
 const arrow_px = 10
 
 function tooltip(l, link) {
+    removeTooltip()
     const tt = document.createElement('div'),
         arrow = document.createElement('div')
     tt.id = 'tooltip'
@@ -21,7 +22,7 @@ function tooltip(l, link) {
     tt.setAttribute('data-show', '')
 }
 
-function removeTooltip(timeout = 500) {
+function removeTooltip() {
     const tt = document.getElementById('tooltip'),
         a = document.getElementById('arrow')
     if (a && tt && a.name === tt.name) {
@@ -29,7 +30,6 @@ function removeTooltip(timeout = 500) {
         a.remove()
         tt.remove()
     }
-    else debug({ error: { t, a } })
 }
 
 export { tooltip, removeTooltip }

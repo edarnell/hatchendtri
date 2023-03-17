@@ -7,8 +7,10 @@ import run from './res/run.jpg'
 const debug = console.log.bind(console)
 let pages = {}, navfunc
 import Home from './Home'
+import Details from './Details'
+import Results from './Results'
+const js = { home: Home, details: Details, results: Results }
 
-const replace = {}
 const navlinks = {
     home: { href: '#home', text: 'Home', tip: 'overview, updates and entry link' },
     details: { href: '#details', text: 'Details', tip: 'detailed event information' },
@@ -20,13 +22,15 @@ const images = [swim, bike, run]
 
 class Nav extends Html {
     constructor() {
-        super(nav, css, replace, navlinks)
+        super(nav, css)
         this.i = Math.floor(Math.random() * 3)
         navfunc = this.nav
         window.addEventListener('load', () => {
             this.image()
             this.wrap()
             this.watchNav()
+            const p = window.location.hash
+            if (p) this.nav(p.substring(1))
         })
         window.addEventListener('resize', this.wrap)
     }
@@ -55,14 +59,11 @@ class Nav extends Html {
     page = (pg) => {
         const el = document.getElementById('page')
         let p
-        switch (pg) {
-            default:
-            case 'home':
-                if (pages['home']) p = pages['home']
-                else {
-                    customElements.define('he-home', Home)
-                    pages['home'] = p = document.createElement('he-home')
-                }
+        if (pages[pg]) p = pages[pg]
+        else {
+            const he = 'he-' + pg
+            customElements.define(he, js[pg])
+            p = pages[pg] = document.createElement(he)
         }
         if (el.firstChild) el.replaceChild(p, el.firstChild)
         else el.appendChild(p)

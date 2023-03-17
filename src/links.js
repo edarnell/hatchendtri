@@ -1,1 +1,29 @@
-const links = {}
+const links = {
+    home: { nav: true, href: '#home', tip: 'overview, updates and entry link' },
+    details: { nav: true, href: '#details', tip: 'detailed event information' },
+    results: { nav: true, href: '#results', tip: 'results from 2000 onwards' },
+    volunteer: { nav: true, href: '#volunteer', tip: 'volunteer system' },
+    contact: { nav: true, href: '#contact', tip: 'contact us' },
+    pool: { tip: 'Hatch End pool website', href: 'https://www.everyoneactive.com/centre/hatch-end-swimming-pool/' },
+    fields: { tip: 'Google maps link', href: 'https://www.google.com/maps/place/Uxbridge+Rd,+Pinner+HA5+4EA' },
+    jetstream: { tip: 'Jetstream triathlon club', href: 'https://jetstreamtri.com' },
+    british_triathlon: { tip: 'British Triathlon website', href: 'https://www.britishtriathlon.org' },
+    rules: { tip: 'British Triathlon rules', href: 'https://www.britishtriathlon.org/competitionrules' },
+    age8_16: { tip: 'age on 31 December 2023 not now or race date' },
+    enter_now: { tip: 'Entry Central - hatchend', href: 'https://www.entrycentral.com/hatchend', class: 'enter-button' },
+    adult_run: { tip: 'Adult run course', href: 'AdultRunCourse.pdf' },
+    adult_cycle: { tip: 'Adult cycle course', href: 'AdultCycleMap.pdf' },
+    adult_briefing: { tip: 'Adult briefing', href: 'AdultBriefing.pdf' },
+    junior_briefing: { tip: 'Junior briefing', href: 'JuniorBriefing.pdf' },
+    junior_cycle_run: { tip: 'Junior cycle & run courses', href: 'JuniorRaceCourses.pdf' },
+    event_permit: { tip: 'British Triathlon Event Permit', href: 'event_permit.pdf' },
+    day_membership: { tip: 'British Triathlon Day Memebership', href: 'day_membership.pdf' },
+    novice_guide: { tip: 'Novice Guide', href: 'NoviceGuide.pdf' },
+    site_map: { tip: 'Site map', href: 'SiteMap.pdf' },
+    book: { href: 'https://bookwhen.com/jetstreamtraining', tip: 'Jetstream booking system' },
+    minet_park: { href: 'https://hillingdoncyclecircuit.org.uk/location/', tip: 'Hillingdon Cycle Cicuit' },
+    approved: { tip: '<image src="/permitted_2023.jpg" width="128"/>', theme: 'light' },
+    organised: { tip: '<image src="/permitted_organiser_2023.jpg" width="128"/>', theme: 'light' },
+
+}
+export { links }

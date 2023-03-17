@@ -1,15 +1,17 @@
 const debug = console.log.bind(console)
 import { tooltip, removeTooltip } from './tooltip'
-import { navlinks, nav } from './Nav'
+import { nav } from './Nav'
+import { links } from './links'
 
 class Html extends HTMLElement {
-    constructor(html, css, replace, links) {
+    constructor(html, css, replace) {
         super()
         const template = document.createElement('template')
         let _html = html.toString()
         if (replace) _html = this.replace(replace, _html)
         if (links) _html = this.createLinks(links, _html)
-        if (navlinks) _html = this.navLinks(_html)
+        if (replace) _html = this.replace(replace, _html)
+        // if (navlinks) _html = this.navLinks(_html)
         template.innerHTML = _html
         this.attachShadow({ mode: 'open' })
         this.shadowRoot.appendChild(template.content.cloneNode(true))
@@ -25,17 +27,15 @@ class Html extends HTMLElement {
     createLinks(links, html) {
         let i = 0
         Object.keys(links).forEach(k => {
-            html = html.replaceAll(`{links.${k}}`,
-                links[k].href ? `<a id="${k}_${i++}" class="${links[k].class}" name="${k}" href="${links[k].href}">${links[k].text}</a>`
-                    : `<span class="link" id="${k}_${i++}" name="${k}">${links[k].text}</span>`)
-        })
-        return html
-    }
-    navLinks(html) {
-        let i = 0
-        Object.keys(navlinks).forEach(k => {
-            html = html.replaceAll(`{nav.${k}}`,
-                `<a id="nav.${k}_${i++}" name="nav_${k}" href="${navlinks[k].href}">${k}</a>`)
+            const p = `\\{links\\.(_)?(${k})(?:\\.(.*))?\\}`
+            const regex = new RegExp(p, 'gi')
+            html = html.replace(regex, (m, _u, k1, k2) => {
+                //console.log({ m, k1, k2 })
+                const t = k2 ? k2.replaceAll('_', ' ') : k1.replaceAll('_', ' ')
+                return links[k].href ? _u || links[k].nav ? `<a name="${k}" href="${links[k].href}" class="${links[k].class}">${t}</a>`
+                    : `<a name="${k}" href="${links[k].href}" target="_blank" rel="noreferrer"  class="${links[k].class}">${t}</a>`
+                    : `<span name="${k}" class="${links[k].class || 'link'}">${t}</span>`
+            })
         })
         return html
     }
@@ -44,19 +44,9 @@ class Html extends HTMLElement {
             if (!links[n].tip) return
             const ls = this.shadowRoot.querySelectorAll(`[name=${n}]`)
             if (ls) ls.forEach(l => {
-                // debug({ watchLinks: { n, l } })
+                if (links[n].nav) l.addEventListener('click', () => nav(n))
                 l.addEventListener('mouseenter', () => tooltip(l, links[n]))
                 l.addEventListener('mouseleave', () => removeTooltip())
-            })
-        })
-        Object.keys(navlinks).forEach(n => {
-            const ls = this.shadowRoot.querySelectorAll(`[name=nav_${n}]`)
-            if (ls) ls.forEach(l => {
-                l.addEventListener('click', () => nav(n))
-                if (navlinks[n].tip) {
-                    l.addEventListener('mouseenter', () => tooltip(l, navlinks[n]))
-                    l.addEventListener('mouseleave', () => removeTooltip())
-                }
             })
         })
     }

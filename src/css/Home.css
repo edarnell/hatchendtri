@@ -5,13 +5,25 @@
 .container {
     margin-right: 5rem;
     margin-left: 5rem;
+    line-height: 1.5;
+    font-size: 1.1rem;
     display: flex;
+}
+
+a,
+.link {
+    color: #2980b9;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
 }
 
 h2 {
     font-size: 2rem;
     font-weight: 500;
-    margin-bottom: 0;
+    margin-bottom: 0.5rem;
 }
 
 .enter-button {
@@ -24,7 +36,7 @@ h2 {
     cursor: pointer;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     position: absolute;
-    top: 30px;
+    top: 20px;
     right: 0;
 }
 
@@ -40,7 +52,7 @@ h2 {
 }
 
 .updates {
-    min-width: 40%;
+    min-width: 30%;
 }
 
 @media screen and (max-width: 850px) {
@@ -52,20 +64,4 @@ h2 {
         position: relative;
         top: 0;
     }
-}
-
-.p {
-    margin-top: 1rem;
-    line-height: 1.5;
-    font-size: 1.1rem;
-}
-
-a,
-.link {
-    color: #2980b9;
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
 }

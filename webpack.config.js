@@ -32,8 +32,11 @@ module.exports = {
                 use: ['css-loader'],
             },
             {
-                test: /\.(png|jpg|jpeg|gif|svg|ico)$/i,
-                type: 'asset/resource'
+                test: /\.(png|jpg|jpeg|gif|svg|ico|gz)$/i,
+                type: 'asset/resource',
+                generator: {
+                    filename: '[name][ext]'
+                }
             },
             {
                 test: /\.html$/i,
