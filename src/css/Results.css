@@ -33,25 +33,25 @@ h5 {
 }
 
 /* Custom table styles */
-.table {
+table {
     width: auto;
     margin-bottom: 1rem;
     background-color: transparent;
     border-collapse: collapse;
-    text-align: center;
+    text-align: left;
 }
 
-.table th,
-.table td {
+table th,
+table td {
     border: 1px solid #ddd;
     padding: 4px;
 }
 
-.table th {
+table th {
     background-color: #f2f2f2;
     font-weight: bold;
 }
 
-.table tbody tr:nth-of-type(odd) {
+table tbody tr:nth-of-type(odd) {
     background-color: #f9f9f9;
 }

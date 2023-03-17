@@ -1,6 +1,6 @@
 import Nav from './Nav'
 import css from './css/tooltip.css'
-import favicon from './res/jetstreamT.ico';
+import favicon from './res/jetstream.ico';
 
 const link = document.createElement('link');
 link.rel = 'shortcut icon';

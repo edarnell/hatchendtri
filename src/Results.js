@@ -2,25 +2,43 @@ import Html from './Html'
 import results from './html/Results.html'
 import css from './css/Results.css'
 import rgz from './res/results.gz'
-import np from './res/np.gz'
+import npz from './res/np.gz'
+import pako from 'pako'
+import photo from './res/photo.svg'
 const debug = console.log.bind(console)
+
+function Unzip(file) {
+  return new Promise((s, f) => {
+    fetch(file)
+      .then(r => {
+        return r.text() // has had btoa to make into string - not encourgaed!!
+      })
+      .then(data => {
+        s(JSON.parse(pako.inflate(atob(data), { to: 'string' })))
+      })
+      .catch(e => f(e))
+  })
+}
 
 class Results extends Html {
   constructor() {
     super(results, css)
-  }
-  unzip_results() {
-    unzip(rgz).then(r => this.results = r)
-    uUnzip(np).then(r => this.np = r)
+    Unzip(npz).then(np => this.np = np)
+    Unzip(rgz).then(r => {
+      this.r = r
+      const root = this.shadowRoot, el = root.getElementById('results'),
+        results = this.results()
+      el.innerHTML = results
+    })
   }
   cnum = (a) => {
     const cs = { 'TS': 1, 'T1': 2, 'T2': 3, 'T3': 4, 'Y': 5 }
     let ret = cs[a[this.c.Cat]] ? cs[a[this.c.Cat]] : 6
-    if (this.year < 2004 & ret < 5) ret = 4
+    if (this.y < 2004 & ret < 5) ret = 4
     return ret
   }
   ts = (a) => {
-    let hms = this.c[this.state.sort] ? a[this.c[this.state.sort]] : a[this.c.Total]
+    let hms = this.c[this.sort] ? a[this.c[this.sort]] : a[this.c.Total]
     if (!hms) return 9999999
     let [h, m, s] = hms.split(':')
     let secs = (h ? h * 3600 : 0) + m * 60 + s * 1
@@ -40,114 +58,76 @@ class Results extends Html {
     return ret
   }
   filter = (year) => {
-    const results = this.state.results, c = this.cols(year)
+    const results = this.r, c = this.cols(year)
     let ret = []
     for (var i = 1; i < results[year].length; i++) {
       let r = results[year][i]
       if (!r
-        || (this.state.year && this.state.year !== year)
-        || (this.state.mf && this.state.mf !== r[c.MF])
-        || (this.state.cat && this.state.cat.indexOf('*') === -1 && this.state.cat !== r[c.Cat] && this.state.cat !== 'Adult' && this.state.cat !== 'Junior')
-        || (this.state.cat === 'T*' && r[c.Cat][0] !== 'T')
-        || (this.state.cat === 'Y*' && r[c.Cat][0] !== 'Y')
-        || (this.state.cat === 'S*' && r[c.Cat][0] !== 'S')
-        || (this.state.cat === 'V*' && r[c.Cat][0] !== 'V')
-        || (this.state.cat === 'Adult' && r[c.Cat][0] !== 'S' && r[c.Cat][0] !== 'V')
-        || (this.state.cat === 'Junior' && (r[c.Cat][0] === 'S' || r[c.Cat][0] === 'V'))
+        || (this.year && this.year !== year)
+        || (this.mf && this.mf !== r[c.MF])
+        || (this.cat && this.cat.indexOf('*') === -1 && this.cat !== r[c.Cat]
+          && this.cat !== 'Adult' && this.cat !== 'Junior')
+        || (this.cat === 'T*' && r[c.Cat][0] !== 'T')
+        || (this.cat === 'Y*' && r[c.Cat][0] !== 'Y')
+        || (this.cat === 'S*' && r[c.Cat][0] !== 'S')
+        || (this.cat === 'V*' && r[c.Cat][0] !== 'V')
+        || (this.cat === 'Adult' && r[c.Cat][0] !== 'S' && r[c.Cat][0] !== 'V')
+        || (this.cat === 'Junior' && (r[c.Cat][0] === 'S' || r[c.Cat][0] === 'V'))
       ) r = false // header row
       //ret=this.number(ret)
       if (r) ret.push(r)
     }
-    this.year = year
+    this.y = year
     this.c = c // used by compare
     ret = ret.sort(this.compare)
-    let n, last
-    /*
-    ret.forEach(r=>{
-      if (this.cnum(r) !== last) n=1
-      else n++
-      if (r[c.Pos]!=='DNF') r[c.Pos]=n
-      last=this.cnum(r)
-    })
-    */
-    let filtered = []
+    let n, last, filtered = []
     ret.forEach(r => {
       let rr = null
       if (this.cnum(r) !== last) n = 1
       else n++
       if (r[c.Pos] !== 'DNF') r[c.Pos] = n
       last = this.cnum(r)
-      if (this.state.name === '' && this.state.year === '' && this.state.cat === '' && this.state.mf === '' && this.state.n === '') rr = r[c.Pos] * 1 === 1 ? r : null
-      else if (this.state.name) {
-        this.state.name.toLowerCase().split(',').forEach(n => {
+      if (!this.name && !this.year && !this.cat && !this.mf && !this.n) rr = r[c.Pos] * 1 === 1 ? r : null
+      else if (this.name) {
+        this.name.toLowerCase().split(',').forEach(n => {
           if (n.length > 0 && r[c.Name].toLowerCase().indexOf(n) !== -1) rr = r
           if (c.Club && n.length > 0 && r[c.Club].toLowerCase().indexOf(n) !== -1) rr = r
         })
       }
-      else if (this.state.n) rr = r[c.Pos] * 1 <= this.state.n ? r : null
+      else if (this.n) rr = r[c.Pos] * 1 <= this.n ? r : null
       else rr = r
-      if (rr) filtered.push(rr)
+      if (rr) {
+        const photo = this.photos(year, r[c['#']])
+        if (photo) r[c.Pos] = `${n} ${photo}`
+        filtered.push(rr)
+      }
     })
+    //debug({ filtered })
     return filtered
   }
-  set = (x, e) => {
-    let state = this.state
-    state[x] = e.target ? e.target.value : e
-    this.setState(state)
-  }
   cols(year) {
-    const r = this.state.results
+    const r = this.r
     let c = {}, cn = 0
     r[year][0].forEach(n => { c[n] = cn++ })
     return c
   }
   photos = (year, num) => {
-    const { np } = this.state
-    // return (np && year === '2022' && np[num]) ? <i className="bi-image" onClick={() => this.props.photos(num)}></i> : null
+    return (this.np && year === '2022' && this.np[num]) ? `<image class='photo' name="${num}" src="${photo}" width="20">` : null
   }
-  render() {
-    const { results, np } = this.state
-    debug('Results', true)({ results, np })
-    if (!results) return null
-    let i = 0, n = 0
-    /*
-    return <div className="container">
-      <form>
-        <div className="form-group row" style={{ maxWidth: 900 }}>
-          <Name nm={this.state.name} set={this.set} />
-          <Year year={this.state.year} set={this.set} />
-          <MF mf={this.state.mf} set={this.set} />
-          <Cat cat={this.state.cat} set={this.set} />
-          <N n={this.state.n} set={this.set} />
-        </div>
-      </form>
-      {
-        Object.keys(results).reverse().map(year => {
-          let c = this.cols(year)
-          let rows = n < 100 ? this.filter(year) : []
-          //console.log('renderResults',year,Object.keys(het.results),rows)
-          n += rows.length
-          if (rows.length > 0) return <div key={i++}><h5><span className='link-primary uh' onClick={() => this.set('year', this.state.year === year ? '' : year)}>{year}</span></h5><table className="table table-bordered table-condensed table-striped w-auto">
-            <thead><tr><th>Pos</th><th>Name</th><th>M/F</th><th>Cat</th>
-              <TH k='Total' s={this.state.sort} set={(v) => this.setState({ sort: v })} />
-              <TH k='Swim' s={this.state.sort} set={(v) => this.setState({ sort: v })} />
-              {c.T1 ? <TH k='T1' s={this.state.sort} set={(v) => this.setState({ sort: v })} /> : null}
-              <TH k='Bike' s={this.state.sort} set={(v) => this.setState({ sort: v })} />
-              {c.T2 ? <TH k='T2' s={this.state.sort} set={(v) => this.setState({ sort: v })} /> : null}
-              <TH k='Run' s={this.state.sort} set={(v) => this.setState({ sort: v })} />
-              {c.Club ? <th>Club</th> : null}
-            </tr></thead>
-            <tbody>{
-              rows.map(r => {
-                return <tr key={i++}><td>{r[c.Pos]} {this.photos(year, r[c['#']])}</td><td>{r[c.Name]}</td><td>{r[c.MF]}</td><td>{r[c.Cat]}</td><td>{this.round(r[c.Total])}</td><td>{r[c.Swim]}</td>{c.T1 ? <td>{r[c.T1]}</td> : null}<td>{r[c.Bike]}</td>{c.T2 ? <td>{r[c.T2]}</td> : null}<td>{r[c.Run]}</td>{c.Club ? <td>{r[c.Club]}</td> : null}</tr>
-              })
-            }</tbody>
-          </table></div>
-          else return null
-        })
-      }
-    </div>
-    */
+  results() {
+    const th = ['Pos', 'Name', 'M/F', 'Cat', 'Total', 'Swim', 'T1', 'Bike', 'T2', 'Run', 'Club']
+    let n = 0, ret = []
+    Object.keys(this.r).reverse().map(year => {
+      const cs = this.cols(year), ths = th.filter(x => cs[x] !== undefined), ns = ths.map(th => cs[th])
+      let rows = n < 100 ? this.filter(year) : []
+      n += rows.length
+      if (rows.length > 0) ret.push(`<h5>${year}</h5><table name="${year}">
+        <thead>${ths.map(h => `<th name="${h}">${h}</th>`).join('')}</thead>
+        <tbody>${rows.map(row => `<tr>${ns.map(n => `<td>${row[n]}</td>`).join('')}</tr>`).join('')}</tbody>
+        </table>`)
+      debug({ year, ths, ns, rows })
+    })
+    return ret.join('')
   }
 }
 
