@@ -2,7 +2,7 @@ import Html from './Html'
 import details from './html/Details.html'
 import details_main from './html/details_main.html'
 import news from './html/news.html'
-import css from './css/Details.css'
+import css from './css/Home.css'
 const debug = console.log.bind(console)
 
 const replace = { details_main, news }

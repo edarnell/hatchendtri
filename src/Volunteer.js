@@ -1,177 +1,133 @@
-import React, { Component } from 'react'
-import { Modal } from './Tags'
-import { copy, debug, zip, unzip, het } from './Utils'
-import { ajax } from './ajax'
-import CSV from './CSV'
+import Html from './Html'
+import vols from './html/Volunteer.html'
+import css from './css/Home.css'
+import rolesgz from './res/roles.gz'
+import volunteersgz from './res/volunteers.gz'
+import { unzip, debug } from './unzip'
 
-
-function ifset(x) {
-  return x ? x : ''
-}
-
-function save_vol(v) {
-  return new Promise((s, f) => {
-    const vs = het.vs
-    if (!v.id && v.name) {
-      v.id = Math.max(...Object.keys(vs)) + 1
-      vs[v.id] = v
-    }
-    else if (!v.name && v.id) delete vs[v.id]
-    else vs[v.id] = v
-    let _vs = {}
-    Object.keys(vs).forEach(vid => { _vs[vid] = { id: vid, name: vs[vid].name, adult: vs[vid].adult, junior: vs[vid].junior } })
-    ajax({ req: 'save', data: { volunteers: zip(_vs), vs: zip(vs) } }).then(r => {
-      if (r.error) f({ r })
-      else s()
-    })
-  })
-}
-
-class Volunteers extends Component {
-  state = { vid: null, race: 'adult', update: false, vol: false, role: null, name: '' }
-  componentDidMount() {
-    //het.get_volunteers()
-    ajax({ req: 'files' }).then(r => {
-      if (r.files && r.files.roles && r.files.volunteers) {
-        het.vs = unzip(r.files.volunteers.file)
-        het.roles = unzip(r.files.roles.file)
-        //const x = het.roles.sections[0]
-        //if (x && x.roles.length === 7 && !x.roles[6]) x.roles.splice(6, 1)
-        debug('files')({ het })
-        this.forceUpdate()
-      }
-    })
-  }
-  showRole = (e, r) => {
-    this.setState({ role: { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY, r: r } })
-  }
-  code = (e) => {
-    //console.log('code',e.target.value)
-    if (e.target.value.length === 6) ajax({ req: 'admin', code: e.target.value }).then(r => {
-      het.vs = unzip(r.files.vs.file)
-      het.admin = true
-      this.forceUpdate()
-    })
-  }
-  render() {
-    //console.log("Volunteers",het.vs);
-    if (!het.vs) return 'loading ...'
-
-    //console.log("Volunteers",het.vs);
-    let alloc = {}, vs = {}
-    het.roles.sections.forEach(s => s.roles.forEach(r => alloc[s.name + ' ' + r.role] = { adult: [], junior: [] }))
-    Object.keys(het.vs).map(i => het.vs[i]).forEach(v => {
-      //console.log("allocate",v.name,v.adult,v.junior)
-      if (v.adult && v.adult !== 'none') {
-        if (alloc[v.adult]) alloc[v.adult].adult.push(v.id)
-        else console.log("Adult role missing:", v.adult, v.name)
-        if (!vs[v.id]) vs[v.id] = v
-      }
-      if (v.junior && v.junior !== 'none') {
-        if (alloc[v.junior]) alloc[v.junior].junior.push(v.id)
-        else console.log("Junior role missing:", v.junior, v.name)
-        if (!vs[v.id]) vs[v.id] = v
-      }
-    })
-    /*
-    het.roles.sections.forEach(s => {
-      if (vs[s.lead] && ) {
-        let lead = copy(het.vs[s.lead])
-        lead.adult = lead.junior = s.name + " Lead"
-        vs[s.lead] = lead
-      }
-    })
-    */
-    //console.log("Alloc",alloc,this.props);
-    //console.log("vs",vs,het.vs,het.roles)
-    let i = 1
-    vs = het.admin && !this.state.csv ? het.vs : vs
-    const n = this.state.name.toLowerCase()
-    let disp = n && Object.keys(vs).filter(id => {
-      const v = vs[id]
-      return n === '?' ? !v.adult || !v.junior : n && v.name.toLowerCase().indexOf(n) > -1
-    }).map(id => {
-      const v = vs[id]
-      return <div className="row" key={i++}><span onClick={() => this.setState({ vid: id, update: true })} className="btn-link col-md-3">{v.name}</span><span className="col-md-3"><b>Adult:</b> {v.adult}</span><span className="col-md-3"><b>Junior:</b> {v.junior}</span></div>
-    })
-
-    let rows = [], race = this.state.race, k = 0//,nv=-1
-    het.roles.sections.forEach(s => {
-      rows.push(<tr key={k++}><th>{s.name} ({s.start[race]}-{s.end[race]})</th><th>{s.lead > 0 ? "Lead" : ''}</th><th>{s.lead !== -1 && s.lead !== '0' ? het.vs[s.lead].name : ''}</th></tr>)
-      s.roles.forEach(r => {
-        let num = alloc[s.name + ' ' + r.role][race].length > r.qty[race].min ? alloc[s.name + ' ' + r.role][race].length : r.qty[race].min
-        for (var i = 0; i < num; i++) {
-          //console.log("i",s,r,i,num)
-          let v = null
-          let n = alloc[s.name + ' ' + r.role][race].length > i ? alloc[s.name + ' ' + r.role][race][i] : -1
-          if (n !== -1) v = het.vs[n]
-          let role = r.role
-          if (r.notes) role = <span className="btn-link" onClick={e => this.showRole(e, r)}>{role}</span>
-          rows.push(<tr key={k++}><td></td><td>{role}</td><td style={n > 0 ? { color: '#007ba7' } : null}>{v ? <span className='btn-link' onClick={() => this.setState({ vid: v.id, update: true })}>{v.name}</span> : ''}</td></tr>)
-          //<VolunteerSelect race={race} vs={het.vs} set_volunteer={e=>this.setRole(e.target.value,race,role)}/>
-        }
+class Volunteer extends Html {
+  constructor() {
+    super(vols, css)
+    unzip(rolesgz).then(r => {
+      this.roles = r
+      unzip(volunteersgz).then(vs => {
+        this.volunteers = vs
+        this.map = {}
+        Object.keys(vs).forEach(v => {
+          if (vs[v].adult) {
+            if (this.map[vs[v].adult]) this.map[vs[v].adult].adult.push(v)
+            else this.map[vs[v].adult] = { adult: [v], junior: [] }
+          }
+          if (vs[v].junior) {
+            if (this.map[vs[v].junior]) this.map[vs[v].junior].junior.push(v)
+            else this.map[vs[v].junior] = { adult: [], junior: [v] }
+          }
+        })
+        debug({ roles: this.roles, volunteers: this.volunteers, map: this.map })
+        this.render()
       })
     })
-    let vol = null
-    /*
-    if (het.admin && !het.user)  {
-      vol= (<div>
-        <div className="form-group">
-          <div className="col-md-2"><button onClick={()=>this.setState({vol:true})} type="button" className="btn btn-primary form-control">Volunteer</button></div>
-        </div>
-        <div className="form-group">
-          <label className="col-md-1 control-label">Login:</label>
-          <div className="col-md-3"><VolunteerSelect vid={this.state.id} set_volunteer={(v)=>this.setState({id:v})} vs={het.vs}/></div>
-          <label className={"col-md-1 control-label"+(this.props.failed?" red":'')}>Code:</label><div className="col-md-2"><input value={this.state.code} onChange={e=>this.setState({code: e.target.value})} className={"form-control"} name="code" size="5" type="password"/></div>
-          <div className="col-md-1"><button type="button" onClick={this.login} className="btn btn-primary form-control"><i className="fa fa-btn fa-sign-in"></i></button></div>
-        </div>
-      </div>)
-    }
-    else if (het.user && het.user.admin)
-    {*/
-    vol = (<div className="form-group">
-      <div className="col-md-3"><input onChange={(e) => this.setState({ name: e.target.value })} type="text" className="form-control" id="Name" value={this.state.name} placeholder="Name" /></div>
-      {het.admin ? <div><div className="col-md-3"><VolunteerSelect set_volunteer={(vid) => this.setState({ vid: vid })} filter={this.state.name} vid={this.state.volunteer} vs={het.vs} /></div>
-        <div className="col-md-2"><button onClick={() => this.setState({ vol: true })} type="button" className="btn btn-primary form-control">Add Volunteer</button></div>
-        <div className="col-md-2"><button type="button" onClick={() => this.setState({ roles: true })} className="btn btn-default form-control">Edit Roles</button></div>
-        <div className="col-md-2"><button type="button" onClick={() => this.setState({ emails: true })} className="btn btn-default form-control">Emails</button></div>
-      </div>
-        : this.state.name === '?' ? <div className="col-md-2"><input onChange={this.code} autoFocus={true} type="password" className="form-control" id="Code" placeholder="Code" /></div> : null}
-    </div>)
-    /*
-        {
-          vol=(<div className="form-group">
-          <label className="col-md-2 control-label">{this.props.user.name}</label>
-          <div className="col-md-2"><button type="button" onClick={()=>this.setState({update:true})} className="btn btn-primary form-control">Update Details</button></div>
-          <div className="col-md-2"><button onClick={()=>this.setState({vol:true})} type="button" className="btn btn-primary form-control">Add Volunteer</button></div>
-          </div>)
-        }
-        */
-    if (het.admin && this.state.csv) return <CSV close={() => this.setState({ csv: null })} data={Object.keys(vs).map(v => vs[v])} /> // .filter(v=>{return v.junior!=='none'||v.adult!=='none'})
-    else return (<div className='container'>
-      <h1>Hatch End Triathlon Volunteers</h1>
-      {this.state.vid && het.admin ? <Details alloc={alloc} vid={this.state.vid} close={() => this.setState({ vid: null })} /> : null}
-      {this.state.roles ? <Roles close={() => this.setState({ roles: false })} /> : null}
-      {this.state.vol ? <Volunteer close={() => this.setState({ vol: false })} /> : null}
-      {this.state.emails ? <Emails close={() => this.setState({ emails: false })} /> : null}
-      <Role role={this.state.role} close={() => this.setState({ role: null })} />
-      <div>
-        <form className="form-horizontal" onSubmit={this.login}>
-          {vol}
-          {disp ? <div>{disp}<br /></div> : null}
-          <div className="form-group">
-            <label className="col-md-1 control-label">Race:</label><div className="col-md-2"><RaceSelect set_race={(r) => this.setState({ race: r })} /></div>
-          </div>
-        </form>
-        <table className="table table-bordered table-condensed table-striped width-auto">
-          <thead><tr><th>Section</th><th>Role</th><th>Name</th></tr></thead>
-          <tbody>{rows}</tbody>
-        </table>
-      </div>
-    </div>)
+  }
+  render = () => {
+    const root = this.shadowRoot, el = root.getElementById('volunteers'),
+      vols = this.vols()
+    debug({ vols })
+    el.innerHTML = vols
+  }
+  vols = () => {
+    return `<table><thead><tr><th>Section</th><th>Role</th><th>Adult</th></tr></thead>
+    <tbody>${this.roles.sections.map(s => `<tr><th>${s.name} (${s.start.adult}-${s.end.adult})</td><th>Lead</th><th>${this.name(s.lead)}</th></tr>
+    ${s.roles.map(r => this.vol(s.name, r.role)).join('')}`).join('')}</tbody></table>`
+    //${this.roles.map(r => `<tr><td>${r.name}</td><td>${r.role}</td><td>${r.qty}</td></tr>`).join('')}</table>`
+  }
+  name = (id) => this.volunteers[id] ? this.volunteers[id].name : ''
+  vol = (section, role) => {
+    const r = this.map[`${section} ${role}`]
+    let ret = []
+    if (r && r.adult) r.adult.forEach(id => ret.push(`<tr><td></td><td>${role}</td><td>${this.name(id)}</td></tr>`))
+    debug({ role, ret })
+    return ret.join('')
   }
 }
 
+/*
+vols() {
+  let rows = [], race = this.state.race, k = 0//,nv=-1
+  het.roles.sections.forEach(s => {
+    rows.push(<tr key={k++}><th>{s.name} ({s.start[race]}-{s.end[race]})</th><th>{s.lead > 0 ? "Lead" : ''}</th><th>{s.lead !== -1 && s.lead !== '0' ? het.vs[s.lead].name : ''}</th></tr>)
+    s.roles.forEach(r => {
+      let num = alloc[s.name + ' ' + r.role][race].length > r.qty[race].min ? alloc[s.name + ' ' + r.role][race].length : r.qty[race].min
+      for (var i = 0; i < num; i++) {
+        //console.log("i",s,r,i,num)
+        let v = null
+        let n = alloc[s.name + ' ' + r.role][race].length > i ? alloc[s.name + ' ' + r.role][race][i] : -1
+        if (n !== -1) v = het.vs[n]
+        let role = r.role
+        if (r.notes) role = <span className="btn-link" onClick={e => this.showRole(e, r)}>{role}</span>
+        rows.push(<tr key={k++}><td></td><td>{role}</td><td style={n > 0 ? { color: '#007ba7' } : null}>{v ? <span className='btn-link' onClick={() => this.setState({ vid: v.id, update: true })}>{v.name}</span> : ''}</td></tr>)
+        //<VolunteerSelect race={race} vs={het.vs} set_volunteer={e=>this.setRole(e.target.value,race,role)}/>
+      }
+    })
+  })
+  let vol = null
+  /*
+  if (het.admin && !het.user)  {
+    vol= (<div>
+      <div className="form-group">
+        <div className="col-md-2"><button onClick={()=>this.setState({vol:true})} type="button" className="btn btn-primary form-control">Volunteer</button></div>
+      </div>
+      <div className="form-group">
+        <label className="col-md-1 control-label">Login:</label>
+        <div className="col-md-3"><VolunteerSelect vid={this.state.id} set_volunteer={(v)=>this.setState({id:v})} vs={het.vs}/></div>
+        <label className={"col-md-1 control-label"+(this.props.failed?" red":'')}>Code:</label><div className="col-md-2"><input value={this.state.code} onChange={e=>this.setState({code: e.target.value})} className={"form-control"} name="code" size="5" type="password"/></div>
+        <div className="col-md-1"><button type="button" onClick={this.login} className="btn btn-primary form-control"><i className="fa fa-btn fa-sign-in"></i></button></div>
+      </div>
+    </div>)
+  }
+  else if (het.user && het.user.admin)
+  
+  vol = (<div className="form-group">
+    <div className="col-md-3"><input onChange={(e) => this.setState({ name: e.target.value })} type="text" className="form-control" id="Name" value={this.state.name} placeholder="Name" /></div>
+    {het.admin ? <div><div className="col-md-3"><VolunteerSelect set_volunteer={(vid) => this.setState({ vid: vid })} filter={this.state.name} vid={this.state.volunteer} vs={het.vs} /></div>
+      <div className="col-md-2"><button onClick={() => this.setState({ vol: true })} type="button" className="btn btn-primary form-control">Add Volunteer</button></div>
+      <div className="col-md-2"><button type="button" onClick={() => this.setState({ roles: true })} className="btn btn-default form-control">Edit Roles</button></div>
+      <div className="col-md-2"><button type="button" onClick={() => this.setState({ emails: true })} className="btn btn-default form-control">Emails</button></div>
+    </div>
+      : this.state.name === '?' ? <div className="col-md-2"><input onChange={this.code} autoFocus={true} type="password" className="form-control" id="Code" placeholder="Code" /></div> : null}
+  </div>)
+  
+      {
+        vol=(<div className="form-group">
+        <label className="col-md-2 control-label">{this.props.user.name}</label>
+        <div className="col-md-2"><button type="button" onClick={()=>this.setState({update:true})} className="btn btn-primary form-control">Update Details</button></div>
+        <div className="col-md-2"><button onClick={()=>this.setState({vol:true})} type="button" className="btn btn-primary form-control">Add Volunteer</button></div>
+        </div>)
+      }
+      
+  if (het.admin && this.state.csv) return <CSV close={() => this.setState({ csv: null })} data={Object.keys(vs).map(v => vs[v])} /> // .filter(v=>{return v.junior!=='none'||v.adult!=='none'})
+  else return (<div className='container'>
+    <h1>Hatch End Triathlon Volunteers</h1>
+    {this.state.vid && het.admin ? <Details alloc={alloc} vid={this.state.vid} close={() => this.setState({ vid: null })} /> : null}
+    {this.state.roles ? <Roles close={() => this.setState({ roles: false })} /> : null}
+    {this.state.vol ? <Volunteer close={() => this.setState({ vol: false })} /> : null}
+    {this.state.emails ? <Emails close={() => this.setState({ emails: false })} /> : null}
+    <Role role={this.state.role} close={() => this.setState({ role: null })} />
+    <div>
+      <form className="form-horizontal" onSubmit={this.login}>
+        {vol}
+        {disp ? <div>{disp}<br /></div> : null}
+        <div className="form-group">
+          <label className="col-md-1 control-label">Race:</label><div className="col-md-2"><RaceSelect set_race={(r) => this.setState({ race: r })} /></div>
+        </div>
+      </form>
+      <table className="table table-bordered table-condensed table-striped width-auto">
+        <thead><tr><th>Section</th><th>Role</th><th>Name</th></tr></thead>
+        <tbody>{rows}</tbody>
+      </table>
+    </div>
+  </div>)
+}*/
+/*
 class Role extends Component {
   render() {
     if (!this.props.role || !this.props.role.r.notes) return null
@@ -439,6 +395,6 @@ class RolesSelect extends Component {
     return (<select className="form-control" value={this.props.role ? this.props.role.id : 'select'} onChange={this.props.onChange}>{roles}</select>)
   }
 }
+*/
 
-
-export default Volunteers
+export default Volunteer

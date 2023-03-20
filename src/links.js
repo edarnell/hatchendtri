@@ -1,9 +1,9 @@
 const links = {
     home: { nav: true, href: '#home', tip: 'overview, updates and entry link' },
-    details: { nav: true, href: '#details', tip: 'detailed event information' },
+    docs: { nav: true, href: '#docs', tip: 'detailed event information' },
     results: { nav: true, href: '#results', tip: 'results from 2000 onwards' },
-    volunteer: { nav: true, href: '#volunteer', tip: 'volunteer system' },
-    contact: { nav: true, href: '#contact', tip: 'contact us' },
+    help: { nav: true, href: '#help', tip: 'volunteer system' },
+    contact: { nav: true, icon: 'email', href: '#contact', tip: 'contact us' },
     pool: { tip: 'Hatch End pool website', href: 'https://www.everyoneactive.com/centre/hatch-end-swimming-pool/' },
     fields: { tip: 'Google maps link', href: 'https://www.google.com/maps/place/Uxbridge+Rd,+Pinner+HA5+4EA' },
     jetstream: { tip: 'Jetstream triathlon club', href: 'https://jetstreamtri.com' },

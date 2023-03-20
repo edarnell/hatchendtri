@@ -1,13 +1,16 @@
 import Html from './Html'
-import nav from './html/Nav.html'
+import nav_ from './html/Nav.html'
 import css from './css/Nav.css'
 import jetstream from './res/JetStream.png'
 const debug = console.log.bind(console)
-let pages = {}, navfunc
+let pages = {}, nav
 import Home from './Home'
 import Details from './Details'
 import Results from './Results'
-const js = { home: Home, details: Details, results: Results }
+import Volunteer from './Volunteer'
+import Contact from './Contact'
+import icons from './icons'
+const js = { home: Home, docs: Details, results: Results, help: Volunteer, contact: Contact }
 
 const images = ['url("swim.jpg")', 'url("bike.jpg")', 'url("run.jpg")']
 
@@ -15,15 +18,15 @@ const replace = { jetstream }
 
 class Nav extends Html {
     constructor() {
-        super(nav, css, replace)
+        super(nav_, css, replace)
         this.i = Math.floor(Math.random() * 3)
-        navfunc = this.nav
+        nav = this.nav
         window.addEventListener('load', () => {
             this.image()
             this.wrap()
-            this.watchNav()
+            //this.watchNav()
             const p = window.location.hash
-            if (p) this.nav(p.substring(1))
+            this.nav(p || 'home')
         })
         window.addEventListener('resize', this.wrap)
     }
@@ -37,24 +40,39 @@ class Nav extends Html {
         if (nav.offsetTop > 40) nav.style.paddingTop = '0px'
         else nav.style.paddingTop = '20px'
     }
-    nav = (page) => {
-        const root = this.shadowRoot,
-            c = root.querySelector('.nav li a.active'),
-            p = root.querySelector('.page'),
-            l = this.links[page]
-        if (c) c.classList.remove('active')
-        if (l.classList) l.classList.add('active')
-        else l.classList = ['active']
+    nav = (pg) => {
+        const page = pg.replace('#', '')
+        //debug({ nav: page, pg })
+        const root = this.shadowRoot, p = root.querySelector('.page'),
+            c = root.querySelector('.nav li a.active') || root.querySelector('.nav li img.active'),
+            l = root.querySelector(`.nav li a[name="${page}"]`) || root.querySelector(`.nav li img[name="${page}"]`)
+        if (c && c.classList) {
+            c.classList.remove('active')
+            const name = c.getAttribute('name')
+            if (c.tagName === 'IMG') c.src = icons[name].default
+        }
+        else debug({ c, page })
+        if (l) {
+            if (l.classList) l.classList.add('active')
+            else l.classList = ['active']
+            if (l.tagName === 'IMG') l.src = icons[page].active
+        }
+        else debug({ l, page })
         p.innerHTML = page.charAt(0).toUpperCase() + page.substring(1)
         this.page(page)
         this.image()
     }
     page = (pg) => {
         const el = document.getElementById('page')
+        if (el.firstChild) el.firstChild.removeLinks()
         let p
-        if (pages[pg]) p = pages[pg]
+        if (pages[pg]) {
+            p = pages[pg]
+            p.watchLinks()
+        }
         else {
             const he = 'he-' + pg
+            //debug({ he, pg, js })
             customElements.define(he, js[pg])
             p = pages[pg] = document.createElement(he)
         }
@@ -69,8 +87,7 @@ class Nav extends Html {
             this.links[l.name] = l
             l.addEventListener('click', () => this.nav(l.name))
         })
-        this.nav(navs[0].name)
     }
 }
-export { navfunc as nav }
+export { nav }
 export default Nav

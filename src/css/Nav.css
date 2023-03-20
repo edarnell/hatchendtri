@@ -1,3 +1,5 @@
+/* margin: [top] [right] [bottom] [left]; */
+
 :host {
     all: inherit;
 }
@@ -8,6 +10,7 @@
     left: 0;
     height: 300px;
     width: 100%;
+    overflow: hidden;
     vertical-align: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -31,11 +34,10 @@
     background: #fff;
     box-sizing: border-box;
     border: 1px solid transparent;
-    padding: 10px;
+    padding: 10px 10px 0 10px;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-
 }
 
 .title {
@@ -51,6 +53,37 @@
     padding: 0;
     /* adjusted by js code */
     margin: 0 0 0 auto;
+}
+
+.page {
+    font-size: 3rem;
+    font-weight: bold;
+    color: white;
+    position: absolute;
+    bottom: 30px;
+    margin-left: 5rem;
+}
+
+@media screen and (max-width: 600px) {
+    .navbar {
+        top: 0;
+        margin: 0 auto;
+        max-height: 90px;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .page {
+        margin-left: 50%;
+        transform: translateX(-50%);
+        bottom: 60px;
+    }
+
+    .nav {
+        /* Add some spacing between the elements */
+        margin: 0 auto;
+    }
 }
 
 .nav li {
@@ -73,11 +106,18 @@
     text-decoration: underline;
 }
 
-.page {
-    font-size: 3rem;
-    font-weight: bold;
-    color: white;
+.logo {
+    width: 30px;
+    margin-top: -10px;
+}
+
+.icon {
+    width: 25px;
+    margin-top: 3px;
+}
+
+.contact-link {
     position: absolute;
-    bottom: 30px;
-    margin-left: 5rem;
+    top: 10px;
+    right: 10px;
 }
