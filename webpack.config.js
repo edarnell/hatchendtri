@@ -1,14 +1,16 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const { merge } = require('webpack-merge');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
-module.exports = {
-    mode: 'development',
-    entry: './src/index.js',
+base = {
+    entry: {
+        main: './src/index.js'
+    },
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'bundle.js',
+        filename: '[name].bundle.js',
         clean: true,
     },
     plugins: [
@@ -16,15 +18,8 @@ module.exports = {
             template: './public/index.html'
         }),
         new CleanWebpackPlugin(),
-        new MiniCssExtractPlugin()
+        new MiniCssExtractPlugin(),
     ],
-    devtool: 'eval-source-map',
-    devServer: {
-        static: {
-            directory: path.join(__dirname, 'public'),
-        },
-        port: 3000,
-    },
     module: {
         rules: [
             // ...
@@ -43,6 +38,88 @@ module.exports = {
                 test: /\.html$/i,
                 loader: 'html-loader',
             },
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: [
+                            ['@babel/preset-env', {
+                                modules: false,
+                                useBuiltIns: 'usage',
+                                corejs: { version: 3, proposals: true }
+                            }]
+                        ]
+                    }
+                }
+            },
         ],
     },
+};
+
+const dev = {
+    mode: 'development',
+    devtool: 'eval-source-map',
+    devServer: {
+        static: {
+            directory: path.join(__dirname, 'public'),
+        },
+        port: 3000,
+        historyApiFallback: {
+            index: '/'
+        },
+        proxy: {
+            '/ajax': {
+                target: 'http://localhost:4000',
+            },
+        },
+    },
+};
+
+const modern = {
+    mode: 'production',
+    optimization: {
+        minimize: true,
+        splitChunks: {
+            chunks: 'all'
+        }
+    }
+};
+
+const legacy = {
+    mode: 'production',
+    output: {
+        filename: 'bundle.old.js'
+    },
+    module: {
+        rules: [
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: [
+                            ['@babel/preset-env', {
+                                targets: {
+                                    browsers: ['> 1%', 'last 2 versions', 'not ie <= 8']
+                                },
+                                useBuiltIns: 'usage',
+                                corejs: { version: 3, proposals: true }
+                            }]
+                        ]
+                    }
+                }
+            }
+        ]
+    },
+};
+
+module.exports = (env, argv) => {
+    if (argv.mode === 'production') {
+        return merge(base, modern)// [merge(base, modern), merge(base, legacy)];
+    } else {
+        return merge(base, dev)
+    }
 };

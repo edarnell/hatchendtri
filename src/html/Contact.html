@@ -1,11 +1,12 @@
 <div class="container flexCol">
     <br />
-    <div>
-        <br />{input.name}{input.email}
-        <br />{input.subject}
-        <br>{textarea.message}
-        <br />
-        {button.submit}
-        <br />
-    </div>
+    <div>Any questions from {nav.competitor.competitors} or {nav.volunteer.volunteers} are welcome.</div>
+    <br />
+    <form>
+        {input.name}<br />
+        {input.email}<br />
+        {input.subject}<br />
+        {textarea.message}<br />
+        {checkbox.spam1} {checkbox.spam2} {checkbox.spam3} {button.send}
+    </form>
 </div>

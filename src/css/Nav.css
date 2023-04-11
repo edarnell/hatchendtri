@@ -1,9 +1,4 @@
 /* margin: [top] [right] [bottom] [left]; */
-
-:host {
-    all: inherit;
-}
-
 .background-image {
     position: absolute;
     top: 0;

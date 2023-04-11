@@ -1,92 +1,59 @@
 import Html from './Html'
-import nav_ from './html/Nav.html'
-import css from './css/Nav.css'
-import jetstream from './res/JetStream.png'
+import html from './html/Nav.html'
+import { icons } from './icons'
+import { page, pages } from './Page'
 const debug = console.log.bind(console)
-let pages = {}, nav
-import Home from './Home'
-import Details from './Details'
-import Results from './Results'
-import Volunteer from './Volunteer'
-import Contact from './Contact'
-import icons from './icons'
-const js = { home: Home, docs: Details, results: Results, help: Volunteer, contact: Contact }
-
 const images = ['url("swim.jpg")', 'url("bike.jpg")', 'url("run.jpg")']
-
-const replace = { jetstream }
-
+let nav
 class Nav extends Html {
     constructor() {
-        super(nav_, css, replace)
+        super()
+        this.id = 'nav'
+        nav = this
+    }
+    // Add code to run when the element is added to the DOM
+    connectedCallback() {
+        //debug({ connectedCallback: this.id })
+        this.innerHTML = this.render(html)
         this.i = Math.floor(Math.random() * 3)
-        nav = this.nav
-        window.addEventListener('load', () => {
-            this.image()
-            this.wrap()
-            //this.watchNav()
-            const p = window.location.hash
-            this.nav(p || 'home')
-        })
-        window.addEventListener('resize', this.wrap)
+        const p = window.location.pathname.replace('/', '')
+        this.nav(pages[p] ? p : 'home')
     }
     image = () => {
-        const root = this.shadowRoot, t = root.querySelector('.background-image')
-        t.style.backgroundImage = images[this.i]
+        const bg = this.querySelector('.background-image')
+        bg.style.backgroundImage = images[this.i]
         this.i = (this.i + 1) % 3
     }
     wrap = () => {
-        const root = this.shadowRoot, nav = root.querySelector('.nav')
+        // not sure this is needed now
+        constnave = this.shadowRoot.querySelector('.nav')
         if (nav.offsetTop > 40) nav.style.paddingTop = '0px'
         else nav.style.paddingTop = '20px'
     }
-    nav = (pg) => {
-        const page = pg.replace('#', '')
-        //debug({ nav: page, pg })
-        const root = this.shadowRoot, p = root.querySelector('.page'),
-            c = root.querySelector('.nav li a.active') || root.querySelector('.nav li img.active'),
-            l = root.querySelector(`.nav li a[name="${page}"]`) || root.querySelector(`.nav li img[name="${page}"]`)
-        if (c && c.classList) {
-            c.classList.remove('active')
-            const name = c.getAttribute('name')
-            if (c.tagName === 'IMG') c.src = icons[name].default
-        }
-        else debug({ c, page })
+    toggle = (active, page) => {
+        const l = (active) ? this.querySelector('.nav li img.active') || this.querySelector('.nav li a.active')
+            : this.querySelector(`.nav li img[name="${page}"]`) || this.querySelector(`.nav li a[name="${page}"]`)
         if (l) {
-            if (l.classList) l.classList.add('active')
+            if (active) l.classList.remove('active')
+            else if (l.classList) l.classList.add('active')
             else l.classList = ['active']
-            if (l.tagName === 'IMG') l.src = icons[page].active
+            if (l.tagName === 'IMG') {
+                const img = l.getAttribute('data-image')
+                l.src = (active) ? icons[img].default : icons[img].active
+            }
         }
-        else debug({ l, page })
-        p.innerHTML = page.charAt(0).toUpperCase() + page.substring(1)
-        this.page(page)
+    }
+    nav = (pg) => {
+        const _pg = pg && pg.replace('/', ''),
+            pg_ = _pg && pages[_pg] ? _pg : 'home'
+        //debug({ pg, _pg, page })
         this.image()
-    }
-    page = (pg) => {
-        const el = document.getElementById('page')
-        if (el.firstChild) el.firstChild.removeLinks()
-        let p
-        if (pages[pg]) {
-            p = pages[pg]
-            p.watchLinks()
-        }
-        else {
-            const he = 'he-' + pg
-            //debug({ he, pg, js })
-            customElements.define(he, js[pg])
-            p = pages[pg] = document.createElement(he)
-        }
-        if (el.firstChild) el.replaceChild(p, el.firstChild)
-        else el.appendChild(p)
-    }
-    watchNav = () => {
-        const root = this.shadowRoot,
-            navs = root.querySelectorAll('.nav a')
-        this.links = {}
-        navs.forEach(l => {
-            this.links[l.name] = l
-            l.addEventListener('click', () => this.nav(l.name))
-        })
+        this.toggle(true, this._page)
+        this.toggle(false, pg_)
+        const p = this.querySelector('.page')
+        p.innerHTML = pages[pg_].nav
+        this.page = pg_
+        if (page) this.page = page.load(pg_) // may not have loaeded yet
     }
 }
 export { nav }

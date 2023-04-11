@@ -1,16 +1,12 @@
-import pako from 'pako'
+import { inflate } from 'pako'
+import { Buffer } from 'buffer'
 const debug = console.log.bind(console)
 
-function unzip(file) {
-    return new Promise((s, f) => {
-        fetch(file)
-            .then(r => {
-                return r.text() // has had btoa to make into string - not encourgaed!!
-            })
-            .then(data => {
-                s(JSON.parse(pako.inflate(atob(data), { to: 'string' })))
-            })
-            .catch(e => f(e))
-    })
+function unzip(z) {
+    const b = Buffer.from(z), s = inflate(b, { to: 'string' }),
+        j = JSON.parse(s)
+    //debug({ b, s, j })
+    return j
 }
-export { unzip, debug }
+
+export { unzip }

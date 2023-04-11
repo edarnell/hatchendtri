@@ -2,3 +2,4 @@ node_modules
 hatchendtri.code-workspace
 package-lock.json
 dist
+node/config.json
