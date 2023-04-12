@@ -6,15 +6,16 @@ import news from './html/news.html'
 class Home extends Html {
     constructor() {
         super()
-        this.data = { divs: { home_main, news } }
+    }
+    html = (o) => {
+        const { name } = o.attr()
+        if (name === 'home_main') return home_main
+        else if (name === 'news') return news
     }
     connectedCallback() {
-        //debug({ connectedCallback: this.id })
         this.innerHTML = this.render(html)
     }
     disconnectedCallback() {
-        // Add code to run when the element is removed from the DOM
-        //debug({ disconnectedCallback: this.id })
         this.innerHTML = ''
     }
 }

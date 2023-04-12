@@ -1,14 +1,16 @@
-import Html from './Html'
+import Html, { debug } from './Html'
 import html from './html/Details.html'
 import details_main from './html/details_main.html'
 import news from './html/news.html'
-const debug = console.log.bind(console)
 
 class Details extends Html {
     constructor() {
         super()
-        this.data = { divs: { details_main, news } }
-        this.id = 'details'
+    }
+    html = (o) => {
+        const { name } = o.attr()
+        if (name === 'details_main') return details_main
+        else if (name === 'news') return news
     }
     connectedCallback() {
         //debug({ connectedCallback: this.id })

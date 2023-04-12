@@ -1,31 +1,22 @@
 import Html, { debug } from './Html'
-import { page } from './Page'
+import { nav } from './Nav.js'
 class Div extends Html {
     constructor() {
         super()
     }
     connectedCallback() {
-        // Add code to run when the element is added to the DOM
-        const pg = page.firstChild,
-            name = this.getAttribute("name"),
-            type = this.getAttribute("type"),
-            param = this.getAttribute("param")
-        //debug({ Div: { parent: parent.id, type, name, param } })
-        if (type === 'this') {
-            const f = pg[name]
-            this.data = f && typeof f === 'function' && f(param)
-            if (this.data) this.innerHTML = this.render(this.data.html)
-            else debug({ error: 'no data', div: name, parent: parent.id })
-        }
-        else {
-            const data = this._data(), divs = data && data.divs, html = divs && divs[name]
-            if (html) this.innerHTML = this.render(html)
-            else debug({ error: 'no html', div: name, pg: pg.id })
-        }
+        const { type } = this.attr(), html = this.html()
+        if (type === 'this') this.root = true
+        if (html) this.innerHTML = this.render(html)
+        else debug({ Div: this.attr(), page: nav.page })
+    }
+    html = () => {
+        const root = nav.page, page = root && root.firstChild,
+            html = page && page.html
+        if (typeof html === 'function') return html(this)
+        else debug({ html, page, root })
     }
     disconnectedCallback() {
-        // Add code to run when the element is removed from the DOM
-        //debug({ disconnectedCallback: this })
         this.innerHTML = ''
     }
 }

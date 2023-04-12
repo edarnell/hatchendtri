@@ -1,7 +1,7 @@
 import Html from './Html'
 import html from './html/Nav.html'
 import { icons } from './icons'
-import { page, pages } from './Page'
+import { pages } from './Page'
 const debug = console.log.bind(console)
 const images = ['url("swim.jpg")', 'url("bike.jpg")', 'url("run.jpg")']
 let nav
@@ -17,7 +17,7 @@ class Nav extends Html {
         this.innerHTML = this.render(html)
         this.i = Math.floor(Math.random() * 3)
         const p = window.location.pathname.replace('/', '')
-        this.nav(pages[p] ? p : 'home')
+        this.nav(p)
     }
     image = () => {
         const bg = this.querySelector('.background-image')
@@ -52,8 +52,10 @@ class Nav extends Html {
         this.toggle(false, pg_)
         const p = this.querySelector('.page')
         p.innerHTML = pages[pg_].nav
-        this.page = pg_
-        if (page) this.page = page.load(pg_) // may not have loaeded yet
+        if (this.page && this.page.load) this.page.load(pg_) // may not have loaded yet
+        else if (!this.page) {
+            this.page = pg_ // will be replaced by page object
+        }
     }
 }
 export { nav }

@@ -16,7 +16,44 @@ const form = {
 class Results extends Html {
   constructor() {
     super()
-    this.data = { form, update: this.update }
+  }
+  html = (o) => {
+    const { name, param } = o.attr()
+    if (name === 'results_all') return this.results_all()
+    else if (name === 'results_year') return this.results_year(param)
+    else debug({ html: o.attr() })
+  }
+  link = (o) => {
+    const { name, param } = o.attr()
+    if (name === 'year') return { tip: `${param} all results`, click: true }
+    else if (name === 'name') return { tip: `${param.replace(/_/g, " ")} all results`, click: true }
+    else debug({ link: o.attr() })
+  }
+  form = (o) => {
+    const { name } = o.attr(), k = name.toLowerCase()
+    return form[k]
+  }
+  ths = (o) => {
+    const { name, param } = o.attr()
+    if (name === 'results_year') {
+      const year = param, th = ['Pos', 'Name', 'MF', 'Cat', 'Total', 'Swim', 'T1', 'Bike', 'T2', 'Run', 'Club'],
+        cs = this.cols(year),
+        ths = th.filter(x => cs[x] !== undefined)
+      return ths
+    } else debug({ ths: o.attr() })
+  }
+  trs = (o) => {
+    const { name, param } = o.attr()
+    if (name === 'results_year') {
+      const year = param, th = ['Pos', 'Name', 'MF', 'Cat', 'Total', 'Swim', 'T1', 'Bike', 'T2', 'Run', 'Club'],
+        cs = this.cols(year),
+        ths = th.filter(x => cs[x] !== undefined),
+        ns = ths.map(th => cs[th]),
+        rs = this.filter(year),
+        trs = rs.map(r => ns.map((n, i) => i === 1 ? `{link.name.${r[n].replace(/\s+/g, '_')}}` : r[n]))
+      return trs
+    } else debug({ ths: o.attr() })
+    debug({ trs: o.attr() })
   }
   connectedCallback() {
     //debug({ connectedCallback: this })
@@ -29,17 +66,31 @@ class Results extends Html {
   }
   res = (r) => {
     this.r = unzip(r.results.data)
-    this.form_data = this.getForm()
+    this.form_data = this.getForm(form)
     this.innerHTML = this.render(html)
   }
-  update = (e) => {
-    if (e && e.target.name === 'c') this.setForm({ filter: '', mf: 'M/F', cat: 'Cat', year: 'Year', n: 'N' })
-    this.form_data = this.getForm()
+  toggle = (o) => {
+    const { name, type, param } = o && o.attr(),
+      clear = { filter: '', mf: 'M/F', cat: 'Cat', year: 'Year', n: 'N' },
+      val = this.form_data[name === 'name' ? 'filter' : name]
+    return (param && val === param.replace(/_/g, " ")) ? clear[name] || '' : param.replace(/_/g, " ")
+  }
+  update = (e, o) => {
+    const { name, type, param } = o && o.attr(),
+      val = this.toggle(o)
+    //debug({ update: { name, type, param } })
+    if (name === 'C') this.setForm({ filter: '', mf: 'M/F', cat: 'Cat', year: 'Year', n: 'N' }, form)
+    else if (name === 'name') this.setForm({ filter: val }, form)
+    else if (name === 'year') this.setForm({ year: val }, form)
+    this.refresh()
+  }
+  refresh = () => {
+    this.form_data = this.getForm(form)
     const blank = Object.keys(form).filter(k => this.form_data[k]).length
     const c = this.querySelector(`button[name=c]`)
     c && c.classList[blank ? 'remove' : 'add']('hidden')
     const el = this.querySelector("ed-div[name=results_all]"), res = this.results_all()
-    el.innerHTML = this.render(res.html)
+    el.innerHTML = this.render(res)
   }
   yearClick = (l) => {
     const year = l.innerHTML
@@ -135,26 +186,6 @@ class Results extends Html {
   photos = (year, num) => {
     return (this.np && year === '2022' && this.np[num]) ? `<image class="icon" name="${num}" src="${photo}">` : null
   }
-  /*
-  const links={}
-  const th = ['Pos', 'Name', 'MF', 'Cat', 'Total', 'Swim', 'T1', 'Bike', 'T2', 'Run', 'Club'],
-  const cs = this.cols(year), 
-  ths = th.filter(x => cs[x] !== undefined), 
-  ns = ths.map(th => cs[th]),
-  rows = n < 100 ? this.filter(year) : []
-    ret.push(`{div.results_year.${year}}`) id=results_table_${year} class=results_table}`) //${i ? year : this.years(years)}
-      ret.push(`<h5>{links.year.${year}}</h5>`)
-      ret.push(`<ed-table></ed-table>`)
-    
-    <table name="${year}">
-      <thead>${ths.map(h => `<th>${h === 'MF' ? 'M/F' : h}</th>`).join('')}</thead>
-      <tbody>${rows.map(row => `<tr>${ns.map(n => `<td class='rselect' name="${n}">${row[n]}</td>`).join('')}</tr>`).join('')}</tbody>
-      </table>`)
-    i++
-    //debug({ year, ths, ns, rows })
-  })
-  return ret.join('')
-*/
   cols(year) {
     const r = this.r
     let c = {}, cn = 0
@@ -162,32 +193,17 @@ class Results extends Html {
     return c
   }
   results_year = (year) => {
-    const th = ['Pos', 'Name', 'MF', 'Cat', 'Total', 'Swim', 'T1', 'Bike', 'T2', 'Run', 'Club'],
-      cs = this.cols(year),
-      ths = th.filter(x => cs[x] !== undefined),
-      ns = ths.map(th => cs[th]),
-      cols = ths.map(h => h === 'MF' ? 'M/F' : h),
-      rs = this.filter(year),
-      rows = rs.map(r => ns.map((n, i) => i === 1 ? `{link.name.${r[n].replace(/\s+/g, '_')}}` : r[n]))
-    return {
-      links: {
-        year: { tip: `${year} all results`, click: this.setYear },
-        name: { f: this.name_filter, click: this.setName }
-      },
-      cols, rows,
-      html: `<h5>{link.year.${year}}</h5>{table.results_year.${year}}`
-    }
+    return `<h5>{link.year.${year}}</h5>{table.results_year.${year}}`
   }
   results_all = () => {
-    debug({ results_all: this.form_data })
+    //debug({ results_all: this.form_data })
     const years = Object.keys(this.r).reverse()
-    return {
-      html: years.map((year, n) => {
-        let rows = n < 100 ? this.filter(year) : []
-        n += rows.length
-        return (rows.length > 0) ? `{this.results_year.${year}}` : ''
-      }).join('')
-    }
+    let n = 0
+    return years.map(year => {
+      let rows = n < 100 ? this.filter(year) : []
+      n += rows.length
+      return (rows.length > 0) ? `{this.results_year.${year}}` : ''
+    }).join('')
   }
 }
 

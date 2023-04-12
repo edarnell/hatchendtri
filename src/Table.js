@@ -11,11 +11,17 @@ class Table extends Html {
         this.innerHTML = this.render(this.render_table())
 
     }
+    form = () => {
+        const root = nav.page, page = root && root.firstChild,
+            { ths, trs } = page
+        let r = {}
+        if (typeof ths === 'function' && typeof trs === 'function') return { ths: ths(this), trs: trs(this) }
+        else debug({ ths, trs, page, root })
+    }
     render_table = () => {
-        const p = this.parentNode, data = p.data, cols = data.cols, rows = data.rows
-        this.data = { links: data.links }
-        if (cols && rows) {
-            return `<table><thead>${this.head(cols)}</thead><tbody>${this.body(rows)}</tbody></table>`
+        const p = this.parentNode, data = p.data, { ths, trs } = this.form()
+        if (ths && trs) {
+            return `<table><thead>${this.head(ths)}</thead><tbody>${this.body(trs)}</tbody></table>`
         }
         else {
             debug({ error: 'no table', parent: p.id, data, cols, rows })

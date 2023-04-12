@@ -5,18 +5,24 @@ class Html extends HTMLElement {
         super()
     }
     /*
-    connectedCallback() {
-        debug({ connectedCallback: this })
-    }
-    disconnectedCallback() {
-        // Add code to run when the element is removed from the DOM
-        debug({ disconnectedCallback: this })
-    }
-    attributeChangedCallback(name, oldValue, newValue) {
-        // Add code to run when an attribute of the element is changed
-        debug({ attributeChangedCallback: this, name, oldValue, newValue })
-    }
+    connectedCallback() {}
+    disconnectedCallback() {}
+    attributeChangedCallback(name, oldValue, newValue) {}
     */
+    attr = () => {
+        return {
+            name: this.getAttribute("name"),
+            type: this.getAttribute("type"),
+            param: this.getAttribute("param")
+        }
+    }
+    _p = () => {
+        let p = this
+        while (p && !p.root) {
+            p = p.parentNode
+        }
+        return p
+    }
     init = (p) => {
 
     }
@@ -28,23 +34,12 @@ class Html extends HTMLElement {
         this.root.appendChild(this.html)
         //this.resumeWatch()
     }
-    _data = () => {
-        let p = this, data = p.data
-        while (p && !data) {
-            p = p.parentNode
-            data = p && p.data
-        }
-        return data
-    }
     render = (html) => {
         if (!html || typeof html !== 'string') return debug({ error: 'no html', html, id: this.id })
         const _html = html.replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, l, c) => {
-            if (t === 'div' || t === 'this') {
-                return `<ed-div type="${t}" name="${l}" param="${c || ''}"></ed-div>`
-            }
-            else if (t === 'table') {
-                return `<ed-table name="${l}" param="${c || ''}"></ed-table>`
-            }
+            if (t === 'page') return `<ed-${l} name="${l}"></ed-${l}>`
+            else if (t === 'div' || t === 'this') return `<ed-div type="${t}" name="${l}" param="${c || ''}"></ed-div>`
+            else if (t === 'table') return `<ed-table name="${l}" param="${c || ''}"></ed-table>`
             else if (['input', 'select', 'checkbox', 'textarea'].indexOf(t) !== -1) {
                 return `<ed-form type="${t}" name="${l}" param="${c || ''}"></ed-form>`
             }
@@ -55,8 +50,7 @@ class Html extends HTMLElement {
         })
         return _html
     }
-    setForm = (vs) => {
-        const data = this._data(), form = data && data.form
+    setForm = (vs, form) => {
         if (vs && form) Object.keys(vs).forEach(name => {
             const fe = this.querySelector(`ed-form[name=${name}]`),
                 l = fe && fe.firstChild
@@ -65,8 +59,8 @@ class Html extends HTMLElement {
         else debug({ error: { vs, form } })
         debug({ setForm: { vs, form } })
     }
-    getForm = () => {
-        const ret = {}, data = this._data(), form = data && data.form
+    getForm = (form) => {
+        let ret = {}
         if (form) Object.keys(form).forEach(name => {
             const fe = this.querySelector(`ed-form[name=${name}]`),
                 l = fe && fe.firstChild, opts = form[name].options

@@ -27,26 +27,25 @@ function custom_pages() {
     customElements.define("ed-contact", Contact)
     custom_html()
 }
-let page
 class Page extends Html {
     constructor() {
         super()
         this.pages = pages
         this.id = 'page'
-        page = this
     }
     // Add code to run when the element is added to the DOM
     connectedCallback() {
-        debug({ connectedCallback: this.id })
-        if (nav && this.page !== nav.page) this.load(nav.page)
+        debug({ page: nav.page })
+        this.load(nav.page)
     }
     load = (page) => {
-        const n = pages[page]
-        if (page !== this._page) {
+        if (page !== this.page && pages[page]) {
+            if (!this.page) nav.page = this
             this.page = page
-            this.innerHTML = `<ed-${page} name="${page}"></ed-${page}>`
+            this.innerHTML = this.render(`{page.${page}}`)
             history.pushState(null, null, `/${page}`);
         }
+        else debug({ load: { page, this_page: this.page } })
     }
 }
-export { page, pages, custom_pages }
+export { pages, custom_pages }

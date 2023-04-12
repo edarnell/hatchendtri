@@ -8,8 +8,42 @@ import { Buffer } from 'buffer'
 class Volunteer extends Html {
   constructor() {
     super()
-    this.init({ id: 'volunteers', html })
-    ajax({ req: 'volunteers' }).then(this.data)
+  }
+  connectedCallback() {
+    if (!this.volunteers) ajax({ req: 'volunteers' }).then(this.data)
+    else this.innerHTML = this.render(html)
+  }
+  disconnectedCallback() {
+    this.innerHTML = this.render(html)
+  }
+  html = (o) => {
+    const { name, param } = o.attr()
+    return this.roles.sections.map((s, i) => `{table.section.${i}}`).join('')
+  }
+  link = (o) => {
+    const { name, param } = o.attr(), id = name.split('_')[1]
+    return { click: true, tip: 'Click to edit volunteer', class: this.color(id) }
+  }
+  ths = (o) => {
+    const { name, param } = o.attr(),
+      s = this.roles.sections[param]
+    return [s.name, `${s.start.adult} - ${s.end.adult}`, `${s.start.junior} - ${s.end.junior}`]
+  }
+  trs = (o) => {
+    const { name, param } = o.attr(),
+      s = this.roles.sections[param]
+    let ret = []
+    ret.push(['Lead', this.name(s.lead), this.name(s.lead)])
+    s.roles.forEach(r => this.tr(s.name, r.role, ret))
+    return ret
+  }
+  tr = (section, role, ret) => {
+    const r = this.map[`${section} ${role}`]
+    if (r && r.adult) r.adult.forEach((id, i) =>
+      ret.push([role,
+        this.name(id),
+        `${r.junior && r.junior[i] && this.name(r.junior[i]) || ''}`])
+    )
   }
   data = (r) => {
     debug({ r })
@@ -29,29 +63,15 @@ class Volunteer extends Html {
       }
     })
     debug({ v2023, roles: this.roles, volunteers: this.volunteers, map: this.map })
-    this.render()
-  }
-  render = () => {
-    this.replace({ id: 'vol_table', html: this.vols(), links: this.vol_links, parent: this.root })
-  }
-  vols = () => {
-    this.vol_links = {} // clear event handlers
-    return `<table>
-    <tbody>${this.roles.sections.map(s => `<th>${s.name} ${this.name(s.lead)}</th><th>${s.start.adult}-${s.end.adult}</th><th>${s.start.junior}-${s.end.junior}</th></tr>
-    ${s.roles.map(r => this.vol(s.name, r.role)).join('')}`).join('')}</tbody></table>`
-    //${this.roles.map(r => `<tr><td>${r.name}</td><td>${r.role}</td><td>${r.qty}</td></tr>`).join('')}</table>`
+    this.innerHTML = this.render(html)
   }
   sections = () => this.roles.sections.map(s => s.name)
   roles = (section) => this.roles.sections.find(s => s.name === section).roles.map(r => r.role)
   name = (id) => {
     if (this.volunteers[id]) {
-      this.vol_links[`vol_${id}`] = { click: this.name_e, class: this.color(id), tip: "update volunteer" }
       return `{link.vol_${id}.${this.volunteers[id].name.replace(/ /g, '_')}}`
     }
     else return ''
-  }
-  role = (section, role, i) => {
-
   }
   name_e = (l) => {
     const nm = l.getAttribute('name'), vid = nm.split('_')[1], vol = this.volunteers[vid]

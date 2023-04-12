@@ -1,7 +1,7 @@
 import Html, { debug } from './Html'
 import { links } from './links'
 import { icons } from './icons'
-import { pages, page } from './Page'
+import { pages } from './Page'
 import { nav } from './Nav'
 import { createPopper } from '@popperjs/core'
 
@@ -13,14 +13,11 @@ function removeTooltip() {
         tt.remove()
     }
 }
-
 class TT extends Html {
     constructor() {
         super()
     }
     connectedCallback() {
-        // Add code to run when the element is added to the DOM
-        //debug('TT connectedCallback', this)
         this.innerHTML = this.replace_link()
         this.addEventListener("mouseenter", this.tooltip)
         this.addEventListener("mouseleave", removeTooltip)
@@ -28,41 +25,35 @@ class TT extends Html {
     }
 
     disconnectedCallback() {
-        // Add code to run when the element is removed from the DOM
-        //debug({ disconnectedCallback: this })
         this.removeEventListener("mouseenter", this.tooltip)
         this.removeEventListener("mouseleave", removeTooltip)
         this.removeEventListener("click", this.click)
         this.innerHTML = ''
         if (this.show) removeTooltip()
+        delete this
     }
-
+    link = () => {
+        const root = nav.page, page = root && root.firstChild,
+            link = page && page.link
+        let ret
+        if (typeof link === 'function') ret = link(this)
+        if (!ret && page) {
+            const { type } = this.attr()
+            if (type === 'button') {
+                const form = page.form
+                if (typeof form === 'function') ret = form(this)
+            }
+        }
+        return ret
+    }
     replace_link = () => {
-        const name = this.getAttribute("name"),
-            type = this.getAttribute("type"),
-            param = this.getAttribute("param"),
-            k = name && name.toLowerCase(), data = this._data()
-        if (type === 'nav') {
-            const n = pages[k]
-            this.link = n
-        }
-        else if (type === 'button') {
-            const form = data && data.form
-            this.link = form && form[k]
-        }
-        else if (type === 'svg') {
-            this.link = icons[k]
-        }
+        const { type, param, name } = this.attr(), k = name.toLowerCase(), link = this.link() || pages[k] || links[k] || icons[k]
+        if (!link) debug({ TT: this.attr() })
         else {
-            const data = this._data(), lks = (data && data.links), lk = (lks && lks[k]) || links[k]
-            this.link = lk
-        }
-        const link = this.link
-        if (!link) debug({ type, link, data })
-        else {
+            this.lk = link
             const icon = (link.icon && icons[link.icon]) || (type === 'svg' && icons[k])
             const w = icon ? `<img name="${k}" data-image="${link.icon || ''}" src="${icon.default}" class="${link.class || 'icon'}" />`
-                : param ? param.replace(/_/g, ' ') : name.replace(/_/g, ' ')
+                : param ? param.replace(/_/g, "&nbsp;") : name.replace(/_/g, "&nbsp;")
             if (link.nav) {
                 return `<a name="${k}" href="${link.href}">${w}</a>`
             }
@@ -75,11 +66,23 @@ class TT extends Html {
         return "?"
     }
 
-    tooltip = () => {
+    click = (e) => {
+        const type = this.getAttribute("type")
+        if (this.lk && this.lk.nav) {
+            e.preventDefault()
+            nav.nav(this.lk.href)
+        }
+        else if (type === 'button' || this.lk.click) {
+            const root = nav.page, page = root && root.firstChild, update = page && page.update
+            if (update) update(e, this)
+        }
+    }
+
+    tooltip = (e) => {
         removeTooltip()
         const tt = document.createElement('div'),
             arrow = document.createElement('div'),
-            link = this.link
+            link = this.lk
         tt.id = 'tooltip'
         arrow.id = 'arrow'
         tt.name = arrow.name = this.name
@@ -95,18 +98,6 @@ class TT extends Html {
         //debug({ Tooltip: { l, link, tt, pop } })
         tt.setAttribute('data-show', '')
         this.show = true
-    }
-
-    click = (e) => {
-        const type = this.getAttribute("type")
-        if (this.link && this.link.nav) {
-            e.preventDefault()
-            nav.nav(this.link.href)
-        }
-        else if (type === 'button') {
-            const data = this._data()
-            if (data && data.update) data.update(e)
-        }
     }
 
     dragdiv(l, d) {
@@ -131,3 +122,4 @@ class TT extends Html {
     }
 }
 export default TT
+export { removeTooltip }
