@@ -11,15 +11,14 @@ class Table extends Html {
         this.innerHTML = this.render(this.render_table())
 
     }
-    form = () => {
+    rows = () => {
         const root = nav.page, page = root && root.firstChild,
             { ths, trs } = page
-        let r = {}
         if (typeof ths === 'function' && typeof trs === 'function') return { ths: ths(this), trs: trs(this) }
         else debug({ ths, trs, page, root })
     }
     render_table = () => {
-        const { ths, trs } = this.form()
+        const { ths, trs } = this.rows()
         if (ths && trs) {
             return `<table><thead>${this.head(ths)}</thead><tbody>${this.body(trs)}</tbody></table>`
         }

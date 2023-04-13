@@ -6,24 +6,24 @@ import { unzip } from './unzip'
 class Competitor extends Html {
   constructor() {
     super()
+    this.vars = {}
   }
   connectedCallback() {
     if (!this.fs) ajax({ req: 'emails' }).then(this.data)
     else this.innerHTML = this.render(html)
   }
-  html = (o) => {
-    const { name } = o.attr()
-    debug({ html: o.attr() })
-  }
   ths = (o) => {
     const { name } = o.attr()
     if (name === 'entries') return ['First', 'Last', 'Category', 'O/F']
-    debug({ ths: o.attr() })
   }
   trs = (o) => {
     const { name } = o.attr()
     if (name === 'entries') return this.comp2023()
-    else debug({ trs: o.attr() })
+  }
+  var = (o) => {
+    const { name, param } = o.attr()
+    if (this.vars[name]) return this.vars[name]
+    else debug({ var: name, vars: this.vars })
   }
   form = (o) => {
     const { name } = o.attr(), k = name && name.toLowerCase(), form = {
@@ -33,9 +33,14 @@ class Competitor extends Html {
       update: { class: 'form primary disabled', submit: true, tip: 'update your details or swim time' },
     }
     if (form[k]) return form[k]
-    else debug({ form: o.attr() })
+  }
+  update = () => {
+    this.innerHTML = this.render(html)
+    this.update_vars(this.uvs)
   }
   data = (r) => {
+    debug({ r })
+    this.vars.date = r.emails.date
     this.emails = unzip(r.emails.data)
     let fs = {}
     Object.keys(this.emails).forEach(e => {
@@ -116,6 +121,7 @@ class Competitor extends Html {
       const cs = this.emails[e]['2023C']
       cs.forEach(c => ret.push([c.first, c.last, c.cat, c.gender]))
     })
+    this.vars.n = ret.length.toString()
     return ret.sort((a, b) => a[1] > b[1] ? 1 : -1)
   }
   files = () => {
