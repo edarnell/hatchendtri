@@ -8,10 +8,8 @@ class Html extends HTMLElement {
     connectedCallback() {}
     disconnectedCallback() {}
     attributeChangedCallback(name, oldValue, newValue) {} // perhaps use to update
-    html = (o) => { const { name,type,param } = o.attr(); debug({ html: o.attr(),_id:o._id })
-    ths = (o) => { const { name,type,param } = o.attr(); debug({ ths: o.attr(),_id:o._id })
-    trs = (o) => { const { name,type,param } = o.attr(); debug({ trs: o.attr(),_id:o._id })
-    form = (o) => { const form={name:{}},{ name,type,param } = o.attr(); debug({ form: o.attr(),_id:o._id,form })
+    const { name,type,param } = o.attr(),_id=o._id()
+    {div.}html,{table.}ths,trs,{link.}link,{form.}form,{var.}var = (o) => {}
     */
     attr = () => {
         return {
@@ -44,13 +42,13 @@ class Html extends HTMLElement {
         }
         return id
     }
-    render = (html) => {
+    render = (html, end) => {
         if (typeof html !== 'string') return debug({ html, id: this.id })
-        const _html = html.replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, l, c) => {
+        let _html = html.replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, l, c) => {
             if (t === 'page') return `<ed-${l} name="${l}"></ed-${l}>`
             else if (t === 'div' || t === 'this') return `<ed-div type="${t}" name="${l}" param="${c || ''}"></ed-div>`
             else if (t === 'table') return `<ed-table type="${t}" name="${l}" param="${c || ''}"></ed-table>`
-            else if (t === 'var') return `<ed-var type="${t}" name="${l}" param="${c || ''}"></ed-var>`
+            else if (t === 'var') return c === 'end' && !end ? match : `<ed-var type="${t}" name="${l}" param="${c || ''}"></ed-var>`
             else if (['input', 'select', 'checkbox', 'textarea'].indexOf(t) !== -1) {
                 return `<ed-form type="${t}" name="${l}" param="${c || ''}"></ed-form>`
             }

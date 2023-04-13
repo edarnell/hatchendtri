@@ -10,7 +10,7 @@ class Competitor extends Html {
   }
   connectedCallback() {
     if (!this.fs) ajax({ req: 'emails' }).then(this.data)
-    else this.innerHTML = this.render(html)
+    else this.update()
   }
   ths = (o) => {
     const { name } = o.attr()
@@ -35,8 +35,8 @@ class Competitor extends Html {
     if (form[k]) return form[k]
   }
   update = () => {
-    this.innerHTML = this.render(html)
-    this.update_vars(this.uvs)
+    const h = this.render(html)
+    this.innerHTML = this.render(h, true)
   }
   data = (r) => {
     debug({ r })
@@ -51,7 +51,7 @@ class Competitor extends Html {
     })
     this.fs = fs
     debug({ fs, emails: this.emails })
-    this.innerHTML = this.render(html)
+    this.update()
   }
   form_e = (e) => {
     e.preventDefault()
