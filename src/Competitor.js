@@ -6,7 +6,7 @@ import { unzip } from './unzip'
 class Competitor extends Html {
   constructor() {
     super()
-    this.vars = {}
+    this.vars = { update: [] }
   }
   connectedCallback() {
     if (!this.fs) ajax({ req: 'emails' }).then(this.data)
@@ -22,7 +22,11 @@ class Competitor extends Html {
   }
   var = (o) => {
     const { name, param } = o.attr()
-    if (this.vars[name]) return this.vars[name]
+    if (param === 'update') {
+      this.vars.update.push(o)
+      return '...'
+    }
+    else if (typeof this.vars[name] === 'string') return this.vars[name]
     else debug({ var: name, vars: this.vars })
   }
   form = (o) => {
@@ -35,12 +39,14 @@ class Competitor extends Html {
     if (form[k]) return form[k]
   }
   update = () => {
-    const h = this.render(html)
-    this.innerHTML = this.render(h, true)
+    this.innerHTML = this.render(html)
+    this.vars.update.forEach(o => o.setAttribute('param', ''))
+    this.vars.update = []
   }
   data = (r) => {
     debug({ r })
-    this.vars.date = r.emails.date
+    this.vars.date = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+      .format(new Date(r.emails.date)).replace(",", " at ")
     this.emails = unzip(r.emails.data)
     let fs = {}
     Object.keys(this.emails).forEach(e => {

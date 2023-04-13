@@ -42,13 +42,16 @@ class Html extends HTMLElement {
         }
         return id
     }
-    render = (html, end) => {
+    rerender(html) {
+        return html.innerHTML.replace(/\{var\.([^\s}.]+)\.end}/g, (match, l) => this.vars[l])
+    }
+    render = (html) => {
         if (typeof html !== 'string') return debug({ html, id: this.id })
-        let _html = html.replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, l, c) => {
+        const _html = html.replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, l, c) => {
             if (t === 'page') return `<ed-${l} name="${l}"></ed-${l}>`
             else if (t === 'div' || t === 'this') return `<ed-div type="${t}" name="${l}" param="${c || ''}"></ed-div>`
             else if (t === 'table') return `<ed-table type="${t}" name="${l}" param="${c || ''}"></ed-table>`
-            else if (t === 'var') return c === 'end' && !end ? match : `<ed-var type="${t}" name="${l}" param="${c || ''}"></ed-var>`
+            else if (t === 'var') return `<ed-var type="${t}" name="${l}" param="${c || ''}"></ed-var>`
             else if (['input', 'select', 'checkbox', 'textarea'].indexOf(t) !== -1) {
                 return `<ed-form type="${t}" name="${l}" param="${c || ''}"></ed-form>`
             }
