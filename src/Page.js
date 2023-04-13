@@ -35,7 +35,7 @@ class Page extends Html {
     }
     // Add code to run when the element is added to the DOM
     connectedCallback() {
-        debug({ page: nav.page })
+        //debug({ page: nav.page })
         this.load(nav.page)
     }
     load = (page) => {

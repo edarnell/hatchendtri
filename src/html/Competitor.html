@@ -1,4 +1,9 @@
 <div class="container flexCol">
-    <form>{input.filter}{button.send}</form>
-    {div.email_table}
+    <br />
+    <form>{input.filter} {button.Update}</form>
+    <br />
+    Competitor details were updated on {var.update_date}.
+    <div>{link.contact} if you have entered since this date or cannot find your entry.</div>
+    <h5>2023 Entries {select.cat} {select.mf} {var.n}</h5>
+    {table.entries}
 </div>

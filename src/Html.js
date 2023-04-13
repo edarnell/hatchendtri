@@ -7,7 +7,11 @@ class Html extends HTMLElement {
     /*
     connectedCallback() {}
     disconnectedCallback() {}
-    attributeChangedCallback(name, oldValue, newValue) {}
+    attributeChangedCallback(name, oldValue, newValue) {} // perhaps use to update
+    html = (o) => { const { name,type,param } = o.attr(); debug({ html: o.attr(),_id:o._id })
+    ths = (o) => { const { name,type,param } = o.attr(); debug({ ths: o.attr(),_id:o._id })
+    trs = (o) => { const { name,type,param } = o.attr(); debug({ trs: o.attr(),_id:o._id })
+    form = (o) => { const form={name:{}},{ name,type,param } = o.attr(); debug({ form: o.attr(),_id:o._id,form })
     */
     attr = () => {
         return {
@@ -16,30 +20,36 @@ class Html extends HTMLElement {
             param: this.getAttribute("param")
         }
     }
-    _p = () => {
-        let p = this
-        while (p && !p.root) {
+    _id = () => {
+        let p = this, c, id = ''
+        while (p) {
+            if (p.tagName && p.tagName.startsWith('ED-')) {
+                const { name } = p.attr()
+                if (c) {
+                    let n
+                    const { name: cname } = c.attr(),
+                        os = p.querySelectorAll(`${c.tagName}[name=${cname}]`)
+                    if (os.length) os.forEach((o, i) => { if (o === c) n = i })
+                    else (n = 0)
+                    if (!os || name === cname || n) {
+                        // const warn= add specific warning code about naming
+                        debug({ warn: '_id', p: `${p.tagName} ${name}`, c: `${c.tagName} ${cname}`, os: os.length, n })
+                    }
+                    if (n > 0) id += `_${n}`
+                }
+                id = id ? name + '_' + id : name
+                c = p
+            }
             p = p.parentNode
         }
-        return p
-    }
-    init = (p) => {
-
-    }
-    sleep = () => {
-        //this.removeWatch()
-        this._html.remove()
-    }
-    resume = () => {
-        this.root.appendChild(this.html)
-        //this.resumeWatch()
+        return id
     }
     render = (html) => {
-        if (!html || typeof html !== 'string') return debug({ error: 'no html', html, id: this.id })
+        if (typeof html !== 'string') return debug({ html, id: this.id })
         const _html = html.replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, l, c) => {
             if (t === 'page') return `<ed-${l} name="${l}"></ed-${l}>`
             else if (t === 'div' || t === 'this') return `<ed-div type="${t}" name="${l}" param="${c || ''}"></ed-div>`
-            else if (t === 'table') return `<ed-table name="${l}" param="${c || ''}"></ed-table>`
+            else if (t === 'table') return `<ed-table type="${t}" name="${l}" param="${c || ''}"></ed-table>`
             else if (['input', 'select', 'checkbox', 'textarea'].indexOf(t) !== -1) {
                 return `<ed-form type="${t}" name="${l}" param="${c || ''}"></ed-form>`
             }

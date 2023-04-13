@@ -6,10 +6,36 @@ import { unzip } from './unzip'
 class Competitor extends Html {
   constructor() {
     super()
-    ajax({ req: 'emails' }).then(this.data)
+  }
+  connectedCallback() {
+    if (!this.fs) ajax({ req: 'emails' }).then(this.data)
+    else this.innerHTML = this.render(html)
+  }
+  html = (o) => {
+    const { name } = o.attr()
+    debug({ html: o.attr() })
+  }
+  ths = (o) => {
+    const { name } = o.attr()
+    if (name === 'entries') return ['First', 'Last', 'Category', 'O/F']
+    debug({ ths: o.attr() })
+  }
+  trs = (o) => {
+    const { name } = o.attr()
+    if (name === 'entries') return this.comp2023()
+    else debug({ trs: o.attr() })
+  }
+  form = (o) => {
+    const { name } = o.attr(), k = name && name.toLowerCase(), form = {
+      filter: { placeholder: 'name or email', width: '50rem' },
+      cat: { options: ['Cat', 'Adult', 'AN', 'AE', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Youth'] },
+      mf: { options: ['O/F', 'Open', 'Female'] },
+      update: { class: 'form primary disabled', submit: true, tip: 'update your details or swim time' },
+    }
+    if (form[k]) return form[k]
+    else debug({ form: o.attr() })
   }
   data = (r) => {
-    debug({ r })
     this.emails = unzip(r.emails.data)
     let fs = {}
     Object.keys(this.emails).forEach(e => {
@@ -19,16 +45,8 @@ class Competitor extends Html {
       })
     })
     this.fs = fs
-    /*
-    const p = this.files()
-    debug({ p })
-    this.form = p.form*/
-    this.divs = { email_table: this.all() }
-    this.form = {
-      filter: { placeholder: 'name,name,...', width: '50rem' },
-      send: { class: 'primary', submit: true },
-    }
-    this.init({ id: 'competitor_page', html })
+    debug({ fs, emails: this.emails })
+    this.innerHTML = this.render(html)
   }
   form_e = (e) => {
     e.preventDefault()
@@ -41,9 +59,6 @@ class Competitor extends Html {
       const data = { req: 'send_list', emails: this.elist }
       ajax(data)
     }
-  }
-  templates = (links) => {
-    return 'hello'
   }
   first_last = (e) => {
     let ret
@@ -94,13 +109,14 @@ class Competitor extends Html {
     })
     return l
   }
-  all = () => {
-    let l = {}, emails = Object.keys(this.emails).filter(e => this.emails[e]['2023C'])
-    debug({ emails })
+  comp2023 = () => {
+    const emails = Object.keys(this.emails).filter(e => this.emails[e]['2023C'])
+    let ret = []
     emails.forEach(e => {
-      l[e] = this.first_last(e)
+      const cs = this.emails[e]['2023C']
+      cs.forEach(c => ret.push([c.first, c.last, c.cat, c.gender]))
     })
-    return this.table(l)
+    return ret.sort((a, b) => a[1] > b[1] ? 1 : -1)
   }
   files = () => {
     const fs = {

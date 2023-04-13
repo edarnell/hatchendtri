@@ -19,12 +19,12 @@ class Table extends Html {
         else debug({ ths, trs, page, root })
     }
     render_table = () => {
-        const p = this.parentNode, data = p.data, { ths, trs } = this.form()
+        const { ths, trs } = this.form()
         if (ths && trs) {
             return `<table><thead>${this.head(ths)}</thead><tbody>${this.body(trs)}</tbody></table>`
         }
         else {
-            debug({ error: 'no table', parent: p.id, data, cols, rows })
+            debug({ table: `define ${ths ? '' : 'ths=(o)=>'} ${trs ? '' : 'trs=(o)=>'}`, _id: this._id(), ths, trs, o: this.attr() })
             return ''
         }
     }

@@ -13,4 +13,4 @@ style.innerHTML = css
 document.head.appendChild(style)
 custom_pages()
 const root = document.querySelector('#root')
-root.innerHTML = '<ed-nav name="nav"></ed-nav><ed-page></ed-page>'
+root.innerHTML = '<ed-nav name="nav"></ed-nav><ed-page name="page"></ed-page>'
