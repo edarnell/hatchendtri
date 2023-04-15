@@ -2,7 +2,6 @@ import Html, { debug } from './Html'
 import { links } from './links'
 import { icons } from './icons'
 import { pages } from './Page'
-import { nav } from './Nav'
 import { createPopper } from '@popperjs/core'
 
 function removeTooltip() {
@@ -19,28 +18,30 @@ class TT extends Html {
     }
     connectedCallback() {
         this.innerHTML = this.replace_link()
-        this.addEventListener("mouseenter", this.tooltip)
-        this.addEventListener("mouseleave", removeTooltip)
-        this.addEventListener("click", this.click)
+        if (this.lk) {
+            this.addEventListener("mouseenter", this.tooltip)
+            this.addEventListener("mouseleave", removeTooltip)
+            this.addEventListener("click", this.click)
+        }
     }
 
     disconnectedCallback() {
-        this.removeEventListener("mouseenter", this.tooltip)
-        this.removeEventListener("mouseleave", removeTooltip)
-        this.removeEventListener("click", this.click)
+        if (this.lk) {
+            this.removeEventListener("mouseenter", this.tooltip)
+            this.removeEventListener("mouseleave", removeTooltip)
+            this.removeEventListener("click", this.click)
+        }
         this.innerHTML = ''
         if (this.show) removeTooltip()
-        delete this
     }
     link = () => {
-        const root = nav.page, page = root && root.firstChild,
-            link = page && page.link
+        const link = this.page('link')
         let ret
         if (typeof link === 'function') ret = link(this)
         if (!ret && page) {
             const { type } = this.attr()
             if (type === 'button') {
-                const form = page.form
+                const form = this.page('form')
                 if (typeof form === 'function') ret = form(this)
             }
         }
@@ -48,7 +49,7 @@ class TT extends Html {
     }
     replace_link = () => {
         const { type, param, name } = this.attr(), k = name.toLowerCase(), link = this.link() || pages[k] || links[k] || icons[k]
-        if (!link) debug({ TT: this.attr() })
+        if (!link) debug({ TT: "link=(o)=>", o: this.debug() })
         else {
             this.lk = link
             const icon = (link.icon && icons[link.icon]) || (type === 'svg' && icons[k])
@@ -68,16 +69,15 @@ class TT extends Html {
 
     click = (e) => {
         const type = this.getAttribute("type")
+        e.preventDefault()
         if (this.lk && this.lk.nav) {
-            e.preventDefault()
             nav.nav(this.lk.href)
         }
         else if (type === 'button' || this.lk.click) {
-            const root = nav.page, page = root && root.firstChild, update = page && page.update
+            const update = this.page('update')
             if (update) update(e, this)
         }
     }
-
     tooltip = (e) => {
         removeTooltip()
         const tt = document.createElement('div'),
@@ -98,27 +98,6 @@ class TT extends Html {
         //debug({ Tooltip: { l, link, tt, pop } })
         tt.setAttribute('data-show', '')
         this.show = true
-    }
-
-    dragdiv(l, d) {
-        const div = document.createElement('div')
-        div.id = 'drag_' + d.id
-        if (this.drags[div.id]) {
-            this.close(null, div.id)
-        }
-        else {
-            div.innerHTML = card
-            const cb = div.querySelector('.card-body')
-            cb.appendChild(d)
-            document.body.appendChild(div)
-            this.watchClose(div)
-            const pop = createPopper(l, div, {
-                placement: 'top',
-                modifiers: [{ name: 'offset', options: { offset: [0, 8], }, },],
-            })
-            //debug({ dragdiv: { l, d, div } })
-            div.setAttribute('data-show', '')
-        }
     }
 }
 export default TT

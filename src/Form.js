@@ -1,5 +1,4 @@
-import Html, { debug } from './Html'
-import { nav } from './Nav'
+import Html, { debug, error } from './Html'
 
 class Form extends Html {
     constructor() {
@@ -21,14 +20,12 @@ class Form extends Html {
         this.innerHTML = ''
     }
     form = () => {
-        const root = nav.page, page = root && root.firstChild,
-            form = page && page.form
+        const form = this.page('form')
         if (typeof form === 'function') return form(this)
-        else debug({ form, page, root })
     }
     replace_form = () => {
         const { name, type, params } = this.attr(), form = this.form()
-        if (!form) debug({ Form: this.attr() })
+        if (!form) debug({ var: "define form=(o)=>", "o.name": this.attr().name, "o._id()": this._id() })
         else switch (type) {
             case 'input':
                 return `<input
@@ -62,9 +59,9 @@ class Form extends Html {
         //debug({ click: this.name })
     }
     input = e => {
-        const root = nav.page, page = root && root.firstChild,
-            update = page && page.update
+        const update = this.page('update')
         if (update) update(e, this)
+        else debug({ Form: "update=(e,o)=>", o: this.debug(), input: e })
     }
 }
 export default Form

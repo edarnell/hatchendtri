@@ -1,5 +1,5 @@
-import Html from './Html'
-import Nav, { nav } from './Nav'
+import Html, { nav, set_page } from './Html'
+import Nav from './Nav'
 import Home from './Home'
 import Details from './Details'
 import Results from './Results'
@@ -32,20 +32,21 @@ class Page extends Html {
         super()
         this.pages = pages
         this.id = 'page'
+        set_page(this)
     }
     // Add code to run when the element is added to the DOM
     connectedCallback() {
         //debug({ page: nav.page })
-        this.load(nav.page)
+        if (nav) this.load(nav._page)
     }
     load = (page) => {
-        if (page !== this.page && pages[page]) {
-            if (!this.page) nav.page = this
-            this.page = page
+        if (page !== this._page && pages[page]) {
+            this.innerHTML = ''
+            this._page = page
             this.innerHTML = this.render(`{page.${page}}`)
             history.pushState(null, null, `/${page}`);
         }
-        else debug({ load: { page, this_page: this.page } })
+        else debug({ load: { page, this_page: this._page } })
     }
 }
 export { pages, custom_pages }

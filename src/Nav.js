@@ -1,15 +1,14 @@
-import Html from './Html'
+import Html, { set_nav, page } from './Html'
 import html from './html/Nav.html'
 import { icons } from './icons'
 import { pages } from './Page'
 const debug = console.log.bind(console)
 const images = ['url("swim.jpg")', 'url("bike.jpg")', 'url("run.jpg")']
-let nav
 class Nav extends Html {
     constructor() {
         super()
         this.id = 'nav'
-        nav = this
+        set_nav(this)
     }
     // Add code to run when the element is added to the DOM
     connectedCallback() {
@@ -52,11 +51,10 @@ class Nav extends Html {
         this.toggle(false, pg_)
         const p = this.querySelector('.page')
         p.innerHTML = pages[pg_].nav
-        if (this.page && this.page.load) this.page.load(pg_) // may not have loaded yet
-        else if (!this.page) {
-            this.page = pg_ // will be replaced by page object
+        if (page) page.load(pg_) // may not have loaded yet
+        else if (!page) {
+            this._page = pg_ // will be used when page loads
         }
     }
 }
-export { nav }
 export default Nav

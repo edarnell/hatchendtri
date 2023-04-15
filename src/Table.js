@@ -1,5 +1,4 @@
 import Html, { debug } from './Html'
-import { page } from './Page.js'
 
 class Table extends Html {
     constructor() {
@@ -12,18 +11,17 @@ class Table extends Html {
 
     }
     rows = () => {
-        const root = nav.page, page = root && root.firstChild,
-            { ths, trs } = page
+        const ths = this.page('ths'), trs = this.page('trs')
         if (typeof ths === 'function' && typeof trs === 'function') return { ths: ths(this), trs: trs(this) }
-        else debug({ ths, trs, page, root })
     }
     render_table = () => {
         const { ths, trs } = this.rows()
+        if (trs.length === 0) return '' // could have option to return header only
         if (ths && trs) {
             return `<table><thead>${this.head(ths)}</thead><tbody>${this.body(trs)}</tbody></table>`
         }
         else {
-            debug({ table: `define ${ths ? '' : 'ths=(o)=>'} ${trs ? '' : 'trs=(o)=>'}`, _id: this._id(), ths, trs, o: this.attr() })
+            this.error("Table ths=(o)=> trs=(o)=>")
             return ''
         }
     }

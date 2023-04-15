@@ -1,15 +1,37 @@
 const debug = console.log.bind(console)
+import card from './html/card.html'
+import { createPopper } from '@popperjs/core'
+var nav, page
+function set_nav(o) { nav = o }
+function set_page(o) { page = o }
 
 class Html extends HTMLElement {
+    static get observedAttributes() {
+        return ['param']
+    }
     constructor() {
         super()
+        this.vars = { update: [] }
+    }
+    attributeChangedCallback(v, o, n) {
+        if (o !== undefined && n !== undefined) this.connectedCallback() // update
+    }
+    var_update = () => {
+        this.vars.update.forEach(o => o.setAttribute('param', ''))
+        this.vars.update = []
+    }
+    page = (a) => {
+        return a ? page && page.firstChild[a] : page && page.firstChild
+    }
+    debug = () => {
+        return { "o.name": this.attr().name, "o._id()": this._id() }
     }
     /*
     connectedCallback() {}
     disconnectedCallback() {}
     attributeChangedCallback(name, oldValue, newValue) {} // perhaps use to update
     const { name,type,param } = o.attr(),_id=o._id()
-    {div.}html,{table.}ths,trs,{link.}link,{form.}form,{var.}var = (o) => {}
+    {div.}html,{table.}ths,trs,{link.}link,{form.}form
     */
     attr = () => {
         return {
@@ -45,13 +67,14 @@ class Html extends HTMLElement {
     rerender(html) {
         return html.innerHTML.replace(/\{var\.([^\s}.]+)\.end}/g, (match, l) => this.vars[l])
     }
-    render = (html) => {
+    render = (html, set) => {
         if (typeof html !== 'string') return debug({ html, id: this.id })
         const _html = html.replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, l, c) => {
             if (t === 'page') return `<ed-${l} name="${l}"></ed-${l}>`
             else if (t === 'div' || t === 'this') return `<ed-div type="${t}" name="${l}" param="${c || ''}"></ed-div>`
             else if (t === 'table') return `<ed-table type="${t}" name="${l}" param="${c || ''}"></ed-table>`
             else if (t === 'var') return `<ed-var type="${t}" name="${l}" param="${c || ''}"></ed-var>`
+            else if (t === 'popup') return `<ed-popup type="${t}" name="${l}" param="${c || ''}"></ed-popup>`
             else if (['input', 'select', 'checkbox', 'textarea'].indexOf(t) !== -1) {
                 return `<ed-form type="${t}" name="${l}" param="${c || ''}"></ed-form>`
             }
@@ -60,7 +83,11 @@ class Html extends HTMLElement {
             }
             else return match
         })
-        return _html
+        if (set) {
+            this.innerHTML = _html
+            this.var_update()
+        }
+        else return _html
     }
     setForm = (vs, form) => {
         if (vs && form) Object.keys(vs).forEach(name => {
@@ -68,8 +95,7 @@ class Html extends HTMLElement {
                 l = fe && fe.firstChild
             if (l && l.tagName !== "BUTTON" && vs[name] !== undefined) l.value = vs[name]
         })
-        else debug({ error: { vs, form } })
-        debug({ setForm: { vs, form } })
+        else debug({ setForm: this.debug(), vs, form })
     }
     getForm = (form) => {
         let ret = {}
@@ -83,4 +109,14 @@ class Html extends HTMLElement {
     }
 }
 export default Html
-export { debug }
+export { debug, nav, page, set_nav, set_page }
+
+/*         const { type } = this.attr(), html = this.html()
+        if (html) this.innerHTML = this.render(html)
+        else debug({ Div: "define html(o)=>{}", "o.name()": this.attr().name, "o._id()": this._id() })
+    }
+    html = () => {
+        const html = this.page('html')
+        if (typeof html === 'function') return html(this)
+    }
+    */
