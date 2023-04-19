@@ -1,10 +1,15 @@
 const debug = console.log.bind(console)
-import card from './html/card.html'
-import { createPopper } from '@popperjs/core'
+import { data } from './data.js'
 var nav, page
 function set_nav(o) { nav = o }
 function set_page(o) { page = o }
-
+function _s(s, p) {
+    if (p === undefined) return s && s.replace(/\s/g, "&nbsp;")
+    else {
+        const r = s && s.replace(/_/g, " ")
+        return r && p ? r.toLowerCase() : r
+    }
+}
 class Html extends HTMLElement {
     static get observedAttributes() {
         return ['param']
@@ -14,31 +19,58 @@ class Html extends HTMLElement {
         this.vars = { update: [] }
     }
     attributeChangedCallback(v, o, n) {
-        if (o !== undefined && n !== undefined) this.connectedCallback() // update
+        if (o === '' && n === 'update') {
+            this.debug ? this.debug() : null
+            this.setAttribute('param', '')
+            this.disconnectedCallback()
+            this.connectedCallback() // update
+        }
+    }
+    connectedCallback() {
+        if (this.innerHTML) this.debug ? this.debug() : null
+        else {
+            this.debug ? this.debug() : null
+            if (this.data) {
+                data(this.data).then(() => this.render_html())
+                    .catch(e => debug({ data: e }))
+            }
+            else this.render_html()
+        }
+    }
+    render_html() {
+        const html = this.html ? this.html() : null
+        if (typeof html === 'string') {
+            this.render(html, true)
+            if (this.listen) this.listen(true)
+        }
+        else debug({ Html: "html(o)=>", o: this.o() })
+    }
+
+    disconnectedCallback() {
+        if (this.listen) this.listen(false)
+        this.innerHTML = ''
     }
     var_update = () => {
-        this.vars.update.forEach(o => o.setAttribute('param', ''))
+        this.vars.update.forEach(o => o.setAttribute('param', 'update'))
         this.vars.update = []
     }
     page = (a) => {
         return a ? page && page.firstChild[a] : page && page.firstChild
     }
-    debug = () => {
+    o = () => {
         return { "o.name": this.attr().name, "o._id()": this._id() }
     }
-    /*
-    connectedCallback() {}
-    disconnectedCallback() {}
-    attributeChangedCallback(name, oldValue, newValue) {} // perhaps use to update
-    const { name,type,param } = o.attr(),_id=o._id()
-    {div.}html,{table.}ths,trs,{link.}link,{form.}form
-    */
     attr = () => {
         return {
             name: this.getAttribute("name"),
             type: this.getAttribute("type"),
             param: this.getAttribute("param")
         }
+    }
+    parent = (type) => {
+        let p = this.parentNode
+        while (p && (!p.popup || !p[type])) p = p.parentNode
+        return p ? p[type] : p
     }
     _id = () => {
         let p = this, c, id = ''
@@ -64,59 +96,52 @@ class Html extends HTMLElement {
         }
         return id
     }
-    rerender(html) {
-        return html.innerHTML.replace(/\{var\.([^\s}.]+)\.end}/g, (match, l) => this.vars[l])
-    }
     render = (html, set) => {
         if (typeof html !== 'string') return debug({ html, id: this.id })
         const _html = html.replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, l, c) => {
             if (t === 'page') return `<ed-${l} name="${l}"></ed-${l}>`
-            else if (t === 'div' || t === 'this') return `<ed-div type="${t}" name="${l}" param="${c || ''}"></ed-div>`
+            else if (t === 'div') return `<ed-div type="${t}" name="${l}" param="${c || ''}"></ed-div>`
             else if (t === 'table') return `<ed-table type="${t}" name="${l}" param="${c || ''}"></ed-table>`
             else if (t === 'var') return `<ed-var type="${t}" name="${l}" param="${c || ''}"></ed-var>`
-            else if (t === 'popup') return `<ed-popup type="${t}" name="${l}" param="${c || ''}"></ed-popup>`
-            else if (['input', 'select', 'checkbox', 'textarea'].indexOf(t) !== -1) {
+            else if (t === 'vol') return `<ed-vol type="${t}" name="${l}" param="${c || ''}"></ed-vol>`
+            else if (['input', 'select', 'checkbox', 'textarea', 'button'].indexOf(t) !== -1) {
                 return `<ed-form type="${t}" name="${l}" param="${c || ''}"></ed-form>`
             }
-            else if (['nav', 'svg', 'link', 'button'].indexOf(t) !== -1) {
+            else if (['nav', 'svg', 'link'].indexOf(t) !== -1) {
                 return `<ed-tt type="${t}" name="${l}" param="${c || ''}"></ed-tt>`
             }
             else return match
         })
         if (set) {
+            // debug({ html, id: this.id, set, this: this.debug() })
             this.innerHTML = _html
             this.var_update()
         }
         else return _html
     }
-    setForm = (vs, form) => {
-        if (vs && form) Object.keys(vs).forEach(name => {
-            const fe = this.querySelector(`ed-form[name=${name}]`),
+    setForm = (vs) => {
+        if (vs) Object.keys(vs).forEach(k => {
+            const fe = this.querySelector(`ed-form[name=${k}]`),
                 l = fe && fe.firstChild
-            if (l && l.tagName !== "BUTTON" && vs[name] !== undefined) l.value = vs[name]
+            if (l) {
+                if (l && l.type === 'checkbox') l.checked = vs[k]
+                else if (l.tagName !== "BUTTON" && vs[k] !== undefined) l.value = vs[k]
+            }
+            else debug({ setForm: this.o(), k })
         })
-        else debug({ setForm: this.debug(), vs, form })
+        else debug({ setForm: this.o(), vs })
     }
     getForm = (form) => {
         let ret = {}
         if (form) Object.keys(form).forEach(name => {
             const fe = this.querySelector(`ed-form[name=${name}]`),
-                l = fe && fe.firstChild, opts = form[name].options
+                l = fe && fe.firstChild
             if (l && l.type === 'checkbox') ret[name] = l.checked
-            else if (l && l.tagName !== "BUTTON") ret[name] = opts && l.value === opts[0] ? '' : l.value
+            else if (l && l.tagName !== "BUTTON") ret[name] = l.value
         })
+        else debug({ setForm: this.o(), form })
         return ret
     }
 }
 export default Html
-export { debug, nav, page, set_nav, set_page }
-
-/*         const { type } = this.attr(), html = this.html()
-        if (html) this.innerHTML = this.render(html)
-        else debug({ Div: "define html(o)=>{}", "o.name()": this.attr().name, "o._id()": this._id() })
-    }
-    html = () => {
-        const html = this.page('html')
-        if (typeof html === 'function') return html(this)
-    }
-    */
+export { debug, nav, page, set_nav, set_page, _s }

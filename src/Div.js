@@ -1,19 +1,14 @@
-import Html, { debug } from './Html'
+import Html from './Html'
 class Div extends Html {
     constructor() {
         super()
     }
-    connectedCallback() {
-        const { type } = this.attr(), html = this.html()
-        if (html) this.innerHTML = this.render(html)
-        else debug({ Div: "define html(o)=>{}", "o.name()": this.attr().name, "o._id()": this._id() })
-    }
     html = () => {
-        const html = this.page('html')
-        if (typeof html === 'function') return html(this)
-    }
-    disconnectedCallback() {
-        this.innerHTML = ''
+        const f = this.page('html')
+        if (typeof f === 'function') {
+            const html = f(this)
+            if (typeof html === 'string') return html
+        }
     }
 }
 export default Div

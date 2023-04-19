@@ -8,15 +8,10 @@ class Home extends Html {
         super()
     }
     html = (o) => {
-        const { name } = o.attr()
+        const p = o && o.attr(), name = p && p.name
         if (name === 'home_main') return home_main
         else if (name === 'news') return news
-    }
-    connectedCallback() {
-        this.innerHTML = this.render(html)
-    }
-    disconnectedCallback() {
-        this.innerHTML = ''
+        else return html
     }
 }
 export default Home

@@ -1,7 +1,6 @@
-import Html, { debug } from './Html'
+import Html, { debug, page } from './Html'
 import html from './html/Competitor.html'
-import { ajax } from './ajax'
-import { unzip } from './unzip'
+import { data } from './data'
 
 const cat = {
   'Adult Experienced (17yrs+)': 'Ae',
@@ -32,10 +31,12 @@ const form = {
 class Competitor extends Html {
   constructor() {
     super()
+    form.update = { class: 'form primary hidden', tip: this.formtip }
   }
   connectedCallback() {
-    if (!this.fs) ajax({ req: 'emails' }).then(this.data)
-    else this.render(html, true)
+    data('volunteers').then(r => {
+      if (page.emails) this.render(html, true)
+    })
   }
   ths = (o) => {
     const { name } = o.attr()
@@ -50,24 +51,21 @@ class Competitor extends Html {
   }
   var = (o) => {
     const { name, param } = o.attr()
-    if (param === 'update') {
-      this.vars.update.push(o)
-      if (name === 'n') this.n = o
-      return '...'
-    }
-    else if (typeof this.vars[name] === 'string') return this.vars[name]
+    if (name === 'date') return page.emails_date
     else debug({ var: name, vars: this.vars })
   }
-  tip = (n, p) => {
-    if (n === 'mf') return p === 'F' ? "Female" : "Open/Male"
-    else if (n === 'cat') return rCat[p]
+  tip = (e, o) => {
+    const { name, param } = o.attr()
+    if (name === 'mf') return param === 'F' ? "Female" : "Open/Male"
+    else if (name === 'cat') return rCat[param]
+    else if (name === 'Entries') return `${this.rows} rows selected`
   }
   link = (o) => {
-    const { name, param } = o.attr()
+    const { name } = o.attr()
     const tt = {
-      cat: { f: () => this.tip(name, param) },
-      mf: { f: () => this.tip(name, param) },
-      update: { class: 'hidden', f: () => { } }
+      cat: { tip: this.tip },
+      mf: { tip: this.tip },
+      Entries: { tip: this.tip }
     }
     return tt[name]
   }
@@ -78,22 +76,20 @@ class Competitor extends Html {
   update = (e, o) => {
     this.form_data = this.getForm(form)
     this.entries.setAttribute('param', 'update')
-    this.n.setAttribute('param', this.var.n) // any value to force update
   }
   data = (r) => {
     debug({ r })
     this.vars.date = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
       .format(new Date(r.emails.date)).replace(",", " at ")
-    this.emails = unzip(r.emails.data)
     let fs = {}
-    Object.keys(this.emails).forEach(e => {
-      Object.keys(this.emails[e]).forEach(k => {
+    Object.keys(page.emails).forEach(e => {
+      Object.keys(page.emails[e]).forEach(k => {
         if (!fs[k]) fs[k] = []
         fs[k].push(e)
       })
     })
     this.fs = fs
-    debug({ fs, emails: this.emails })
+    debug({ fs, emails: page.emails })
     this.render(html, true)
   }
   filter = (c, m) => {
@@ -104,15 +100,15 @@ class Competitor extends Html {
     return true
   }
   comp2023 = () => {
-    const emails = Object.keys(this.emails).filter(e => this.emails[e]['2023C'])
+    const emails = Object.keys(page.emails).filter(e => page.emails[e]['2023C'])
     let ret = []
     emails.forEach(e => {
-      const cs = this.emails[e]['2023C']
+      const cs = page.emails[e]['2023C']
       cs.forEach(c => {
         if (this.filter(cat[c.cat], mf[c.gender])) ret.push([c.first, c.last, `{link.cat.${cat[c.cat]}}`, `{link.mf.${mf[c.gender]}}`, c.club || ''])
       })
     })
-    this.vars.n = ret.length.toString()
+    this.rows = ret.length
     return ret.sort((a, b) => a[1] > b[1] ? 1 : -1)
   }
 }

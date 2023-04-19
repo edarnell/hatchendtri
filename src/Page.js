@@ -4,6 +4,7 @@ import Home from './Home'
 import Details from './Details'
 import Results from './Results'
 import Volunteer from './Volunteer'
+import Vol from './Vol'
 import Competitor from './Competitor'
 import Contact from './Contact'
 import { custom_html } from './custom_html'
@@ -25,6 +26,7 @@ function custom_pages() {
     customElements.define("ed-volunteer", Volunteer)
     customElements.define("ed-competitor", Competitor)
     customElements.define("ed-contact", Contact)
+    customElements.define("ed-vol", Vol)
     custom_html()
 }
 class Page extends Html {

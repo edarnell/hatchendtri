@@ -4,8 +4,9 @@ import pako from 'pako'
 const filename = process.argv[2]
 
 function f(f, s) {
-    const d = s ? fs.readFileSync(f).toString() : fs.readFileSync(f)
     const stat = fs.statSync(f)
+    if (!stat.isFile()) return null
+    const d = s ? fs.readFileSync(f).toString() : fs.readFileSync(f)
     return s === undefined ? { data: Buffer.from(d).toJSON(), date: stat.mtime } : d
 }
 
@@ -15,6 +16,16 @@ function zip(j, s) {
 
 function unzip(z, base64) {
     return JSON.parse(pako.inflate(base64 ? Buffer.from(z, 'base64') : z, { to: 'string' }))
+}
+
+function fz(f) {
+    if (!fs.existsSync(f)) return null
+    const d = fs.readFileSync(f)
+    if (d) return unzip(d)
+}
+
+function save(f, j) {
+    fs.writeFileSync(f, zip(j))
 }
 
 
@@ -35,4 +46,4 @@ else {
     else console.log('usage: node zip.mjs filename.[json|gz]')
 }
 
-export { f, zip, unzip }
+export { f, zip, unzip, fz, save }

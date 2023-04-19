@@ -1,8 +1,8 @@
 // npm install @aws-sdk/client-ses
 import express from 'express'
 import { port, log, url } from './utils.mjs'
-import { f } from './zip.mjs'
-//import { send_list } from './mail.mjs'
+import { f, fz, save } from './zip.mjs'
+import { send } from './mail.mjs'
 
 const app = express()
 app.use(express.json())
@@ -26,20 +26,30 @@ app.post(url, (m, r) => {
             const results = f('gz/results.gz')
             resp(req, r, { results })
         }
-        /*else if (req === 'send') {
-            const { name, email, subject, message } = json
-            if (name && email && subject && message) send_m({ name, email, subject, message }).then(s => resp(req, r, { sent: s }))
+        else if (req === 'send') {
+            const { name, email, subject, message } = json.data || {}
+            if (name && email && subject && message) send({ name, email, subject, message })
+                .then(s => resp(req, r, { sent: s }))
             else resp(req, r, { message: 'no data' }, 400)
-        }*/
+        }
         else if (req === 'send_list') {
             const { emails } = json
             //if (emails) send_list(emails)
             resp(req, r, { sending: Object.keys(emails).length })
             //else resp(req, r, { message: 'no data' }, 400)
         }
+        else if (req === 'vol') {
+            const { data } = json, v = data.vol, vf = fz('gz/v2023.gz'), vs = vf || {}
+            vs[v.vid] = v
+            save('gz/v2023.gz', vs)
+            const v2023 = f('gz/v2023.gz')
+            resp(req, r, { v2023 })
+            //else resp(req, r, { message: 'no data' }, 400)
+        }
         else if (req === 'volunteers') {
-            const volunteers = f('gz/vs.gz'), roles = f('gz/roles.gz'), v2023 = f('lists/2023V.txt')
-            resp(req, r, { volunteers, roles, v2023 })
+            const volunteers = f('gz/vs.gz'), emails = f('gz/emails.gz'), roles = f('gz/roles.gz'),
+                v2023 = f('gz/v2023.gz'), vtxt = f('lists/2023V.txt')
+            resp(req, r, { volunteers, roles, v2023, emails, vtxt })
         }
         else if (req === 'emails') {
             const emails = f('gz/emails.gz')

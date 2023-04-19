@@ -1,8 +1,6 @@
-import Html, { debug } from './Html'
+import Html, { debug, page, _s } from './Html'
 import html from './html/Results.html'
 import photo from './icon/photo.svg'
-import { ajax } from './ajax'
-import { unzip } from './unzip'
 
 const form = {
   filter: { placeholder: 'name,name,...', width: '50rem' },
@@ -10,23 +8,27 @@ const form = {
   cat: { options: ['Cat', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Y', 'Adult', 'S*', 'SY', 'S1', 'S2', 'S3', 'S4', 'V*', 'V1', 'V2', 'V3', 'V4'] },
   year: { options: ['Year', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2017', '2018', '2019', '2022'] },
   n: { options: ['N', '1', '3', '5', '10', '20'] },
-  c: { class: 'form red bold hidden', tip: 'clear all filters' },
+  c: { class: 'form red bold hidden', tip: 'clear all filters', submit: true },
 }
 
 class Results extends Html {
   constructor() {
     super()
+    this.data = 'results'
   }
   html = (o) => {
-    const { name, param } = o.attr()
-    if (name === 'results_all') return this.results_all()
+    const p = o && o.attr(), name = p && p.name, param = p && p.param
+    if (name === 'results_all') {
+      this._results_all = o
+      return this.results_all()
+    }
     else if (name === 'results_year') return this.results_year(param)
-    else debug({ html: o.attr() })
+    else if (!o) return html
   }
   link = (o) => {
     const { name, param } = o.attr()
-    if (name === 'year') return { tip: `${param} all results`, click: true }
-    else if (name === 'name') return { tip: `${param.replace(/_/g, " ")} all results`, click: true }
+    if (name === 'year') return { tip: this.yearTip, click: this.year }
+    else if (name === 'name') return { tip: `${param.replace(/_/g, " ")} all results`, click: this.name }
     else debug({ link: o.attr() })
   }
   form = (o) => {
@@ -55,52 +57,47 @@ class Results extends Html {
     } else debug({ ths: o.attr() })
     debug({ trs: o.attr() })
   }
-  connectedCallback() {
-    //debug({ connectedCallback: this })
-    if (!this.r) ajax({ req: 'results' }).then(this.res)
-    else this.innerHTML = this.render(html)
-  }
-  disconnectedCallback() {
-    // Add code to run when the element is removed from the DOM
-    debug({ disconnectedCallback: this.id })
-  }
-  res = (r) => {
-    this.r = unzip(r.results.data)
-    this.form_data = this.getForm(form)
-    this.innerHTML = this.render(html)
-  }
   toggle = (o) => {
     const { name, type, param } = o && o.attr(),
+      f = this.form_data = this.getForm(form),
       clear = { filter: '', mf: 'M/F', cat: 'Cat', year: 'Year', n: 'N' },
-      val = this.form_data[name === 'name' ? 'filter' : name]
+      val = name === 'name' ? f['filter'] : f[name]
     return (param && val === param.replace(/_/g, " ")) ? clear[name] || '' : param.replace(/_/g, " ")
   }
+  form_vals = () => {
+    const f = this.form_data = this.getForm(form),
+      C = { filter: '', mf: 'M/F', cat: 'Cat', year: 'Year', n: 'N' }
+    let ret = {}
+    Object.keys(f).forEach(k => ret[k] = f[k] === C[k] ? '' : f[k])
+    return ret
+  }
   update = (e, o) => {
-    const { name, type, param } = o && o.attr(),
-      val = this.toggle(o)
-    //debug({ update: { name, type, param } })
+    const p = o && o.attr(), name = p && p.name
     if (name === 'C') this.setForm({ filter: '', mf: 'M/F', cat: 'Cat', year: 'Year', n: 'N' }, form)
-    else if (name === 'name') this.setForm({ filter: val }, form)
-    else if (name === 'year') this.setForm({ year: val }, form)
     this.refresh()
   }
   refresh = () => {
-    this.form_data = this.getForm(form)
-    const blank = Object.keys(form).filter(k => this.form_data[k]).length
-    const c = this.querySelector(`button[name=c]`)
+    const f = this.form_vals(),
+      blank = Object.keys(f).filter(k => f[k] === '').length,
+      c = this.querySelector(`button[name=C]`)
     c && c.classList[blank ? 'remove' : 'add']('hidden')
-    const el = this.querySelector("ed-div[name=results_all]"), res = this.results_all()
-    el.innerHTML = this.render(res)
+    this._results_all.setAttribute('param', 'update')
   }
-  yearClick = (l) => {
-    const year = l.innerHTML
-    if (year !== this.form.data.year) this.setForm(this.form.i, { year })
-    else this.setForm(this.form.i, { year: 'Year' })
-    this.render()
+  year = (e, o) => {
+    const { name, param } = o.attr(), year = param
+    if (year !== this.form_data.year) this.setForm({ year })
+    else this.setForm({ year: 'Year' })
+    this.refresh()
   }
-  yearTip = (l) => {
-    const year = l.innerHTML
-    return this.form.data.year === year ? 'all years summary' : `${year} all results`
+  name = (e, o) => {
+    const { param } = o.attr(), n = _s(param, true), f = _s(this.form_data.filter, true)
+    if (n !== f) this.setForm({ filter: _s(param, false) })
+    else this.setForm({ filter: '' })
+    this.refresh()
+  }
+  yearTip = (e, o) => {
+    const { name, param } = o.attr(), year = param
+    return this.form_data.year === year ? 'all years summary' : `${year} all results`
   }
   cnum = (a) => {
     const cs = { 'TS': 1, 'T1': 2, 'T2': 3, 'T3': 4, 'Y': 5 }
@@ -129,8 +126,8 @@ class Results extends Html {
     return ret
   }
   filter = (yr) => {
-    const results = this.r, c = this.cols(yr),
-      { year, cat, mf, filter, n } = this.form_data
+    const results = page.results, c = this.cols(yr),
+      { year, cat, mf, filter, n } = this.form_vals()
     let ret = []
     for (var i = 1; i < results[yr].length; i++) {
       let r = results[yr][i]
@@ -187,7 +184,7 @@ class Results extends Html {
     return (this.np && year === '2022' && this.np[num]) ? `<image class="icon" name="${num}" src="${photo}">` : null
   }
   cols(year) {
-    const r = this.r
+    const r = page.results
     let c = {}, cn = 0
     r[year][0].forEach(n => { c[n] = cn++ })
     return c
@@ -196,13 +193,12 @@ class Results extends Html {
     return `<h5>{link.year.${year}}</h5>{table.results_year.${year}}`
   }
   results_all = () => {
-    //debug({ results_all: this.form_data })
-    const years = Object.keys(this.r).reverse()
+    const years = Object.keys(page.results).reverse()
     let n = 0
     return years.map(year => {
       let rows = n < 100 ? this.filter(year) : []
       n += rows.length
-      return (rows.length > 0) ? `{this.results_year.${year}}` : ''
+      return (rows.length > 0) ? `{div.results_year.${year}}` : ''
     }).join('')
   }
 }

@@ -1,31 +1,18 @@
-import Html, { debug, error } from './Html'
+import { debug } from './Html'
+import TT from './TT'
 
-class Form extends Html {
+class Form extends TT {
     constructor() {
         super()
-    }
-    connectedCallback() {
-        // Add code to run when the element is added to the DOM
-        //debug('Form connectedCallback', this)
-        this.innerHTML = this.replace_form()
-        this.addEventListener("input", this.input)
-        this.addEventListener("click", this.click)
-    }
-
-    disconnectedCallback() {
-        // Add code to run when the element is removed from the DOM
-        //debug({ disconnectedCallback: this })
-        this.removeEventListener("input", this.input)
-        this.removeEventListener("click", this.click)
-        this.innerHTML = ''
+        this._form = true
     }
     form = () => {
-        const form = this.page('form')
-        if (typeof form === 'function') return form(this)
+        const f = this.parent('form') || this.page('form')
+        if (typeof f === 'function') return f(this)
     }
-    replace_form = () => {
-        const { name, type, params } = this.attr(), form = this.form()
-        if (!form) debug({ var: "define form=(o)=>", "o.name": this.attr().name, "o._id()": this._id() })
+    html = () => {
+        const { name, type, params } = this.attr(), form = this.lk = this.form()
+        if (!form) debug({ Form: "define form=(o)=>", o: this.o() })
         else switch (type) {
             case 'input':
                 return `<input
@@ -33,11 +20,13 @@ class Form extends Html {
             name="${name}"
             ${form.placeholder ? `placeholder="${form.placeholder}"` : ''}
             ${form.required ? 'required' : ''}
+            ${form.value ? `value="${form.value}"` : ''}
             />`
             case 'select':
-                return `<select class="form" 
-            name="${name}">
-            ${form.options.map(o => `<option>${o}</option>`).join('')}
+                return `<select class="${form.class || 'form'}" 
+            name="${name}"
+            ${form.value ? `value="${form.value}"` : ''}>
+            ${form.options.map(o => `<option ${o === form.value ? 'selected' : ''}>${o}</option>`).join('')}
             </select>`
             case 'textarea':
                 return `<textarea rows="${form.rows || 10}" cols="${form.cols || 40}" class="form" 
@@ -49,19 +38,21 @@ class Form extends Html {
                 return `<input
             type="checkbox"
             class="checkbox"
+            ${form.value === true ? 'checked' : ''}
             name="${name}"
             ${form.required ? 'required' : ''}
             />`
+            case 'button':
+                return `<button 
+            name="${name}" 
+            class="${form.class || 'form'}">${name}</button>`
         }
     }
-
-    click = e => {
-        //debug({ click: this.name })
-    }
     input = e => {
-        const update = this.page('update')
+        e.preventDefault()
+        const update = this.parent('update') || this.page('update')
         if (update) update(e, this)
-        else debug({ Form: "update=(e,o)=>", o: this.debug(), input: e })
+        else debug({ Form: "update=(e,o)=>", o: this.o(), input: e })
     }
 }
 export default Form

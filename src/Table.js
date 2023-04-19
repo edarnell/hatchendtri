@@ -4,20 +4,22 @@ class Table extends Html {
     constructor() {
         super()
     }
-    connectedCallback() {
-        // Add code to run when the element is added to the DOM
-        //debug('Table connectedCallback', this)
-        this.innerHTML = this.render(this.render_table())
-
+    html = () => {
+        const table = this.rows()
+        let html
+        if (table) html = this.render_table(table)
+        else debug({ table: "ths=>{},trs=>()", o: this.debug() })
+        return html
     }
     rows = () => {
-        const ths = this.page('ths'), trs = this.page('trs')
+        const ths = this.parent('ths') || this.page('ths'), trs = this.parent('trs') || this.page('trs')
         if (typeof ths === 'function' && typeof trs === 'function') return { ths: ths(this), trs: trs(this) }
     }
-    render_table = () => {
-        const { ths, trs } = this.rows()
+    render_table = (table) => {
+        const { ths, trs } = table
         if (trs.length === 0) return '' // could have option to return header only
         if (ths && trs) {
+            //debug({ ths, trs })
             return `<table><thead>${this.head(ths)}</thead><tbody>${this.body(trs)}</tbody></table>`
         }
         else {

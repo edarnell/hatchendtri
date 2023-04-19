@@ -346,63 +346,65 @@ select:focus {
 
 /* AI created with theme dark or light */
 
-#tooltip {
+.tooltip {
     max-width: 30rem;
+    overflow-wrap: break-word;
     font-size: 0.9rem;
     border-radius: 4px;
     display: none;
 }
 
-#tooltip[data-show] {
+.tooltip[data-show] {
     display: block;
 }
 
-#arrow,
-#arrow::before {
+.arrow,
+.arrow::before {
     position: absolute;
     width: 8px;
     height: 8px;
     background: inherit;
 }
 
-#arrow {
+.arrow {
     visibility: hidden;
 }
 
-#arrow::before {
+.arrow::before {
     visibility: visible;
     content: '';
     transform: rotate(45deg);
 }
 
-#tooltip[data-theme='dark'] {
+.tooltip[data-theme='dark'] {
     background-color: #333;
     color: #fff;
     font-weight: bold;
+    max-width: 60rem;
     padding: 4px 8px;
 }
 
-#tooltip[data-theme='dark'][data-popper-placement^='top']>#arrow {
+.tooltip[data-theme='dark'][data-popper-placement^='top']>.arrow {
     bottom: -4px;
     border-color: transparent transparent #333 transparent;
 }
 
-#tooltip[data-theme='dark'][data-popper-placement^='bottom']>#arrow {
+.tooltip[data-theme='dark'][data-popper-placement^='bottom']>.arrow {
     top: -4px;
     border-color: #333 transparent transparent transparent;
 }
 
-#tooltip[data-theme='dark'][data-popper-placement^='left']>#arrow {
+.tooltip[data-theme='dark'][data-popper-placement^='left']>.arrow {
     right: -4px;
     border-color: transparent #333 transparent transparent;
 }
 
-#tooltip[data-theme='dark'][data-popper-placement^='right']>#arrow {
+.tooltip[data-theme='dark'][data-popper-placement^='right']>.arrow {
     left: -4px;
     border-color: transparent transparent transparent #333;
 }
 
-#tooltip[data-theme='light'] {
+.tooltip[data-theme='light'] {
     background-color: #fff;
     color: #333;
     font-weight: bold;
@@ -410,25 +412,25 @@ select:focus {
     box-shadow: 0 0 10px rgba(0, 0, 0, .2);
 }
 
-#tooltip[data-theme='light'][data-popper-placement^='top']>#arrow {
+.tooltip[data-theme='light'][data-popper-placement^='top']>.arrow {
     bottom: -4px;
     border-color: transparent transparent #fff transparent;
     box-shadow: 1px 1px 3px rgba(0, 0, 0, .3);
 }
 
-#tooltip[data-theme='light'][data-popper-placement^='bottom']>#arrow {
+.tooltip[data-theme='light'][data-popper-placement^='bottom']>.arrow {
     top: -4px;
     border-color: #fff transparent transparent transparent;
     box-shadow: 1px -1px 3px rgba(0, 0, 0, .3);
 }
 
-#tooltip[data-theme='light'][data-popper-placement^='left']>#arrow {
+.tooltip[data-theme='light'][data-popper-placement^='left']>.arrow {
     right: -4px;
     border-color: transparent #fff transparent transparent;
     box-shadow: -1px 1px 3px rgba(0, 0, 0, .3);
 }
 
-#tooltip[data-theme='light'][data-popper-placement^='right']>#arrow {
+.tooltip[data-theme='light'][data-popper-placement^='right']>.arrow {
     left: -4px;
     border-color: transparent transparent transparent #fff;
     box-shadow: 1px 1px 3px rgba(0, 0, 0, .3);
@@ -442,6 +444,10 @@ select:focus {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
     border-radius: 5px;
     overflow: hidden;
+}
+
+.wide {
+    width: 600px;
 }
 
 .card-header {

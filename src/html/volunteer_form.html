@@ -1,11 +1,20 @@
-<div class="card">
+<div class="card wide">
     <div class="card-header">
-        <span>&nbsp;</span>
+        {button.save}
         {link.close.×}
     </div>
     <div class="card-body">
-        <br />
-        Hello World
-        <br />
+        <form>
+            {input.name}
+            {input.email}
+            {textarea.notes}
+            {input.mobile}
+            <br />
+            Adult {checkbox.a2023} {select.asection}
+            {select.arole}
+            <br />
+            Junior {checkbox.j2023} {select.jsection}
+            {select.jrole}
+        </form>
     </div>
 </div>
