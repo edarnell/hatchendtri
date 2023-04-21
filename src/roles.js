@@ -637,9 +637,9 @@ const section = {
         }
     }
 }
-
+const debug = console.log.bind(console)
 const sections = Object.keys(section)
-const rmap = sections.map(s => Object.keys(section[s].role).map((r, i) => ({ section: s, role: r }))).flat()
+const roleMap = sections.map(s => Object.keys(section[s].role).map((r, i) => ({ section: s, role: r }))).flat()
 
 function roles(sec) {
     if (!sec || sec === 'None' || sec === 'Section') {
@@ -652,4 +652,28 @@ function roles(sec) {
     else return Object.keys(section[sec].role)
 }
 
-export { section, sections, roles, rmap }
+function selectSection(e, o, form, p, c = '') {
+    const s = typeof e === 'string' ? e : e.target.value,
+        rn = c + 'role',
+        r = p.querySelector(`ed-form[name=${rn}]`)
+    form[rn].options = ['Role'].concat(roles(s))
+    if (s === 'Section') form[rn].value = 'Role'
+    r.setAttribute('param', 'update')
+}
+function selectRole(e, o, form, p, c = '') {
+    const sn = c + 'section',
+        s = p.querySelector(`select[name=${sn}]`),
+        v = s.value,
+        i = e.target.selectedIndex
+    if (v === 'Section') {
+        const so = roleMap[i - 1]
+        s.value = so.section
+        form[c + 'role'].options = ['Role'].concat(roles(so.section))
+        form[c + 'role'].value = e.target.value
+        o.setAttribute('param', 'update')
+        p.setForm({ role: e.target.value })
+        p.form_data = p.getForm(form)
+    }
+}
+
+export { section, sections, roles, selectSection, selectRole }

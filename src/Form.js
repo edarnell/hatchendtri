@@ -10,9 +10,10 @@ class Form extends TT {
         const f = this.parent('form') || this.page('form')
         if (typeof f === 'function') return f(this)
     }
+    //debug = (m) => debug({ Form: this.o(), m })
     html = () => {
-        const { name, type, params } = this.attr(), form = this.lk = this.form()
-        if (!form) debug({ Form: "define form=(o)=>", o: this.o() })
+        const { name, type, param } = this.attr(), form = this.lk = this.form()
+        if (!form) debug({ Form: "define form=(o)=>", o: this.o(), form })
         else switch (type) {
             case 'input':
                 return `<input
@@ -23,10 +24,12 @@ class Form extends TT {
             ${form.value ? `value="${form.value}"` : ''}
             />`
             case 'select':
+
                 return `<select class="${form.class || 'form'}" 
             name="${name}"
             ${form.value ? `value="${form.value}"` : ''}>
-            ${form.options.map(o => `<option ${o === form.value ? 'selected' : ''}>${o}</option>`).join('')}
+            ${form.options.map(o => typeof o === 'string' ? `<option>${o}</option>`
+                    : `<option value="${o.value}">${o.name}</option>`).join('')}
             </select>`
             case 'textarea':
                 return `<textarea rows="${form.rows || 10}" cols="${form.cols || 40}" class="form" 
@@ -45,7 +48,7 @@ class Form extends TT {
             case 'button':
                 return `<button 
             name="${name}" 
-            class="${form.class || 'form'}">${name}</button>`
+            class="${form.class || 'form'}">${param || name}</button>`
         }
     }
     input = e => {

@@ -50,7 +50,8 @@ base = {
                                 useBuiltIns: 'usage',
                                 corejs: { version: 3, proposals: true }
                             }]
-                        ]
+                        ],
+                        plugins: ['@babel/plugin-syntax-jsx']
                     }
                 }
             },

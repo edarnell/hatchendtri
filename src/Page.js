@@ -1,5 +1,6 @@
 import Html, { nav, set_page } from './Html'
 import Nav from './Nav'
+import Login from './Login'
 import Home from './Home'
 import Details from './Details'
 import Results from './Results'
@@ -16,9 +17,11 @@ const pages = {
     volunteer: { nav: 'Volunteer', href: 'volunteer', tip: 'volunteer system' },
     competitor: { nav: 'Competitor', href: 'competitor', tip: 'entry system' },
     contact: { nav: 'Contact', icon: 'email', href: 'contact', tip: 'contact us' },
+    logout: { nav: 'logout', icon: 'logout', href: 'home', tip: 'logout' },
 }
 function custom_pages() {
     customElements.define("ed-nav", Nav)
+    customElements.define("ed-login", Login)
     customElements.define("ed-page", Page)
     customElements.define("ed-home", Home)
     customElements.define("ed-details", Details)

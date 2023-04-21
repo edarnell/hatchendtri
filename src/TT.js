@@ -45,7 +45,7 @@ class TT extends Html {
     }
     html = () => {
         const { type, param, name } = this.attr(), k = name.toLowerCase(), link = this.link() || pages[k] || links[k] || icons[k]
-        if (!link) debug({ TT: "link=(o)=>", o: this.debug() })
+        if (!link) debug({ TT: "link=(o)=>", o: this.o() })
         else {
             this.lk = link
             const icon = (link.icon && icons[link.icon]) || (type === 'svg' && icons[k])

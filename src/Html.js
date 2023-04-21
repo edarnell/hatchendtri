@@ -6,10 +6,11 @@ function set_page(o) { page = o }
 function _s(s, p) {
     if (p === undefined) return s && s.replace(/\s/g, "&nbsp;")
     else {
-        const r = s && s.replace(/_/g, " ")
+        const r = s && s.replace(/_|&nbsp;|\s/g, " ")
         return r && p ? r.toLowerCase() : r
     }
 }
+
 class Html extends HTMLElement {
     static get observedAttributes() {
         return ['param']
@@ -20,19 +21,29 @@ class Html extends HTMLElement {
     }
     attributeChangedCallback(v, o, n) {
         if (o === '' && n === 'update') {
-            this.debug ? this.debug() : null
+            this.debug ? this.debug('attributeChangedCallback') : null
             this.setAttribute('param', '')
             this.disconnectedCallback()
             this.connectedCallback() // update
         }
     }
+    //debug = () => debug({ Html: this.o() })
     connectedCallback() {
-        if (this.innerHTML) this.debug ? this.debug() : null
+        const hash = window.location.hash, token = hash && hash.substring(1)
+        if (token && token.length > 10) {
+            localStorage.setItem('token', token)
+            window.location.hash = ''
+        }
+        if (this.innerHTML) this.debug ? this.debug("connectedCallback 1") : null
         else {
-            this.debug ? this.debug() : null
+            this.debug ? this.debug("connectedCallback 2") : null
             if (this.data) {
                 data(this.data).then(() => this.render_html())
-                    .catch(e => debug({ data: e }))
+                    .catch(e => {
+                        if (e.res && e.res.status === 401) {
+                            this.innerHTML = '<ed-login name="login"></ed-login>'
+                        }
+                    })
             }
             else this.render_html()
         }
@@ -47,6 +58,7 @@ class Html extends HTMLElement {
     }
 
     disconnectedCallback() {
+        this.debug ? this.debug("disconnectedCallback") : null
         if (this.listen) this.listen(false)
         this.innerHTML = ''
     }
@@ -69,7 +81,9 @@ class Html extends HTMLElement {
     }
     parent = (type) => {
         let p = this.parentNode
-        while (p && (!p.popup || !p[type])) p = p.parentNode
+        while (p && !(p.popup || p[type])) {
+            p = p.parentNode
+        }
         return p ? p[type] : p
     }
     _id = () => {

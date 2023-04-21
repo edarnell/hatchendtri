@@ -1,7 +1,6 @@
 import { page, debug } from './Html'
 import { ajax } from './ajax'
 import { unzip } from './unzip'
-import { Buffer } from 'buffer'
 
 function data(req) {
     return new Promise((s, f) => {
@@ -13,7 +12,7 @@ function data(req) {
                 s(page.results)
             }
             else f(r)
-        })
+        }).catch(e => f(e))
     })
 }
 
@@ -31,9 +30,9 @@ function save(data) {
     return new Promise((s, f) => {
         debug({ data })
         if (data.vol) ajax({ req: 'vol', data }).then(r => {
-            debug({ r })
             if (r.v2023) {
                 const vs = page.v2023 = unzip(r.v2023.data)
+                debug({ vs })
                 s(vs)
             }
             else f(r)
@@ -47,10 +46,6 @@ function volunteers(r) {
     page.v2023 = unzip(r.v2023.data)
     page.emails_date = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
         .format(new Date(r.emails.date)).replace(",", " at ")
-    const v2023 = Buffer.from(r.vtxt.data).toString()
-    Object.keys(vs).forEach(v => {
-        if (vs[v].email && v2023.indexOf(vs[v].email) > -1) vs[v].v2023 = true
-    })
     return { vs, emails }
 }
 

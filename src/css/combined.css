@@ -324,6 +324,10 @@ select:focus {
     color: green;
 }
 
+.blue {
+    color: #007bff;
+}
+
 .grey {
     color: grey;
 }

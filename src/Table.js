@@ -17,13 +17,13 @@ class Table extends Html {
     }
     render_table = (table) => {
         const { ths, trs } = table
-        if (trs.length === 0) return '' // could have option to return header only
+        if (trs && trs.length === 0) return '' // could have option to return header only
         if (ths && trs) {
             //debug({ ths, trs })
             return `<table><thead>${this.head(ths)}</thead><tbody>${this.body(trs)}</tbody></table>`
         }
         else {
-            this.error("Table ths=(o)=> trs=(o)=>")
+            debug({ Table: "Table ths=(o)=> trs=(o)=>", o: this.o() })
             return ''
         }
     }

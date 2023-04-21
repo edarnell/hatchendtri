@@ -2,7 +2,7 @@ import crypto from 'crypto'
 import log4js from "log4js"
 import { zip, unzip, f } from './zip.mjs'
 
-const config = JSON.parse(f('config.json', true))
+const config = f('config.json', true)
 const { admin, url, port, host, admin_to, aws } = config
 log4js.configure(config.log4js)
 const log = log4js.getLogger()

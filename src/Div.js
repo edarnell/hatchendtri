@@ -4,7 +4,7 @@ class Div extends Html {
         super()
     }
     html = () => {
-        const f = this.page('html')
+        const f = this.parent('html') || this.page('html')
         if (typeof f === 'function') {
             const html = f(this)
             if (typeof html === 'string') return html
