@@ -9,12 +9,10 @@ class Nav extends Html {
         super()
         this.id = 'nav'
         set_nav(this)
-    }
-    // Add code to run when the element is added to the DOM
-    connectedCallback() {
-        //debug({ connectedCallback: this.id })
-        this.innerHTML = this.render(html)
         this.i = Math.floor(Math.random() * 3)
+    }
+    html = () => html
+    listen = () => {
         const p = window.location.pathname.replace('/', '')
         this.nav(p)
     }
@@ -22,6 +20,23 @@ class Nav extends Html {
         const bg = this.querySelector('.background-image')
         bg.style.backgroundImage = images[this.i]
         this.i = (this.i + 1) % 3
+    }
+    user = (s) => {
+        const token = localStorage.getItem('token')
+        if (!pages.user.click) pages.user.click = this.user
+        if (this._user !== token) {
+            this._user = token
+            const l = this.querySelector(`.nav li img[name="user"]`),
+                img = l.getAttribute('data-image')
+            if (token) {
+                l.src = icons['user'].active
+                pages.user.tip = 'logout'
+            }
+            else {
+                l.src = icons['user'].default
+                pages.user.tip = 'login'
+            }
+        }
     }
     wrap = () => {
         // not sure this is needed now
@@ -47,6 +62,7 @@ class Nav extends Html {
             pg_ = _pg && pages[_pg] ? _pg : 'home'
         //debug({ pg, _pg, page })
         this.image()
+        this.user()
         this.toggle(true, this._page)
         this.toggle(false, pg_)
         const p = this.querySelector('.page')

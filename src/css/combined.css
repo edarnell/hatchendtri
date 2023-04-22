@@ -118,6 +118,7 @@ body {
 }
 
 .icon {
+    color: grey;
     margin-bottom: 3px;
     vertical-align: bottom;
 }

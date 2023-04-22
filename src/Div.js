@@ -3,6 +3,7 @@ class Div extends Html {
     constructor() {
         super()
     }
+    //debug = (m) => this.debug({ Div, m: this.o(), depth: this.depth() })
     html = () => {
         const f = this.parent('html') || this.page('html')
         if (typeof f === 'function') {

@@ -45,12 +45,15 @@ class Volunteer extends Html {
     else if (name === 'nr') {
       const f = this.form_data, nr = (f && f.nr) || 'Roles'
       this._nr = o
-      return nr === 'Roles' ? '{div.roles}' : '{div.vD}'
+      return nr === 'Roles' ? '<form>{select.section} {select.role} {button.R.C}</form> {div.roles}'
+        : '{div.vD}'
     }
     else if (name === 'vD') {
+      page._update = o
       return '{table.vT}'
     }
     else if (name === 'roles') {
+      page._update = o
       return sections.map((s, i) => `{table.section${i}.${_s(s)}}`).join('')
     }
   }
@@ -225,17 +228,12 @@ class Volunteer extends Html {
   }
   filter = (id) => {
     const fd = this.form_data, f = fd && fd.filter,
-      s = fd && fd.section !== 'Section' && fd.section,
-      rl = fd && fd.role !== 'Role' && fd.role,
       v = page.v2023[id] || page.volunteers[id]
     let r = false
-    if (!f && !s && !rl) r = true
+    if (!f) r = true
     else if (v.name && v.name.toLowerCase().includes(f)) r = true
     else if (v.email && v.email.toLowerCase().includes(f)) r = true
-    else if (rl && v.role === rl && v.section === s) r = true
-    else if (!rl && s && v.section === s) r = true
     if (this._2023) r = r && v.v2023
-    debug({ id, f, s, rl, v, r })
     return r
   }
   update = (e, o) => {
@@ -245,16 +243,20 @@ class Volunteer extends Html {
       selectSection('Section', null, form, this)
       this.setForm({ section: 'Section', role: 'Role' }, form)
     }
+    else if (name === 'section') selectSection(e, o, form, this)
+    else if (name === 'role') selectRole(e, o, form, this)
     const C = this.querySelector(`button[name=C]`),
       fd = this.form_data = this.getForm(form),
       filter = fd.filter
     C.classList[filter ? 'remove' : 'add']('hidden')
-    const R = this.querySelector(`button[name=R]`),
-      r = (fd.role && fd.role !== 'Role') || (fd.section && fd.section !== 'Section')
-    R.classList[r ? 'remove' : 'add']('hidden')
-    if (name === 'section') selectSection(e, o, form, this)
-    else if (name === 'role') selectRole(e, o, form, this)
-    this._nr.setAttribute('param', 'update')
+    const R = this.querySelector(`button[name=R]`)
+    if (R) {
+      const r = (fd.role && fd.role !== 'Role') || (fd.section && fd.section !== 'Section')
+      debug({ r, fd })
+      R.classList[r ? 'remove' : 'add']('hidden')
+    }
+    if (name === 'nr') this._nr = setAttribute('param', 'update')
+    else page._update.setAttribute('param', 'update')
   }
 
 }

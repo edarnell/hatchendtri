@@ -38,8 +38,13 @@ class Html extends HTMLElement {
         else {
             this.debug ? this.debug("connectedCallback 2") : null
             if (this.data) {
-                data(this.data).then(() => this.render_html())
+                this.debug ? this.debug("data") : null
+                data(this.data).then(() => {
+                    this.debug ? this.debug("s(data)") : null
+                    this.render_html()
+                })
                     .catch(e => {
+                        this.debug ? this.debug({ "f(data)": e }) : null
                         if (e.res && e.res.status === 401) {
                             this.innerHTML = '<ed-login name="login"></ed-login>'
                         }
@@ -48,13 +53,22 @@ class Html extends HTMLElement {
             else this.render_html()
         }
     }
-    render_html() {
+    render_html = () => {
         const html = this.html ? this.html() : null
         if (typeof html === 'string') {
             this.render(html, true)
             if (this.listen) this.listen(true)
         }
-        else debug({ Html: "html(o)=>", o: this.o() })
+        else debug({ Html: "html(o)=>", o: this.o(), depth: this.depth() })
+    }
+    depth = () => {
+        let d = 0
+        let p = this.parentNode
+        while (p && p !== document) {
+            d++
+            p = p.parentNode
+        }
+        return d
     }
 
     disconnectedCallback() {
@@ -81,7 +95,7 @@ class Html extends HTMLElement {
     }
     parent = (type) => {
         let p = this.parentNode
-        while (p && !(p.popup || p[type])) {
+        while (p && (!p.popup || !p[type])) {
             p = p.parentNode
         }
         return p ? p[type] : p
@@ -118,6 +132,7 @@ class Html extends HTMLElement {
             else if (t === 'table') return `<ed-table type="${t}" name="${l}" param="${c || ''}"></ed-table>`
             else if (t === 'var') return `<ed-var type="${t}" name="${l}" param="${c || ''}"></ed-var>`
             else if (t === 'vol') return `<ed-vol type="${t}" name="${l}" param="${c || ''}"></ed-vol>`
+            else if (t === 'user') return `<ed-user type="${t}" name="${l}" param="${c || ''}"></ed-user>`
             else if (['input', 'select', 'checkbox', 'textarea', 'button'].indexOf(t) !== -1) {
                 return `<ed-form type="${t}" name="${l}" param="${c || ''}"></ed-form>`
             }
@@ -129,7 +144,7 @@ class Html extends HTMLElement {
         if (set) {
             // debug({ html, id: this.id, set, this: this.debug() })
             this.innerHTML = _html
-            this.var_update()
+            //this.var_update()
         }
         else return _html
     }

@@ -6,6 +6,7 @@ import Details from './Details'
 import Results from './Results'
 import Volunteer from './Volunteer'
 import Vol from './Vol'
+import User from './User'
 import Competitor from './Competitor'
 import Contact from './Contact'
 import { custom_html } from './custom_html'
@@ -17,7 +18,7 @@ const pages = {
     volunteer: { nav: 'Volunteer', href: 'volunteer', tip: 'volunteer system' },
     competitor: { nav: 'Competitor', href: 'competitor', tip: 'entry system' },
     contact: { nav: 'Contact', icon: 'email', href: 'contact', tip: 'contact us' },
-    logout: { nav: 'logout', icon: 'logout', href: 'home', tip: 'logout' },
+    user: { popup: `{user}`, icon: 'user', tip: 'login' },
 }
 function custom_pages() {
     customElements.define("ed-nav", Nav)
@@ -30,6 +31,7 @@ function custom_pages() {
     customElements.define("ed-competitor", Competitor)
     customElements.define("ed-contact", Contact)
     customElements.define("ed-vol", Vol)
+    customElements.define("ed-user", User)
     custom_html()
 }
 class Page extends Html {

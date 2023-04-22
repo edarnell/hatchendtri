@@ -16,6 +16,7 @@ class Results extends Html {
     super()
     this.data = 'results'
   }
+  //debug = (m) => debug({ Results: m })
   html = (o) => {
     const p = o && o.attr(), name = p && p.name, param = p && p.param
     if (name === 'results_all') {

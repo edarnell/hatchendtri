@@ -653,11 +653,13 @@ function roles(sec) {
 }
 
 function selectSection(e, o, form, p, c = '') {
-    const s = typeof e === 'string' ? e : e.target.value,
-        rn = c + 'role',
-        r = p.querySelector(`ed-form[name=${rn}]`)
-    form[rn].options = ['Role'].concat(roles(s))
-    if (s === 'Section') form[rn].value = 'Role'
+    const v = typeof e === 'string' ? e : e.target.value,
+        r = p.querySelector(`ed-form[name=${c + 'role'}]`),
+        s = p.querySelector(`ed-form[name=${c + 'section'}]`)
+    form[c + 'section'].value = v
+    form[c + 'role'].options = ['Role'].concat(roles(v))
+    if (v === 'Section') form[c + 'role'].value = 'Role'
+    s.setAttribute('param', 'update')
     r.setAttribute('param', 'update')
 }
 function selectRole(e, o, form, p, c = '') {
@@ -667,12 +669,10 @@ function selectRole(e, o, form, p, c = '') {
         i = e.target.selectedIndex
     if (v === 'Section') {
         const so = roleMap[i - 1]
-        s.value = so.section
+        selectSection(so.section, null, form, p, c = '')
         form[c + 'role'].options = ['Role'].concat(roles(so.section))
         form[c + 'role'].value = e.target.value
         o.setAttribute('param', 'update')
-        p.setForm({ role: e.target.value })
-        p.form_data = p.getForm(form)
     }
 }
 
