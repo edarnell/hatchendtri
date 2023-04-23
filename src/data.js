@@ -2,6 +2,7 @@ import { page, debug } from './Html'
 import { ajax } from './ajax'
 import { unzip } from './unzip'
 
+
 function data(req) {
     return new Promise((s, f) => {
         if (page[req]) s(page[req])

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Hatch End Triathlon</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Style the email template */
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333333;
+            margin-left: 20px;
+            margin-right: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-top: 0;
+            margin-bottom: 1em;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+
+        p {
+            margin-top: 0;
+            margin-bottom: 1.5em;
+        }
+
+        footer {
+            margin-top: 2em;
+            font-size: 12px;
+            color: #666666;
+        }
+    </style>
+</head>
+
+<body>
+    <p>Dear {{to}},</p>
+    <p>{{message}}</p>
+    <p>Regards,
+        <br /><br />{{from}}
+    </p>
+    <!-- Footer -->
+    <footer>{{footer}}</footer>
+</body>
+
+</html>

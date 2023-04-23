@@ -1,14 +1,6 @@
 import Html, { debug, page, _s } from './Html'
 import html from './html/Volunteer.html'
-import { sections, section, roles, selectSection, selectRole } from './roles'
-
-function firstLast(name) {
-  const nm = name.trim(),
-    s = nm.lastIndexOf(' '),
-    first = s > 0 ? nm.substring(0, s) : nm,
-    last = s > 0 ? nm.substring(s + 1) : ''
-  return { first, last }
-}
+import { sections, section, roles, selectSection, selectRole, firstLast } from './roles'
 
 const form = { // section and options populated on load
   filter: { placeholder: 'name filter', width: '50rem' },
@@ -24,7 +16,6 @@ class Volunteer extends Html {
   constructor() {
     super()
     this.data = 'volunteers'
-    this._2023 = true
   }
   link = (o) => {
     const { name, param } = o.attr()
@@ -252,10 +243,9 @@ class Volunteer extends Html {
     const R = this.querySelector(`button[name=R]`)
     if (R) {
       const r = (fd.role && fd.role !== 'Role') || (fd.section && fd.section !== 'Section')
-      debug({ r, fd })
       R.classList[r ? 'remove' : 'add']('hidden')
     }
-    if (name === 'nr') this._nr = setAttribute('param', 'update')
+    if (name === 'nr') this._nr.setAttribute('param', 'update')
     else page._update.setAttribute('param', 'update')
   }
 

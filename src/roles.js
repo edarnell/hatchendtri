@@ -675,5 +675,12 @@ function selectRole(e, o, form, p, c = '') {
         o.setAttribute('param', 'update')
     }
 }
+function firstLast(name) {
+    const nm = name.trim(),
+        s = nm.lastIndexOf(' '),
+        first = s > 0 ? nm.substring(0, s) : nm,
+        last = s > 0 ? nm.substring(s + 1) : ''
+    return { first, last }
+}
 
-export { section, sections, roles, selectSection, selectRole }
+export { section, sections, roles, selectSection, selectRole, firstLast }

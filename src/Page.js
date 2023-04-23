@@ -7,6 +7,7 @@ import Results from './Results'
 import Volunteer from './Volunteer'
 import Vol from './Vol'
 import User from './User'
+import Admin from './Admin'
 import Competitor from './Competitor'
 import Contact from './Contact'
 import { custom_html } from './custom_html'
@@ -16,9 +17,11 @@ const pages = {
     details: { nav: 'Details', href: 'details', tip: 'detailed event information' },
     results: { nav: 'Results', href: 'results', tip: 'results from 2000 onwards' },
     volunteer: { nav: 'Volunteer', href: 'volunteer', tip: 'volunteer system' },
+    admin: { nav: 'Admin', href: 'admin', tip: 'data admin' },
     competitor: { nav: 'Competitor', href: 'competitor', tip: 'entry system' },
     contact: { nav: 'Contact', icon: 'email', href: 'contact', tip: 'contact us' },
-    user: { popup: `{user}`, icon: 'user', tip: 'login' },
+    user: { popup: `{user}`, icon: 'user', tip: 'login', placement: 'bottom-end' },
+    logout: { tip: 'logout', submit: true },
 }
 function custom_pages() {
     customElements.define("ed-nav", Nav)
@@ -26,6 +29,7 @@ function custom_pages() {
     customElements.define("ed-page", Page)
     customElements.define("ed-home", Home)
     customElements.define("ed-details", Details)
+    customElements.define("ed-admin", Admin)
     customElements.define("ed-results", Results)
     customElements.define("ed-volunteer", Volunteer)
     customElements.define("ed-competitor", Competitor)

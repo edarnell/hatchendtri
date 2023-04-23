@@ -131,8 +131,8 @@ class Html extends HTMLElement {
             else if (t === 'div') return `<ed-div type="${t}" name="${l}" param="${c || ''}"></ed-div>`
             else if (t === 'table') return `<ed-table type="${t}" name="${l}" param="${c || ''}"></ed-table>`
             else if (t === 'var') return `<ed-var type="${t}" name="${l}" param="${c || ''}"></ed-var>`
-            else if (t === 'vol') return `<ed-vol type="${t}" name="${l}" param="${c || ''}"></ed-vol>`
-            else if (t === 'user') return `<ed-user type="${t}" name="${l}" param="${c || ''}"></ed-user>`
+            else if (t === 'vol') return `<ed-vol type="${t}" name="vol" param="${c || ''}"></ed-vol>`
+            else if (t === 'user') return `<ed-user type="${t}" name="user" param="${c || ''}"></ed-user>`
             else if (['input', 'select', 'checkbox', 'textarea', 'button'].indexOf(t) !== -1) {
                 return `<ed-form type="${t}" name="${l}" param="${c || ''}"></ed-form>`
             }
