@@ -5,8 +5,29 @@ function f(f, s) {
     const stat = fs.statSync(f)
     if (!stat.isFile()) return null
     const d = s ? fs.readFileSync(f).toString() : fs.readFileSync(f)
-    return s === undefined ? { data: Buffer.from(d).toJSON(), date: stat.mtime } :
+    const data = s === undefined ? Buffer.from(d).toJSON() :
         f.toLowerCase().endsWith('.json') ? JSON.parse(d) : d
+    return s === undefined ? { data: sec(f) ? anon(data) : data, date: stat.mtime } : data
+}
+
+function sec(f) {
+    // add to list as needed
+    return ['vs'].includes(f)
+}
+
+function anon(o, d) {
+    // could add cache here
+    const ks = ['email', 'phone', 'mobile']
+    for (let k in o) {
+        if (ks.includes(k)) {
+            delete o[k]
+        }
+        else if (typeof o[k] === 'object' && o[k] !== null) {
+            anon(o[k], true)
+        }
+    }
+    if (!d && o[0]) delete o[0] // used for unsub
+    return o
 }
 
 function zip(j, s) {
@@ -23,8 +44,18 @@ function fz(f) {
     if (d) return unzip(d)
 }
 
-function save(f, j) {
-    fs.writeFileSync(f, zip(j))
+function save(f, j, secure) {
+    if (secure) {
+        const ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
+        fs.renameSync(`gz/${f}_.gz`, `gz/backups/${f}_${ts}.gz`);
+        fs.writeFileSync(`gz/${f}_.gz`, zip(j))
+        fs.writeFileSync(`gz/${f}.gz`, zip(anon(j)))
+    }
+    else fs.writeFileSync(f, zip(j))
+}
+
+function savez(f, z) {
+    fs.writeFileSync(f, z)
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) { // run from command line
@@ -47,4 +78,4 @@ if (import.meta.url === `file://${process.argv[1]}`) { // run from command line
     }
 }
 
-export { f, zip, unzip, fz, save }
+export { f, zip, unzip, fz, save, savez, sec }

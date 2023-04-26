@@ -1,26 +1,14 @@
-<div class="card wide">
+<div class="card">
     <div class="card-header">
-        {button.save}
-        {link.close.×}
+        {button.save} <b>{var.name}</b> {link.close.×}
     </div>
     <div class="card-body">
-        <div style="display:flex;gap:4px;">
-            <div style="display:flex; flex-direction:column; gap:4px;">
-                <div> {input.name}</div>
-                <div>{input.email}</div>
-            </div>
-            <div style="display:flex; flex-direction:column; gap:4px;">
-                <div>{input.mobile}</div>
-                <div>{textarea.notes}</div>
-            </div>
-        </div>
         <div style="display:flex; flex-direction:column; gap:4px;">
+            {div.volD}
             <div style="display:flex; gap:16px;">
-                <div>{checkbox.a2023}<b>Adult</b></div>
-                <div>{checkbox.j2023}<b>Junior</b></div>
-                <div>{checkbox.n2023}<b>None</b></div>
-                <div>{checkbox.unsub}<b>Unsubscribe</b></div>
-                <div>{checkbox.hide}<b>Hide</b></div>
+                <div>{checkbox.adult}<b>Adult</b></div>
+                <div>{checkbox.junior}<b>Junior</b></div>
+                <div>{checkbox.none}<b>None</b></div>
             </div>
             <div style="display:flex; gap:4px;">
                 <div>{select.asection}</div>

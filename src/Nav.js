@@ -30,7 +30,7 @@ class Nav extends Html {
                 img = l.getAttribute('data-image')
             if (token) {
                 l.src = icons['user'].active
-                pages.user.tip = 'logout'
+                pages.user.tip = 'user menu'
             }
             else {
                 l.src = icons['user'].default
@@ -56,6 +56,10 @@ class Nav extends Html {
                 l.src = (active) ? icons[img].default : icons[img].active
             }
         }
+    }
+    login = () => {
+        const l = this.querySelector(`.nav li img[name="user"]`)
+        l.click()
     }
     nav = (pg) => {
         const _pg = pg && pg.replace('/', ''),

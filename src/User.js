@@ -1,20 +1,52 @@
 import Html, { debug, page, _s } from './Html'
-import { send } from './data'
+import { req } from './data'
 import user from './html/user.html'
 import login from './html/login.html'
-import { firstLast } from './Volunteer'
 
 const form = {
-    name: { placeholder: 'name', width: '50rem' },
-    volunteer: { class: "form", options: ['Select'] },
-    select: { class: 'form primary hidden', tip: 'send login email', submit: true }
+    email: { placeholder: 'email', type: 'email', required: true },
+    send: { class: 'form disabled', submit: true },
+    spam1: {}, spam2: {}, spam3: {},
 }
 
 class User extends Html {
     constructor() {
         super()
         this.popup = true
-        this.data = 'volunteers'
+        form.send.tip = this.tt
+        form.send.click = this.send
+        this.spam = Math.floor(Math.random() * 3)
+    }
+    tt = () => {
+        const complete = this.checkForm()
+        if (complete) {
+            const b = ['left', 'middle', 'right'], s = b[this.spam]
+            const spam = this.checkSpam()
+            if (spam) return `please tick the ${s} box`
+            else return 'login by email'
+        }
+        else return 'enter your email'
+    }
+    confirm = (r) => {
+        this.tt.close()
+        page.innerHTML = '<p>Please check your email (check spam if it does not arrive before re-trying).</p>'
+    }
+    close = () => {
+        this.tt.close()
+    }
+    listen = (v) => {
+        debug({ listen: v })
+    }
+    link = (o) => {
+        const { name, param } = o.attr()
+        if (name === 'close') return { class: 'close', tip: 'close', click: this.close }
+        else if (name === 'menu') return { icon: 'menu', tip: '' }
+        else if (name === 'logout') return { tip: 'logout', click: this.logout }
+    }
+    logout = () => {
+        localStorage.removeItem('token')
+        nav.user()
+        this.tt.close()
     }
     html = (o) => {
         if (!o) {
@@ -22,58 +54,46 @@ class User extends Html {
             if (token) return user
             else return login
         }
-        else return this.vol_names(o)
     }
     form = (o) => {
         const { name, param } = o.attr()
         return form[name]
     }
-    nameSort = (a, b) => {
-        const { last: al, first: af } = firstLast(a.name), { last: bl, first: bf } = firstLast(b.name)
-        if (al < bl) return -1
-        if (al > bl) return 1
-        if (af < bf) return -1
-        if (af > bf) return 1
-        return 0
-    }
-    filter = () => {
-        const f = this.getForm(form), filter = f.name
-        if (filter) {
-            const vs = page.volunteers
-            return Object.keys(vs).filter(id => vs[id].name.toLowerCase().indexOf(filter.toLowerCase()) > -1)
-                .map(id => ({ id, name: vs[id].name }))
-        }
-        else if (page._page === 'volunteer') {
-            const vs = page.v2023
-            return Object.keys(vs).filter(id =>
-                ((vs[id].a2023 && !vs[id].arole) || (vs[id].j2023 && !vs[id].jrole)))
-                .map(id => ({ id, name: vs[id].name }))
-        }
-        else return []
-    }
-    vol_names = (o) => {
-        const vols = this.filter()
-            .sort(this.nameSort),
-            html = vols.slice(0, 10).map(v => `<div>{link._${v.id}.${_s(v.name)}}</div>`)
-                .join(' ')
-        this._vol_names = o
-        return html
-    }
-    tip = (e, o) => {
-        const { name } = o.attr(), id = name.substring(1), v = page.v2023[id]
-        return page.firstChild.vtip(v)
-    }
-    link = (o) => {
-        const { name, param } = o.attr()
-        if (name === 'close') return { class: 'close', tip: 'close', click: this.tt.close }
-        else if (name.charAt(0) === '_') return { theme: 'light', tip: this.tip, click: this.setid }
-    }
-    save = () => {
-
-    }
     update = (e, o) => {
-        const { name, param, type } = o.attr()
-        if (name === 'name') this._vol_names.setAttribute('param', 'update')
+        const p = o && o.attr(), name = p.name,
+            complete = this.checkForm(),
+            spam = this.checkSpam(),
+            sendButton = this.querySelector(`button[name=send]`)
+        if (complete && !spam) {
+            sendButton.classList.remove('disabled')
+            sendButton.classList.add('primary')
+        }
+        else {
+            sendButton.classList.remove('primary')
+            sendButton.classList.add('disabled')
+        }
+        if (name === 'send' && complete && !spam) {
+            const f = this.getForm(form)
+            req({ req: 'login', email: f.email }).then(r => this.confirm(r))
+        }
     }
+    checkForm = () => {
+        const data = this.getForm(form)
+        let complete = true
+        Object.keys(form).forEach(k => {
+            const f = form[k]
+            if (f.required && !data[k]) complete = false
+        })
+        return complete
+    }
+    checkSpam = () => {
+        const data = this.getForm(form)
+        let spam = false
+            ;['spam1', 'spam2', 'spam3'].forEach((k, i) => {
+                spam = spam || data[k] !== (i === this.spam)
+            })
+        return spam
+    }
+
 }
 export default User

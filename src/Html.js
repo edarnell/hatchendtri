@@ -46,8 +46,9 @@ class Html extends HTMLElement {
                     .catch(e => {
                         this.debug ? this.debug({ "f(data)": e }) : null
                         if (e.res && e.res.status === 401) {
-                            this.innerHTML = '<ed-login name="login"></ed-login>'
+                            nav.login()
                         }
+                        else debug({ "f(data)": e })
                     })
             }
             else this.render_html()
@@ -95,7 +96,8 @@ class Html extends HTMLElement {
     }
     parent = (type) => {
         let p = this.parentNode
-        while (p && (!p.popup || !p[type])) {
+        while (p && !(p.popup && (!type || p[type]))) {
+            //if (type === 'close') debug({ p: p.tagName, type: p[type] })
             p = p.parentNode
         }
         return p ? p[type] : p
@@ -131,7 +133,8 @@ class Html extends HTMLElement {
             else if (t === 'div') return `<ed-div type="${t}" name="${l}" param="${c || ''}"></ed-div>`
             else if (t === 'table') return `<ed-table type="${t}" name="${l}" param="${c || ''}"></ed-table>`
             else if (t === 'var') return `<ed-var type="${t}" name="${l}" param="${c || ''}"></ed-var>`
-            else if (t === 'vol') return `<ed-vol type="${t}" name="vol" param="${c || ''}"></ed-vol>`
+            else if (t === 'vol') return `<ed-vol type="${t}" name="${l}" param="${c || ''}"></ed-vol>`
+            else if (t === 'vsel') return `<ed-vsel type="${t}" name="${l}" param="${c || ''}"></ed-vsel>`
             else if (t === 'user') return `<ed-user type="${t}" name="user" param="${c || ''}"></ed-user>`
             else if (['input', 'select', 'checkbox', 'textarea', 'button'].indexOf(t) !== -1) {
                 return `<ed-form type="${t}" name="${l}" param="${c || ''}"></ed-form>`
@@ -166,7 +169,7 @@ class Html extends HTMLElement {
             const fe = this.querySelector(`ed-form[name=${name}]`),
                 l = fe && fe.firstChild
             if (l && l.type === 'checkbox') ret[name] = l.checked
-            else if (l && l.tagName !== "BUTTON") ret[name] = l.value
+            else if (l && l.tagName !== "BUTTON" && l.tagName !== "IMG") ret[name] = l.value
         })
         else debug({ setForm: this.o(), form })
         return ret

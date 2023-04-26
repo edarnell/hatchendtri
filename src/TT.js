@@ -66,14 +66,19 @@ class TT extends Html {
         if (lk) {
             e.preventDefault()
             if (lk.popup) this.popup(e)
-            else if (lk.nav) nav.nav(lk.href)
-            else if (this._form) this.input(e)
+            else if (lk.nav) {
+                nav.nav(lk.href)
+                const p = this.parent('close')
+                //debug({ TT: "nav", o: this.o(), e, p })
+                if (p) p()
+            }
             else if (typeof lk.click === 'function') lk.click(e, this)
             else if (lk.click) {
                 const update = this.parent('update') || this.page('update')
                 if (update) update(e, this)
                 else debug({ TT: "update=(e,o)=>", o: this.debug(), e })
             }
+            else if (this._form) this.input(e)
             else debug({ TT: "click", o: this.o(), e, lk })
         }
         else debug({ TT: "click", o: this.o(), e })
@@ -106,10 +111,11 @@ class TT extends Html {
             { name } = this.attr()
         popup.classList.add('popup')
         popup.setAttribute("name", name)
-        const link = this.lk
+        const link = this.lk, param = e.target.getAttribute("data-param")
         const html = typeof link.popup === 'function' ? link.popup(this) : link.popup
         popup.innerHTML = this.render(html)
         popup.firstChild.tt = this
+        if (param) popup.firstChild.setAttribute("param", param)
         document.body.appendChild(popup)
         const pop = createPopper(this.firstChild, popup, {
             placement: link.placement || 'top',

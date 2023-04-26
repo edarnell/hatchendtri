@@ -1,5 +1,6 @@
 import { debug } from './Html'
 import TT from './TT'
+import { icons } from './icons'
 
 class Form extends TT {
     constructor() {
@@ -35,7 +36,7 @@ class Form extends TT {
             name="${name}"
             ${form.placeholder ? `placeholder="${form.placeholder}"` : ''}
             ${form.required ? 'required' : ''}
-            ></textarea>`
+            >${form.value || ''}</textarea>`
             case 'checkbox':
                 return `<input
             type="checkbox"
@@ -45,7 +46,9 @@ class Form extends TT {
             ${form.required ? 'required' : ''}
             />`
             case 'button':
-                return `<button 
+                const icon = form.icon && icons[form.icon], active = form.class && form.class.includes('active'),
+                    img = icon && `<img name="${name}" data-image="${form.icon}" src="${active ? icon.active : icon.default}" class="${form.class || 'icon'}" />`
+                return img || `<button 
             name="${name}" 
             class="${form.class || 'form'}">${param || name}</button>`
         }

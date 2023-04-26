@@ -1,5 +1,5 @@
 import Html, { debug } from './Html'
-import login from './html/login.html'
+import login from './html/select.html'
 import { req } from './data'
 
 const form = {

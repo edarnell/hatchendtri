@@ -119,6 +119,8 @@ body {
 
 .icon {
     color: grey;
+    width: 24px;
+    height: 24px;
     margin-bottom: 3px;
     vertical-align: bottom;
 }

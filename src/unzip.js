@@ -1,4 +1,4 @@
-import { inflate } from 'pako'
+import { inflate, deflate } from 'pako'
 import { Buffer } from 'buffer'
 const debug = console.log.bind(console)
 

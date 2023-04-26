@@ -4,13 +4,13 @@ import { unzip } from './unzip'
 
 
 function data(req) {
+    // can imrove to cache with local storage
     return new Promise((s, f) => {
         if (page[req]) s(page[req])
-        else ajax({ req }).then(r => {
-            if (r.volunteers) s(volunteers(r))
-            else if (r.results) {
-                page.results = unzip(r.results.data)
-                s(page.results)
+        else ajax({ req: 'files', files: [req] }).then(r => {
+            if (r.zips && r.zips[req]) {
+                page[req] = unzip(r.zips[req].data)
+                s(page[req])
             }
             else f(r)
         }).catch(e => f(e))
@@ -19,8 +19,11 @@ function data(req) {
 
 function req(p) {
     return new Promise((s, f) => {
-        debug({ req })
         if (p.req) ajax(p).then(r => {
+            if (r.vs) {
+                page.vs = unzip(r.vs.data)
+                if (page._update) page._update.setAttribute('param', 'update')
+            }
             s(r)
         }).catch(e => f(e))
         else f({ error: "no req" })
@@ -29,7 +32,6 @@ function req(p) {
 
 function save(data) {
     return new Promise((s, f) => {
-        debug({ data })
         if (data.vol) ajax({ req: 'vol', data }).then(r => {
             if (r.v2023) {
                 const vs = page.v2023 = unzip(r.v2023.data)
@@ -41,9 +43,12 @@ function save(data) {
     })
 }
 
-function volunteers(r) {
-    const vs = page.volunteers = unzip(r.volunteers.data)
-    const emails = page.emails = unzip(r.emails.data)
+function vs(r) {
+    const vs = page.vs = unzip(r.vs.data)
+    const emails = page.emails2 = unzip(r.emails.data)
+    page.ids = Object.fromEntries(Object.entries(page.emails2).map(([email, id]) => [id, email]))
+    const files = page.emails = unzip(r.files.data)
+    debug({ emails })
     page.v2023 = unzip(r.v2023.data)
     page.emails_date = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
         .format(new Date(r.emails.date)).replace(",", " at ")

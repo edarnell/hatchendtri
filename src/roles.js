@@ -18,7 +18,7 @@ const section = {
                         "max": 1
                     },
                     "junior": {
-                        "min": 0,
+                        "min": 1,
                         "max": 1
                     }
                 }
@@ -32,6 +32,19 @@ const section = {
                     },
                     "junior": {
                         "min": 1,
+                        "max": 1
+                    }
+                }
+            },
+            "Asst. Coordinator": {
+                "name": "Asst. Coordinator",
+                "qty": {
+                    "adult": {
+                        "min": 0,
+                        "max": 1
+                    },
+                    "junior": {
+                        "min": 0,
                         "max": 1
                     }
                 }
@@ -58,7 +71,7 @@ const section = {
                     },
                     "junior": {
                         "min": 1,
-                        "max": 1
+                        "max": 2
                     }
                 }
             },
@@ -93,27 +106,14 @@ const section = {
                 "qty": {
                     "adult": {
                         "min": 1,
-                        "max": 1
+                        "max": 2
                     },
                     "junior": {
-                        "min": 1,
-                        "max": 1
+                        "min": 0,
+                        "max": 0
                     }
                 }
             },
-            "Asst. Coordinator": {
-                "name": "Asst. Coordinator",
-                "qty": {
-                    "adult": {
-                        "min": 0,
-                        "max": 0
-                    },
-                    "junior": {
-                        "min": 0,
-                        "max": 0
-                    }
-                }
-            }
         }
     },
     "Registration": {
@@ -669,7 +669,7 @@ function selectRole(e, o, form, p, c = '') {
         i = e.target.selectedIndex
     if (v === 'Section') {
         const so = roleMap[i - 1]
-        selectSection(so.section, null, form, p, c = '')
+        selectSection(so.section, null, form, p, c)
         form[c + 'role'].options = ['Role'].concat(roles(so.section))
         form[c + 'role'].value = e.target.value
         o.setAttribute('param', 'update')
