@@ -17,7 +17,11 @@ class Html extends HTMLElement {
     }
     constructor() {
         super()
-        this.vars = { update: [] }
+        const hash = window.location.hash, token = hash && hash.substring(1)
+        if (token && token.length > 10) {
+            localStorage.setItem('token', token)
+            window.location.hash = ''
+        }
     }
     attributeChangedCallback(v, o, n) {
         if (o === '' && n === 'update') {
@@ -29,11 +33,6 @@ class Html extends HTMLElement {
     }
     //debug = () => debug({ Html: this.o() })
     connectedCallback() {
-        const hash = window.location.hash, token = hash && hash.substring(1)
-        if (token && token.length > 10) {
-            localStorage.setItem('token', token)
-            window.location.hash = ''
-        }
         if (this.innerHTML) this.debug ? this.debug("connectedCallback 1") : null
         else {
             this.debug ? this.debug("connectedCallback 2") : null
@@ -59,6 +58,8 @@ class Html extends HTMLElement {
         if (typeof html === 'string') {
             this.render(html, true)
             if (this.listen) this.listen(true)
+            const tt = this.parent('tt')
+            if (tt && tt.pop) tt.pop.update()
         }
         else debug({ Html: "html(o)=>", o: this.o(), depth: this.depth() })
     }
@@ -136,6 +137,7 @@ class Html extends HTMLElement {
             else if (t === 'vol') return `<ed-vol type="${t}" name="${l}" param="${c || ''}"></ed-vol>`
             else if (t === 'vsel') return `<ed-vsel type="${t}" name="${l}" param="${c || ''}"></ed-vsel>`
             else if (t === 'user') return `<ed-user type="${t}" name="user" param="${c || ''}"></ed-user>`
+            else if (t === 'contact') return `<ed-contact type="${t}" name="${l}" param="${c || ''}"></ed-contact>`
             else if (['input', 'select', 'checkbox', 'textarea', 'button'].indexOf(t) !== -1) {
                 return `<ed-form type="${t}" name="${l}" param="${c || ''}"></ed-form>`
             }

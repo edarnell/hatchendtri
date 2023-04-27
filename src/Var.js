@@ -1,4 +1,4 @@
-import Html, { debug } from './Html'
+import Html, { debug, nav } from './Html'
 class Var extends Html {
     constructor() {
         super()
@@ -12,6 +12,7 @@ class Var extends Html {
     var = () => {
         const pvar = this.parent('var') || this.page('var')
         if (typeof pvar === 'function') return pvar(this)
+        else if (this.attr().name === 'name') return nav.name()
     }
 }
 export default Var

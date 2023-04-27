@@ -1,4 +1,4 @@
-import Html, { debug } from './Html'
+import Html, { debug, page } from './Html'
 import html from './html/Contact.html'
 import { req } from './data'
 
@@ -14,10 +14,34 @@ const form = {
 class Contact extends Html {
     constructor() {
         super()
+        this.popup = true
         form.send.tip = this.tt
         this.spam = Math.floor(Math.random() * 3)
+        const { name, param } = this.attr(),
+            to = this._to = (name.charAt(0) === '_' ? name.substring(1) : name)
+        if (to) this.data = 'vs'
     }
-    html = () => html
+    debug = (m) => debug({ Contact: m, o: this.o(), div: this })
+    html = (o) => {
+        if (!o) return html
+        else {
+            const name = o.attr().name
+            if (name === 'spam') return nav._user ? '' : '{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} '
+            else if (name === 'from') return nav._user ? '' : '{input.name}<br />{input.email}<br />'
+        }
+    }
+    listen = () => {
+        if (this._toName) this._toName.setAttribute('param', 'update')
+    }
+    var = (o) => {
+        debug({ var: o.attr(), to: this._to, v: page.vs && page.vs[this._to] })
+        if (this._to) {
+            if (page.vs) return page.vs[this._to].name
+            else this._toName = o
+            return ''
+        }
+        else return 'Hatch End Triathlon'
+    }
     form = (o) => {
         const { name } = o.attr(), k = name.toLowerCase()
         return form[k]
@@ -31,13 +55,15 @@ class Contact extends Html {
         else sendButton.classList.add('disabled')
         if (name === 'send' && complete && !spam) {
             const data = this.getForm(form)
-            req({ req: 'send', data }).then(r => debug({ send: r }))
+            if (this._to) data.to = this._to
+            req({ req: 'send', data }).then(r => this.tt.close())
         }
     }
     checkForm = () => {
         const data = this.getForm(form)
         let complete = true
-        Object.keys(form).forEach(k => {
+        if (nav._user) return data.message && data.subject
+        else Object.keys(form).forEach(k => {
             const f = form[k]
             if (f.required && !data[k]) complete = false
         })
@@ -46,7 +72,7 @@ class Contact extends Html {
     checkSpam = () => {
         const data = this.getForm(form)
         let spam = false;
-        ['spam1', 'spam2', 'spam3'].forEach((k, i) => {
+        if (!nav._user) ['spam1', 'spam2', 'spam3'].forEach((k, i) => {
             spam = spam || data[k] !== (i === this.spam)
         })
         return spam

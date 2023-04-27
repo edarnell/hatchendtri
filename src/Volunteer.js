@@ -1,5 +1,6 @@
 import Html, { debug, page, _s } from './Html'
 import html from './html/Volunteer.html'
+import greet from './html/greet.html'
 import { sections, section, roles, selectSection, selectRole, firstLast } from './roles'
 
 const form = { // section and options populated on load
@@ -7,7 +8,6 @@ const form = { // section and options populated on load
   C: { class: 'hidden form red bold', tip: 'clear name', submit: true },
   R: { class: 'hidden form red bold', tip: 'clear selection', submit: true },
   New: { class: 'form green', tip: 'add new volunteer', popup: `{vsel.new}`, placement: 'bottom' },
-  contact: { icon: 'email', tip: 'email volunteers', popup: `{vmail}`, placement: 'bottom' },
   section: { class: "form", options: ['Section'].concat(sections), tip: 'filter section' },
   role: { class: "form", options: ['Role'].concat(roles()), tip: 'filter role' },
   nr: { class: "form", options: ['Roles', 'Names'], tip: 'Display by role or name' },
@@ -19,12 +19,6 @@ class Volunteer extends Html {
     this.data = 'vs'
     this._2023 = true // filters names
   }
-  compete = (r) => {
-
-  }
-  listen = (o) => {
-    debug({ listen: this.o(), o: o.o() })
-  }
   link = (o) => {
     const { name, param } = o.attr()
     if (name === 'id') return {
@@ -34,16 +28,22 @@ class Volunteer extends Html {
         this._nr.setAttribute('param', 'update')
       }
     }
+    else if (name.startsWith('v_')) {
+      const id = name.substring(2), vol = page.vs[id], _id = name.substring(1)
+      if (vol && nav.admin()) return { tip: 'update', theme: 'light', class: this.color(id), popup: `{vol.${_id}}` }
+      else if (vol) return { tip: 'contact', theme: 'light', class: this.color(id), popup: `{contact.${name}}` }
+    }
     else if (name.charAt(1) === '_') {
       const f = { a: 'adult', j: 'junior', s: 'both', f: 'both' }, ajs = f[name.charAt(0)]
       return { tip: `fill ${ajs}`, popup: `{vsel.${name}}` }
     }
     const id = name.substring(1), vol = page.vs[id]
-    if (vol) return { tip: this.tip, theme: 'light', class: this.color(id), popup: `{vol.${name}}` }
+    if (vol) return { tip: this.tip, theme: 'light', class: this.color(id), popup: `{contact.${name}}` }
   }
   html = (o) => {
     const p = o && o.attr(), name = p && p.name
     if (!o) return html
+    else if (name === 'greet') return greet
     else if (name === 'nr') {
       const f = this.form_data, nr = (f && f.nr) || 'Roles'
       this._nr = o
@@ -88,7 +88,7 @@ class Volunteer extends Html {
       rl = (l && !l.n && (!l.adult || l.arole) && (!l.junior || l.jrole)),
       a = l && l.arole ? l.asection + ' ' + l.arole : '',
       j = l && l.jrole ? l.jsection + ' ' + l.jrole : ''
-    return [`{link._${id}.${rl ? '✓' : n}}`, `{link._${id}.${_s(c.first)}}`, c.last, a, j]
+    return [`{link.v_${id}.${rl ? '✓' : n}}`, `{link._${id}.${_s(c.first)}}`, c.last, a, j]
   }
   sr = (id, s, r) => {
     const v = page.vs[id], { asection, arole, jsection, jrole } = (v.year && v.year[2023]) || {}

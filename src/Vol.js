@@ -1,10 +1,10 @@
-import Html, { debug, page, _s } from './Html'
+import Html, { debug, page, _s, set_nav } from './Html'
 import { sections, roles, selectSection, selectRole } from './roles'
 import { req } from './data'
-import html from './html/Vol.html'
+import volR from './html/Vol.html'
 import volD from './html/volD.html'
 
-let form = { // section and options populated on load
+const form = { // section and options populated on load
     adult: { class: 'form' },
     junior: { class: 'form' },
     none: { class: 'form' },
@@ -19,9 +19,7 @@ const contact = { // section and options populated on load
     name: { placeholder: 'name', width: '50rem' },
     email: { placeholder: 'email', type: 'email', width: '50rem' },
     mobile: { placeholder: 'mobile', type: 'tel', width: '50rem' },
-    notes: { placeholder: 'notes', rows: 1, cols: 20 },
-    unsub: { class: 'form red' },
-    admin: { class: 'form red' }
+    notes: { placeholder: 'notes', rows: 1, cols: 20 }
 }
 
 class Vol extends Html {
@@ -30,8 +28,9 @@ class Vol extends Html {
         this.popup = true
         this.data = 'vs'
     }
+    debug = (m) => debug({ Vol: m, o: this.o(), div: this })
     html = (o) => {
-        if (!o) return html
+        if (!o) return volR
         else {
             const { name, param } = o.attr()
             if (name === 'volD') {
@@ -40,6 +39,13 @@ class Vol extends Html {
                 else return ''
             }
         }
+    }
+    send = () => {
+        const f = this.getForm(email)
+        if (f.subject && f.message) req({ req: 'send', subject: f.subject, message: f.message, to: this.v.id }).then(r => {
+            this.innerHTML = '<div class="tooltip">Message sent</div>'
+            setTimeout(this.tt.close, 1000)
+        })
     }
     details = (o) => {
         if (!this.show_volD) req({ req: 'vol', vol: this.v.id }).then(r => {
@@ -58,8 +64,10 @@ class Vol extends Html {
         if (name === 'save') this._save = o
         if (form[name]) return form[name]
         else if (contact[name]) return contact[name]
+        else if (email[name]) return email[name]
     }
     var = (o) => {
+        debug({ var: o.attr(), v: this.v })
         const { name, param } = o.attr(), v = this.v
         this._name = o
         return v ? v.id ? `{link.details.${_s(v.name)}}` : 'New' : ''
@@ -67,9 +75,9 @@ class Vol extends Html {
     listen = () => {
         const { name, param } = this.attr(),
             id = name === 'new' ? 0 : name.substring(1),
-            v = this.v = id === 0 ? { id: 0, year: {}, name: param } : page.vs[id], vy = v.year[2023] || {}
+            v = this.v = id === 0 ? { id: 0, year: {}, name: param } : page.vs[id],
+            vy = v.year[2023] || {}, f = { ...vy }
         this._name.setAttribute('param', 'update')
-        const f = { ...vy }
         if (f.asection === '') f.asection = 'Section'
         if (f.jsection === '') f.jsection = 'Section'
         if (f.arole === '') f.arole = 'Role'
@@ -92,10 +100,7 @@ class Vol extends Html {
     }
     link = (o) => {
         const { name, param } = o.attr()
-        if (name === 'close') return { class: 'close', tip: 'close', click: this.tt.close }
-        else if (name === 'details') return { tip: 'edit details', click: this.details }
-        else if (name === 'unsub') return { tip: 'warning: unsubscribe will delete when saved', class: 'red' }
-        else if (name === 'Admin') return { tip: 'warning: will have access to all contact details', class: 'red' }
+        if (name === 'details') return { tip: 'edit details', click: this.details }
     }
     getF = () => {
         const r = this.getForm(form)
@@ -120,7 +125,7 @@ class Vol extends Html {
         }
         this._save.setAttribute('param', 'update')
     }
-    hidden(name) {
+    hidden = (race) => {
         const a = this.querySelector(`input[name=adult]`),
             j = this.querySelector(`input[name=junior]`),
             n = this.querySelector(`input[name=none]`),
@@ -128,7 +133,7 @@ class Vol extends Html {
             ar = this.querySelector(`select[name=arole]`),
             js = this.querySelector(`select[name=jsection]`),
             jr = this.querySelector(`select[name=jrole]`)
-        if (name === 'none' && n.checked) {
+        if (race === 'none' && n.checked) {
             a.checked = false
             j.checked = false
             as.classList.add('hidden')
@@ -142,11 +147,11 @@ class Vol extends Html {
             selectSection('Section', null, form, this, 'a')
             selectSection('Section', null, form, this, 'j')
         }
-        else if (name === 'adult' || name === 'junior') {
-            const x = name === 'adult' ? a : j,
-                s = name === 'adult' ? as : js,
-                r = name === 'adult' ? ar : jr,
-                c = name.charAt(0)
+        else if (race === 'adult' || race === 'junior') {
+            const x = race === 'adult' ? a : j,
+                s = race === 'adult' ? as : js,
+                r = race === 'adult' ? ar : jr,
+                c = race.charAt(0)
             if (x.checked) {
                 n.checked = false
                 s.classList.remove('hidden')

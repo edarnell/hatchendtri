@@ -9,7 +9,14 @@ function data(req) {
         if (page[req]) s(page[req])
         else ajax({ req: 'files', files: [req] }).then(r => {
             if (r.zips && r.zips[req]) {
-                page[req] = unzip(r.zips[req].data)
+                debug({ zips: r.zips })
+                if (req === '2023C') page[req] = r.zips[req]
+                else {
+                    page[req] = unzip(r.zips[req].data)
+                    debug({ date: r.zips[req].date })
+                    page[req + '_date'] = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+                        .format(new Date(r.zips[req].date)).replace(",", " at ")
+                }
                 s(page[req])
             }
             else f(r)

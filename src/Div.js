@@ -1,9 +1,9 @@
-import Html from './Html'
+import Html, { debug } from './Html'
 class Div extends Html {
     constructor() {
         super()
     }
-    //debug = (m) => this.debug({ Div, m: this.o(), depth: this.depth() })
+    //debug = (m) => debug({ Div: m, o: this.o(), div: this })
     html = () => {
         const f = this.parent('html') || this.page('html')
         if (typeof f === 'function') {

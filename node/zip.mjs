@@ -7,12 +7,13 @@ function f(f, s) {
     const d = s ? fs.readFileSync(f).toString() : fs.readFileSync(f)
     const data = s === undefined ? Buffer.from(d).toJSON() :
         f.toLowerCase().endsWith('.json') ? JSON.parse(d) : d
-    return s === undefined ? { data: sec(f) ? anon(data) : data, date: stat.mtime } : data
+    return s === undefined ? { data, date: stat.mtime } : data
 }
 
-function sec(f) {
+function sec(f, auth, email) {
     // add to list as needed
-    return ['vs'].includes(f)
+    if (auth && email === 'ed@darnell.org.uk' && f === '2023C') return true
+    else return ['vs'].includes(f)
 }
 
 function anon(o, d) {

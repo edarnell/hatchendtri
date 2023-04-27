@@ -1,8 +1,8 @@
-import Html, { set_nav, page } from './Html'
+import Html, { set_nav, page, _s, debug } from './Html'
 import html from './html/Nav.html'
 import { icons } from './icons'
 import { pages } from './Page'
-const debug = console.log.bind(console)
+import { req } from './data'
 const images = ['url("swim.jpg")', 'url("bike.jpg")', 'url("run.jpg")']
 class Nav extends Html {
     constructor() {
@@ -10,6 +10,8 @@ class Nav extends Html {
         this.id = 'nav'
         set_nav(this)
         this.i = Math.floor(Math.random() * 3)
+        pages.user.click = this.user
+        pages.user.tip = this.tt
     }
     html = () => html
     listen = () => {
@@ -21,21 +23,31 @@ class Nav extends Html {
         bg.style.backgroundImage = images[this.i]
         this.i = (this.i + 1) % 3
     }
+    tt = () => {
+        if (this._user) return Object.values(this._user).map(u => `<div>${u.name}</div>`).join('')
+        else return 'login'
+    }
+    name = () => {
+        if (this._user) return Object.values(this._user).map(u => `{link._${u.id}.${_s(u.name)}}`).join(', ')
+        else return 'Volunteer'
+    }
+    admin = () => {
+        if (this._user) return Object.values(this._user).some(u => u.admin === true)
+    }
     user = (s) => {
         const token = localStorage.getItem('token')
-        if (!pages.user.click) pages.user.click = this.user
-        if (this._user !== token) {
-            this._user = token
-            const l = this.querySelector(`.nav li img[name="user"]`),
-                img = l.getAttribute('data-image')
-            if (token) {
-                l.src = icons['user'].active
-                pages.user.tip = 'user menu'
-            }
-            else {
-                l.src = icons['user'].default
-                pages.user.tip = 'login'
-            }
+        if (this._token !== token) {
+            this._token = token
+            this._user = null
+            if (token) req({ req: 'vol' }).then(r => {
+                this._user = r.vol.reduce((a, u) => {
+                    a[u.id] = u
+                    return a
+                }, {})
+
+            })
+            const l = this.querySelector(`.nav li img[name="user"]`)
+            l.src = (token) ? icons['user'].active : l.src = icons['user'].default
         }
     }
     wrap = () => {

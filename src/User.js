@@ -29,10 +29,14 @@ class User extends Html {
     }
     confirm = (r) => {
         this.tt.close()
-        page.innerHTML = '<p>Please check your email (check spam if it does not arrive before re-trying).</p>'
+        page.innerHTML = '<div class="warn">Please check your email (check spam if it does not arrive before re-trying).</div>'
     }
     close = () => {
         this.tt.close()
+    }
+    var = (o) => {
+        const { name, param } = o.attr()
+        if (name === 'admin' && nav._user[52]) return "{link.admin}"
     }
     listen = (v) => {
         debug({ listen: v })

@@ -486,3 +486,24 @@ select:focus {
 .card-body {
     padding: 10px;
 }
+
+.warn {
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.warn strong {
+    font-weight: bold;
+}
+
+.warn a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}

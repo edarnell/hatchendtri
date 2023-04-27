@@ -20,7 +20,7 @@ const pages = {
     volunteer: { nav: 'Volunteer', href: 'volunteer', tip: 'volunteer system' },
     admin: { nav: 'Admin', href: 'admin', tip: 'data admin' },
     competitor: { nav: 'Competitor', href: 'competitor', tip: 'entry system' },
-    contact: { nav: 'Contact', icon: 'email', href: 'contact', tip: 'contact us' },
+    contact: { popup: `{contact}`, icon: 'email', href: 'contact', tip: 'contact us' },
     user: { popup: `{user}`, icon: 'user', tip: 'login', placement: 'bottom-end' },
 }
 function custom_pages() {

@@ -1,12 +1,15 @@
-<div class="container flexCol">
-    <br />
-    <div>Any questions from {nav.competitor.competitors} or {nav.volunteer.volunteers} are welcome.</div>
-    <br />
-    <form>
-        {input.name}<br />
-        {input.email}<br />
-        {input.subject}<br />
-        {textarea.message}<br />
-        {checkbox.spam1} {checkbox.spam2} {checkbox.spam3} {button.send}
-    </form>
+<div class="card">
+    <div class="card-header">
+        <b>Contact {var.contact}</b> {link.close.×}
+    </div>
+    <div class="card-body">
+        <div class="container flexCol">
+            <form>
+                {div.from}
+                {input.subject}<br />
+                {textarea.message}<br />
+                {div.spam} {button.send}
+            </form>
+        </div>
+    </div>
 </div>

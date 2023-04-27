@@ -1,6 +1,5 @@
 import Html, { debug, page } from './Html'
 import html from './html/Competitor.html'
-import { data } from './data'
 
 const cat = {
   'Adult Experienced (17yrs+)': 'Ae',
@@ -31,13 +30,10 @@ const form = {
 class Competitor extends Html {
   constructor() {
     super()
+    this.data = 'cs'
     form.update = { class: 'form primary hidden', tip: this.formtip }
   }
-  connectedCallback() {
-    data('volunteers').then(r => {
-      if (page.emails) this.render(html, true)
-    })
-  }
+  html = () => html
   ths = (o) => {
     const { name } = o.attr()
     if (name === 'entries') return ['First', 'Last', 'Cat', 'M/F', 'Club']
@@ -51,7 +47,7 @@ class Competitor extends Html {
   }
   var = (o) => {
     const { name, param } = o.attr()
-    if (name === 'date') return page.emails_date
+    if (name === 'date') return page.cs_date || ''
     else debug({ var: name, vars: this.vars })
   }
   tip = (e, o) => {
@@ -77,21 +73,6 @@ class Competitor extends Html {
     this.form_data = this.getForm(form)
     this.entries.setAttribute('param', 'update')
   }
-  data = (r) => {
-    debug({ r })
-    this.vars.date = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
-      .format(new Date(r.emails.date)).replace(",", " at ")
-    let fs = {}
-    Object.keys(page.emails).forEach(e => {
-      Object.keys(page.emails[e]).forEach(k => {
-        if (!fs[k]) fs[k] = []
-        fs[k].push(e)
-      })
-    })
-    this.fs = fs
-    debug({ fs, emails: page.emails })
-    this.render(html, true)
-  }
   filter = (c, m) => {
     const { cat, mf } = this.form_data || {},
       cs = cat === 'Adult' ? ['An', 'Ae'] : cat === 'Junior' ? ['TS', 'T1', 'T2', 'T3', 'Youth'] : [cat]
@@ -100,13 +81,9 @@ class Competitor extends Html {
     return true
   }
   comp2023 = () => {
-    const emails = Object.keys(page.emails).filter(e => page.emails[e]['2023C'])
-    let ret = []
-    emails.forEach(e => {
-      const cs = page.emails[e]['2023C']
-      cs.forEach(c => {
-        if (this.filter(cat[c.cat], mf[c.gender])) ret.push([c.first, c.last, `{link.cat.${cat[c.cat]}}`, `{link.mf.${mf[c.gender]}}`, c.club || ''])
-      })
+    const cs = page.cs, ret = []
+    cs.forEach(c => {
+      if (this.filter(cat[c.cat], mf[c.gender])) ret.push([c.first, c.last, `{link.cat.${cat[c.cat]}}`, `{link.mf.${mf[c.gender]}}`, c.club || ''])
     })
     this.rows = ret.length
     return ret.sort((a, b) => a[1] > b[1] ? 1 : -1)

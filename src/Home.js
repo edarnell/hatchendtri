@@ -7,6 +7,7 @@ class Home extends Html {
     constructor() {
         super()
     }
+    //debug = (m) => debug({ Home: m, o: this.o(), div: this })
     html = (o) => {
         const p = o && o.attr(), name = p && p.name
         if (name === 'home_main') return home_main

@@ -40,8 +40,14 @@ class TT extends Html {
         }
     }
     link = () => {
+        let ret
         const f = this.parent('link') || this.page('link')
-        if (typeof f === 'function') return f(this)
+        if (typeof f === 'function') ret = f(this)
+        if (!ret && this.attr().name === 'close') {
+            const tt = this.parent('tt')
+            ret = { class: 'close', tip: 'close', click: tt.close }
+        }
+        return ret
     }
     html = () => {
         const { type, param, name } = this.attr(), k = name.toLowerCase(), link = this.link() || pages[k] || links[k] || icons[k]
@@ -107,6 +113,7 @@ class TT extends Html {
     }
     popup = (e) => {
         this.remove(null, true)
+        this.addEventListener("click", this.close)
         const popup = this.div = document.createElement('div'),
             { name } = this.attr()
         popup.classList.add('popup')
@@ -117,15 +124,18 @@ class TT extends Html {
         popup.firstChild.tt = this
         if (param) popup.firstChild.setAttribute("param", param)
         document.body.appendChild(popup)
-        const pop = createPopper(this.firstChild, popup, {
+        this.pop = createPopper(this.firstChild, popup, {
             placement: link.placement || 'top',
             modifiers: [{ name: 'offset', options: { offset: [0, 8], }, },],
         })
     }
     close = () => {
         if (this.div) {
+            if (this.pop) this.pop.destroy()
+            else debug({ TT: "close", o: this.o() })
             this.div.remove()
-            this.listen()
+            this.removeEventListener("click", this.close)
+            this.listen(true) // add back listeners
         }
     }
 }
