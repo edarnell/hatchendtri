@@ -16,5 +16,4 @@ function csv(ent) {
     }
     return cs
 }
-
 export { csv }

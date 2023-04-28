@@ -32,7 +32,7 @@ class Form extends TT {
                     : `<option value="${o.value}" ${o.value === form.value ? 'selected' : ''}>${o.name}</option>`).join('')}
             </select>`
             case 'textarea':
-                return `<textarea rows="${form.rows || 10}" cols="${form.cols || 40}" class="form" 
+                return `<textarea rows="${form.rows || 10}" cols="${form.cols || 20}" class="form" 
             name="${name}"
             ${form.placeholder ? `placeholder="${form.placeholder}"` : ''}
             ${form.required ? 'required' : ''}

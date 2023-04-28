@@ -17,8 +17,8 @@ class TT extends Html {
             if (this._form) this.addEventListener("input", this.input)
             if (lk.hover || lk.tip) {
                 this.addEventListener("mouseenter", this.tooltip)
-                this.addEventListener("touchstart", this.tooltip)
                 this.addEventListener("mouseleave", this.remove)
+                this.addEventListener("touchstart", this.remove)
                 this.addEventListener("touchend", this.remove)
             }
         }
@@ -28,16 +28,18 @@ class TT extends Html {
         }
     }
     remove = (e, listeners) => {
+        if (this.tip) this.tip.destroy()
         if (this.tt) this.tt.remove()
         if (this.arrow) this.tt.remove()
+        if (this.pop) this.tip.destroy()
         if (this.div) this.div.remove()
         if (listeners) {
             const lk = this.lk
             if (lk.hover || lk.tip) {
                 this.removeEventListener("mouseenter", this.tooltip)
                 this.removeEventListener("mouseleave", this.remove)
-                this.removeEventListener("touchstart", this.tooltip)
                 this.removeEventListener("touchend", this.remove)
+                this.removeEventListener("touchstart", this.remove)
             }
             if (this._form) this.removeEventListener("input", this.input)
             if (lk.click || lk.popup || lk.nav || lk.submit) this.removeEventListener("click", this.click)
@@ -94,6 +96,10 @@ class TT extends Html {
         else debug({ TT: "click", o: this.o(), e })
     }
     tooltip = (e) => {
+        if (this.tt) {
+            if (this.tip) this.tip.destroy()
+            this.tt.remove()
+        }
         const tt = this.tt = document.createElement('div'),
             arrow = this.arrow = document.createElement('div'),
             link = this.lk,
@@ -109,7 +115,7 @@ class TT extends Html {
         arrow.setAttribute('data-popper-arrow', true)
         tt.appendChild(arrow)
         document.body.appendChild(tt)
-        const pop = createPopper(this.firstChild, tt, {
+        this.tip = createPopper(this.firstChild, tt, {
             placement: link.placement || 'top',
             modifiers: [{ name: 'offset', options: { offset: [0, 8], }, },],
         })

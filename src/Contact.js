@@ -17,8 +17,9 @@ class Contact extends Html {
         this.popup = true
         form.send.tip = this.tt
         this.spam = Math.floor(Math.random() * 3)
-        const { name, param } = this.attr(),
-            to = this._to = (name.charAt(0) === '_' ? name.substring(1) : null)
+        const { name, param } = this.attr()
+        let to = this._to = (name.charAt(0) === '_' ? name.substring(1) : null)
+        if (!to && name === 'list' && typeof this.parent('list') === 'function') to = this.parent('list')
         if (to) this.data = 'vs'
     }
     debug = (m) => debug({ Contact: m, o: this.o(), div: this })
