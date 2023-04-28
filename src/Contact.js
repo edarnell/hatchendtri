@@ -18,7 +18,7 @@ class Contact extends Html {
         form.send.tip = this.tt
         this.spam = Math.floor(Math.random() * 3)
         const { name, param } = this.attr(),
-            to = this._to = (name.charAt(0) === '_' ? name.substring(1) : name)
+            to = this._to = (name.charAt(0) === '_' ? name.substring(1) : null)
         if (to) this.data = 'vs'
     }
     debug = (m) => debug({ Contact: m, o: this.o(), div: this })

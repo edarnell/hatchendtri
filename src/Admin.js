@@ -33,12 +33,12 @@ class Admin extends Html {
     }
     ths = (o) => {
         const { name, param } = o.attr()
-        if (name === 'users') return ['first', 'last', 'gender', 'cat', 'club', 'id']
+        if (name === 'users') return ['id', 'first', 'last', 'gender', 'cat', 'club', 'email', 'phone']
     }
     trs = (o) => {
         const { name, param } = o.attr()
         this._table = o
-        if (page.cs) return page.cs.map(r => [r.first, r.last, r.gender, r.cat, r.club, r.id])
+        if (page.cs) return Object.values(page.cs).map(r => [r.id, r.first, r.last, r.gender, r.cat, r.club, r.email, r.phone])
         else return []
     }
     save = (e, o) => {

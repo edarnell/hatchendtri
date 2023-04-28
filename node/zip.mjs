@@ -10,10 +10,10 @@ function f(f, s) {
     return s === undefined ? { data, date: stat.mtime } : data
 }
 
-function sec(f, auth, email) {
+function sec(f, auth, email) { // auth and email only for csv data
     // add to list as needed
-    if (auth && email === 'ed@darnell.org.uk' && f === '2023C') return true
-    else return ['vs'].includes(f)
+    if (auth && email === 'ed@darnell.org.uk' && ['2023C'].includes(f)) return true
+    else if (!auth) return ['vs', 'cs'].includes(f)
 }
 
 function anon(o, d) {
@@ -48,7 +48,7 @@ function fz(f) {
 function save(f, j, secure) {
     if (secure) {
         const ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
-        fs.renameSync(`gz/${f}_.gz`, `gz/backups/${f}_${ts}.gz`);
+        if (fs.existsSync(`gz/${f}_.gz`)) fs.renameSync(`gz/${f}_.gz`, `gz/backups/${f}_${ts}.gz`);
         fs.writeFileSync(`gz/${f}_.gz`, zip(j))
         fs.writeFileSync(`gz/${f}.gz`, zip(anon(j)))
     }

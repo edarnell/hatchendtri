@@ -7,11 +7,28 @@ function data(req) {
     // can imrove to cache with local storage
     return new Promise((s, f) => {
         if (page[req]) s(page[req])
+        else if (localStorage.getItem(req)) {
+            const { date, data } = JSON.parse(localStorage.getItem(req))
+            page[req] = unzip(data)
+            page[req + '_date'] = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+                .format(new Date(date)).replace(",", " at ")
+            ajax({ req: 'dates', files: [req] }).then(r => {
+                if (r.date[req] === date) {
+                    debug({ storage: req, date: r.date })
+                    s(page[req])
+                }
+                else {
+                    localStorage.removeItem(req)
+                    data(req).then(r => s(r)).catch(e => f(e))
+                }
+            }).catch(e => f(e))
+        }
         else ajax({ req: 'files', files: [req] }).then(r => {
             if (r.zips && r.zips[req]) {
-                debug({ zips: r.zips })
+                debug({ req, date: r.date })
                 if (req === '2023C') page[req] = r.zips[req]
                 else {
+                    localStorage.setItem(req, JSON.stringify(r.zips[req]))
                     page[req] = unzip(r.zips[req].data)
                     debug({ date: r.zips[req].date })
                     page[req + '_date'] = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
@@ -48,18 +65,6 @@ function save(data) {
             else f(r)
         }).catch(e => f(e))
     })
-}
-
-function vs(r) {
-    const vs = page.vs = unzip(r.vs.data)
-    const emails = page.emails2 = unzip(r.emails.data)
-    page.ids = Object.fromEntries(Object.entries(page.emails2).map(([email, id]) => [id, email]))
-    const files = page.emails = unzip(r.files.data)
-    debug({ emails })
-    page.v2023 = unzip(r.v2023.data)
-    page.emails_date = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
-        .format(new Date(r.emails.date)).replace(",", " at ")
-    return { vs, emails }
 }
 
 export { data, save, req }

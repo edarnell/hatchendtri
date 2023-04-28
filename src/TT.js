@@ -17,7 +17,9 @@ class TT extends Html {
             if (this._form) this.addEventListener("input", this.input)
             if (lk.hover || lk.tip) {
                 this.addEventListener("mouseenter", this.tooltip)
+                this.addEventListener("touchstart", this.tooltip)
                 this.addEventListener("mouseleave", this.remove)
+                this.addEventListener("touchend", this.remove)
             }
         }
         else if (lk && !set) {
@@ -34,6 +36,8 @@ class TT extends Html {
             if (lk.hover || lk.tip) {
                 this.removeEventListener("mouseenter", this.tooltip)
                 this.removeEventListener("mouseleave", this.remove)
+                this.removeEventListener("touchstart", this.tooltip)
+                this.removeEventListener("touchend", this.remove)
             }
             if (this._form) this.removeEventListener("input", this.input)
             if (lk.click || lk.popup || lk.nav || lk.submit) this.removeEventListener("click", this.click)

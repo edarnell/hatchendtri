@@ -1,7 +1,7 @@
 import Html, { debug, page } from './Html'
 import html from './html/Competitor.html'
 
-const cat = {
+const cmap = {
   'Adult Experienced (17yrs+)': 'Ae',
   'Adult Novice (17yrs+)': 'An',
   'Youths : 15-16 yrs': 'Youth',
@@ -10,12 +10,12 @@ const cat = {
   'Tristar 1: 9-10 yrs': 'T1',
   'Tristart: 8 yrs': 'TS'
 }
-const rCat = Object.entries(cat).reduce((acc, [key, value]) => {
+const rCat = Object.entries(cmap).reduce((acc, [key, value]) => {
   acc[value] = key
   return acc
 }, {})
 
-const mf = {
+const mfmap = {
   'Open': 'M',
   'Male': 'M',
   'Female': 'F'
@@ -25,6 +25,7 @@ const form = {
   filter: { placeholder: 'name, club or email', width: '50rem' },
   cat: { options: ['Cat', 'Adult', 'An', 'Ae', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Youth'] },
   mf: { options: ['M/F', 'Open', 'Male', 'Female'] },
+  C: { class: 'hidden form red bold', tip: 'clear name', submit: true },
 }
 
 class Competitor extends Html {
@@ -66,27 +67,34 @@ class Competitor extends Html {
     return tt[name]
   }
   form = (o) => {
-    const { name } = o.attr(), k = name && name.toLowerCase()
-    if (form[k]) return form[k]
+    const { name } = o.attr()
+    if (form[name]) return form[name]
   }
   update = (e, o) => {
-    this.form_data = this.getForm(form)
+    const { name } = o.attr()
+    if (name === 'C') this.setForm({ filter: '', cat: 'Cat', mf: 'M/F' }, form)
+    const f = this.form_data = this.getForm(form),
+      C = this.querySelector(`button[name=C]`),
+      blank = f.filter === '' && f.cat === 'Cat' && f.mf === 'M/F'
+    C.classList[blank ? 'add' : 'remove']('hidden')
     this.entries.setAttribute('param', 'update')
   }
-  filter = (c, m) => {
-    const { cat, mf } = this.form_data || {},
+  filter = (c) => {
+    const { cat, mf, filter } = this.form_data || {},
+      f = filter && filter.toLowerCase(),
+      r = [c.first.toLowerCase(), c.last.toLowerCase(), c.club.toLowerCase()],
       cs = cat === 'Adult' ? ['An', 'Ae'] : cat === 'Junior' ? ['TS', 'T1', 'T2', 'T3', 'Youth'] : [cat]
-    if (cat && cat !== 'Cat' && cs.indexOf(c) === -1) return false
-    if (mf && mf !== 'M/F' && m !== mf) return false
+    if (cat && cat !== 'Cat' && !cs.includes(cmap[c.cat])) return false
+    if (mf && mf !== 'M/F' && c.gender !== mf) return false
+    if (f && !r.join(',').includes(f)) return false
     return true
   }
   comp2023 = () => {
-    const cs = page.cs, ret = []
-    cs.forEach(c => {
-      if (this.filter(cat[c.cat], mf[c.gender])) ret.push([c.first, c.last, `{link.cat.${cat[c.cat]}}`, `{link.mf.${mf[c.gender]}}`, c.club || ''])
-    })
+    const ret = Object.values(page.cs).filter(this.filter)
+      .map(c => [c.first, c.last, `{link.cat.${cmap[c.cat]}}`, `{link.mf.${mfmap[c.gender]}}`, c.club || ''])
+      .sort((a, b) => a[1] > b[1] ? 1 : -1)
     this.rows = ret.length
-    return ret.sort((a, b) => a[1] > b[1] ? 1 : -1)
+    return ret
   }
 }
 
