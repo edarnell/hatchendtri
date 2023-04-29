@@ -21,7 +21,27 @@ class Vselect extends Html {
         const { name, param } = o.attr()
         if (name === 'close') return { class: 'close', tip: 'close', click: this.tt.close }
         else if (name === 'new') return { tip: 'check existing first' }
+        else if (name === 'request') return { tip: 'click to request', click: this.request }
         else if (name.charAt(0) === '_') return { theme: 'light', tip: this.tip, click: this.setid }
+    }
+    request = () => {
+        const { name, param } = this.attr(),
+            [, aj, s, r] = name.match(/([sajf])_(\d{1,2})r_(\d{1,2})/),
+            sec = sections[s], rs = roles(sec), role = rs[r],
+            t = { a: 'Adult ', j: 'Junior ', s: '', f: '' }
+        const data = { subject: 'Role Request', message: `Request: ${t[aj]}, ${sec}, ${role}`, to: 52 }
+        req({ req: 'send', data })
+            .then(r => this.confirm(r))
+            .catch(e => this.error(e))
+    }
+    confirm = (r) => {
+        this.innerHTML = '<div class="message">Role Requested</div>'
+        setTimeout(this.tt.close, 3000)
+    }
+    error = (e) => {
+        debug({ e })
+        this.innerHTML = `<div class="message error">Request Error</div>`
+        setTimeout(this.tt.close, 3000)
     }
     close = () => {
         this.tt.close()

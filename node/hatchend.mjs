@@ -93,7 +93,8 @@ app.post(config.url, (m, r) => {
                 to = id && vs[id],
                 to_email = to && to.email,
                 to_name = to && to.name.split(' ')[0],
-                from = email ? get_name(email) : from_name
+                from = email ? get_name(email, false) : from_name
+            log.info('req->', req, id, to_email, from)
             if (subject && message && (email || !to)) send({ to: to_name, email: to_email, from_email: email || from_email, from, subject, message })
                 .then(s => resp(req, r, { sent: s }))
             else resp(req, r, { message: 'no data' }, 400)
