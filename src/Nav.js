@@ -34,7 +34,7 @@ class Nav extends Html {
     admin = () => {
         if (this._user) return Object.values(this._user).some(u => u.admin === true)
     }
-    user = (s) => {
+    user = (p) => {
         const token = localStorage.getItem('token')
         if (this._token !== token) {
             this._token = token
@@ -49,6 +49,7 @@ class Nav extends Html {
             const l = this.querySelector(`.nav li img[name="user"]`)
             l.src = (token) ? icons['user'].active : l.src = icons['user'].default
         }
+        if (p) this.nav(p)
     }
     wrap = () => {
         // not sure this is needed now

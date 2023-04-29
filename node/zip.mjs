@@ -10,10 +10,9 @@ function f(f, s) {
     return s === undefined ? { data, date: stat.mtime } : data
 }
 
-function sec(f, auth, email) { // auth and email only for csv data
+function sec(f) { // auth and email only for csv data
     // add to list as needed
-    if (auth && email === 'ed@darnell.org.uk' && ['2023C'].includes(f)) return true
-    else if (!auth) return ['vs', 'cs'].includes(f)
+    return ['vs', 'cs'].includes(f)
 }
 
 function anon(o, d) {

@@ -56,7 +56,7 @@ class User extends Html {
         localStorage.removeItem('token')
         localStorage.removeItem('vs')
         localStorage.removeItem('cs')
-        nav.user()
+        nav.user('home')
         this.tt.close()
     }
     html = (o) => {

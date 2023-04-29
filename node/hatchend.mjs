@@ -56,14 +56,16 @@ app.post(config.url, (m, r) => {
         if (req === 'files' && json.files) {
             const { files } = json, zips = {}
             log.info('req->', req, files)
+            let ok = true
             files.forEach(fn => {
-                if (sec(fn, auth, email)) zips[fn] = f(`lists/${fn}.csv`, true)
-                else if (sec(fn) && !auth) resp(req, r, { error: 'Unauthorized' }, 401)
+                if (auth && email === 'ed@darnell.org.uk' && ['2023C'].includes(f)) zips[fn] = f(`lists/${fn}.csv`, true)
+                else if (sec(fn) && !auth) ok = false
                 else zips[fn] = f(`gz/${fn}.gz`)
             })
-            resp(req, r, { zips })
+            if (ok) resp(req, r, { zips })
+            else resp(req, r, { error: 'Unauthorized' }, 401)
         }
-        if (req === 'dates' && json.files) {
+        else if (req === 'dates' && json.files) {
             const { files } = json, date = {}
             log.info('req->', req, files)
             files.forEach(fn => {
