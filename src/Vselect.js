@@ -1,8 +1,7 @@
 import Html, { debug, page, _s } from './Html'
 import select from './html/select.html'
 import selectV from './html/selectV.html'
-import { firstLast } from './Volunteer'
-import { roles, sections } from './roles'
+import { roles, sections, firstLast } from './roles'
 import { req } from './data'
 
 const form = {
@@ -28,7 +27,7 @@ class Vselect extends Html {
         const { name, param } = this.attr(),
             [, aj, s, r] = name.match(/([sajf])_(\d{1,2})r_(\d{1,2})/),
             sec = sections[s], rs = roles(sec), role = rs[r],
-            t = { a: 'Adult ', j: 'Junior ', s: '', f: '' }
+            t = { a: 'Adult', j: 'Junior', s: '', f: '' }
         const data = { subject: 'Role Request', message: `Request: ${t[aj]}, ${sec}, ${role}`, to: 52 }
         req({ req: 'send', data })
             .then(r => this.confirm(r))

@@ -22,7 +22,7 @@ class Contact extends Html {
         if (!to && name === 'list' && typeof this.parent('list') === 'function') to = this.parent('list')
         if (to) this.data = 'vs'
     }
-    debug = (m) => debug({ Contact: m, o: this.o(), div: this })
+    //debug = (m) => debug({ Contact: m, o: this.o(), div: this })
     html = (o) => {
         if (!o) return html
         else {
@@ -52,7 +52,7 @@ class Contact extends Html {
             if (vol && admin) return { tip: 'update', theme: 'light', class: vp.color(id), popup: `{vol.${_id}}` }
             else return { tip: 'close', theme: 'light', class: vp.color(id), click: this.tt.close }
         }
-        else debug({ name, page: page._page })
+        else if (name !== 'close') debug({ name, page: page._page })
     }
     form = (o) => {
         const { name } = o.attr(), k = name.toLowerCase()

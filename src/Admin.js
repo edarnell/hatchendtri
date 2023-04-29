@@ -2,23 +2,33 @@ import Html, { debug, page, _s } from './Html'
 import { zip } from './unzip'
 import { req } from './data'
 import { csv } from './csv'
+import { unsub } from './unsub'
 import html from './html/Admin.html'
+import { firstLast } from './roles'
 
 const form = { // section and options populated on load
     filter: { placeholder: 'name filter', width: '50rem' },
     C: { class: 'hidden form red bold', tip: 'clear name', submit: true },
     Save: { class: 'form red', tip: 'save ids' },
-    Send: { class: 'form red', tip: 'save emails', popup: '{contact.list}' },
+    Send: { class: 'form red', tip: 'send emails', popup: '{contact.list}' },
 }
 
 class Admin extends Html {
     constructor() {
         super()
-        this.data = '2023C'
+        this.data = 'vs_'
         form.Save.click = this.save
     }
+    unsub = () => {
+        const files = ['MCu.csv', 'MCc.csv']
+        req({ req: 'files', files }).then(r => unsub(r))
+    }
     listen = () => {
-        page.cs = csv(page['2023C'])
+        this.unsub()
+        //page.cs = csv(page['2023C'])
+        //const files = ['MCu.csv', 'MCc.csv']
+        //['2023C.csv', '2022C.csv', '2022W.csv', '2019C.csv', '2018C.csv', '2017C.csv']
+        //req({ req: 'files', files }).then(r => debug(r))
         this._table.setAttribute('param', 'update')
     }
     html = (o) => {
@@ -27,18 +37,24 @@ class Admin extends Html {
     }
     ths = (o) => {
         const { name, param } = o.attr()
-        if (name === 'users') return ['id', 'first', 'last', 'gender', 'cat', 'club', 'email', 'phone']
+        if (name === 'users') return ['ticks', 'name', 'email']
+    }
+    list = (o) => {
+        return this._rows
     }
     trs = (o) => {
-        const { name, param } = o.attr(), cs = page.cs
-        debug({ trs: name, param })
+        const { name, param } = o.attr(), rs = page.vs_
         this._table = o
-        if (page.cs) return Object.values(page.cs).filter(c => this.filter(c)).map(r => [r.id, r.first, r.last, r.gender, r.cat, r.club, r.email, r.phone])
-        else return []
+        this._rows = []
+        if (rs) this._rows = Object.values(rs).filter(r => this.filter(r)).map(r => {
+            const { first, last } = firstLast(r.name)
+            return [r.id, first, last, r.email]
+        })
+        return this._rows
     }
     filter = (c) => {
         const fm = this.getForm(form), fi = fm && fm.filter, fs = fi && fi.split(",")
-        let r = true
+        let r = c.email
         if (fi) {
             r = false
             Object.values(c).forEach(v => {

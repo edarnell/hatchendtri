@@ -239,5 +239,4 @@ class Volunteer extends Html {
   }
 
 }
-export { firstLast }
 export default Volunteer
