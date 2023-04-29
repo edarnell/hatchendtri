@@ -18,8 +18,6 @@ class TT extends Html {
             if (lk.hover || lk.tip) {
                 this.addEventListener("mouseenter", this.tooltip)
                 this.addEventListener("mouseleave", this.remove)
-                this.addEventListener("touchstart", this.remove)
-                this.addEventListener("touchend", this.remove)
             }
         }
         else if (lk && !set) {
@@ -38,8 +36,6 @@ class TT extends Html {
             if (lk.hover || lk.tip) {
                 this.removeEventListener("mouseenter", this.tooltip)
                 this.removeEventListener("mouseleave", this.remove)
-                this.removeEventListener("touchend", this.remove)
-                this.removeEventListener("touchstart", this.remove)
             }
             if (this._form) this.removeEventListener("input", this.input)
             if (lk.click || lk.popup || lk.nav || lk.submit) this.removeEventListener("click", this.click)
@@ -75,6 +71,7 @@ class TT extends Html {
     }
     click = (e) => {
         const lk = this.lk
+        this.timer = setTimeout(this.remove(), 2000) // for mobile but safe? - cancel on remove?
         if (lk) {
             e.preventDefault()
             if (lk.popup) this.popup(e)

@@ -21,15 +21,20 @@ class Admin extends Html {
     }
     unsub = () => {
         const files = ['MCu.csv', 'MCc.csv']
-        req({ req: 'files', files }).then(r => unsub(r))
+        req({ req: 'files', files }).then(r => {
+            this.unsub = unsub(r)
+            this._table.setAttribute('param', 'update')
+        })
     }
     listen = () => {
+        // make 5 de-dupe groups - vol can, vol can't, vol unknown, comp 2023, comp other
+        // group sizes, messages, test send
         this.unsub()
         //page.cs = csv(page['2023C'])
         //const files = ['MCu.csv', 'MCc.csv']
         //['2023C.csv', '2022C.csv', '2022W.csv', '2019C.csv', '2018C.csv', '2017C.csv']
         //req({ req: 'files', files }).then(r => debug(r))
-        this._table.setAttribute('param', 'update')
+
     }
     html = (o) => {
         const p = o && o.attr(), name = p && p.name
@@ -54,7 +59,8 @@ class Admin extends Html {
     }
     filter = (c) => {
         const fm = this.getForm(form), fi = fm && fm.filter, fs = fi && fi.split(",")
-        let r = c.email
+        let r = c.email && !this.unsub[c.email.toLowerCase()]
+        if (!r) debug({ unsub: c })
         if (fi) {
             r = false
             Object.values(c).forEach(v => {

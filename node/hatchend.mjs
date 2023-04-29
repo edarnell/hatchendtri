@@ -59,7 +59,7 @@ app.post(config.url, (m, r) => {
             let ok = true
             files.forEach(fn => {
                 if (auth && email === 'ed@darnell.org.uk' && fn.endsWith('.csv')) zips[fn] = f(`lists/${fn}`, true)
-                else if (auth && email === 'ed@darnell.org.uk' && fn === 'vs_') zips[fn] = f(`lists/${fn}`)
+                else if (auth && email === 'ed@darnell.org.uk' && fn === 'vs_') zips[fn] = f(`gz/${fn}.gz`)
                 else if (sec(fn) && !auth) ok = false
                 else zips[fn] = f(`gz/${fn}.gz`)
             })
