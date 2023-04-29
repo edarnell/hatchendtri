@@ -38,7 +38,10 @@ class Volunteer extends Html {
       return { tip: `fill ${ajs}`, popup: `{vsel.${name}}` }
     }
     const id = name.substring(1), vol = page.vs[id]
-    if (vol) return { tip: this.tip, theme: 'light', class: this.color(id), popup: `{contact.${name}}` }
+    if (vol) {
+      const _id = name
+      return { tip: this.tip, theme: 'light', class: this.color(id), popup: `{contact.${_id}}` }
+    }
   }
   html = (o) => {
     const p = o && o.attr(), name = p && p.name

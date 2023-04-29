@@ -6,4 +6,4 @@ scp -i ../.ssh/epdarnell.pem node/mail.mjs ubuntu@ec2.freemaths.uk:/var/www/hatc
 scp -i ../.ssh/epdarnell.pem node/mail.html ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/node
 scp -i ../.ssh/epdarnell.pem node/package.json ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/node
 rem scp -i ../.ssh/epdarnell.pem node/config.json ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/node
-scp -i ../.ssh/epdarnell.pem node/gz/*.gz ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/node/gz
+rem scp -i ../.ssh/epdarnell.pem node/gz/*.gz ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/node/gz

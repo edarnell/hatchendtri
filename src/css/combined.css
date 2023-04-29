@@ -45,6 +45,8 @@ body {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
+    border-radius: 5px;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, .3);
 }
 
 .title {
@@ -487,23 +489,22 @@ select:focus {
     padding: 10px;
 }
 
-.warn {
-    background-color: #f5f5f5;
-    border: 1px solid #ccc;
+.message {
+    background-color: #fff;
+    border: 1px solid #080;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, .7);
     border-radius: 5px;
     padding: 10px;
-    font-family: Arial, sans-serif;
-    font-size: 16px;
     line-height: 1.5;
-    margin-bottom: 10px;
-}
-
-.warn strong {
+    margin-left: 5rem;
     font-weight: bold;
 }
 
-.warn a {
-    color: #007bff;
-    text-decoration: none;
-    font-weight: bold;
+.warn {
+    border: 1px solid #008;
+}
+
+.error {
+    border: 1px solid #800;
+    color: #800;
 }

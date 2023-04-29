@@ -1,5 +1,6 @@
 import Html, { debug, page, _s } from './Html'
-import user from './html/select.html'
+import select from './html/select.html'
+import selectV from './html/selectV.html'
 import { firstLast } from './Volunteer'
 import { roles, sections } from './roles'
 import { req } from './data'
@@ -44,7 +45,10 @@ class Vselect extends Html {
         }
     }
     html = (o) => {
-        if (!o) return user
+        if (!o) {
+            if (nav.admin()) return adminSel
+            else return userSel
+        }
         else return this.vol_names(o)
     }
     form = (o) => {

@@ -28,8 +28,13 @@ class User extends Html {
         else return 'enter your email'
     }
     confirm = (r) => {
-        this.tt.close()
-        page.innerHTML = '<div class="warn">Please check your email (check spam if it does not arrive before re-trying).</div>'
+        this.innerHTML = '<div class="message">Please check your email.</div>'
+        setTimeout(this.tt.close, 3000)
+    }
+    error = (e) => {
+        debug({ e })
+        this.innerHTML = `<div class="message error">Error sending</div>`
+        setTimeout(this.tt.close, 3000)
     }
     close = () => {
         this.tt.close()
@@ -49,6 +54,8 @@ class User extends Html {
     }
     logout = () => {
         localStorage.removeItem('token')
+        localStorage.removeItem('vs')
+        localStorage.removeItem('cs')
         nav.user()
         this.tt.close()
     }
@@ -78,7 +85,9 @@ class User extends Html {
         }
         if (name === 'send' && complete && !spam) {
             const f = this.getForm(form)
-            req({ req: 'login', email: f.email }).then(r => this.confirm(r))
+            req({ req: 'login', email: f.email })
+                .then(r => this.confirm(r))
+                .catch(e => this.error(e))
         }
     }
     checkForm = () => {

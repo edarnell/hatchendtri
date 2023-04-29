@@ -5,7 +5,7 @@ class Var extends Html {
     }
     html() {
         const _var = this.var()
-        if (typeof _var === 'string') return _var
+        if (typeof _var === 'string') return this.render(_var)
         else debug({ Var: "define var=(o)=>", o: this.o() })
     }
 

@@ -28,7 +28,7 @@ class Vol extends Html {
         this.popup = true
         this.data = 'vs'
     }
-    debug = (m) => debug({ Vol: m, o: this.o(), div: this })
+    //debug = (m) => debug({ Vol: m, o: this.o(), div: this })
     html = (o) => {
         if (!o) return volR
         else {

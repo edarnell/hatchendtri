@@ -52,10 +52,11 @@ function html_text(html) {
     return html.replace(/<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1[^>]*?>(.*?)<\/a>/gi, '$3 ($2)').replace(/<br\s*\/?>/gi, '\n');
 }
 
-const _footer = '<a href="{host}/{token}">Hatch End Triathlon</a> is organised and run by '
+const _footer = '<a href="{host}">Hatch End Triathlon</a> is organised and run by '
     + '<a href="https://jetstreamtri.com">Jetstream Triathlon Club</a><br/>'
-    + 'You can <a href="{host}/update{token}">update</a> your details '
-    + 'or <a href="{host}/unsubscribe{token}">unsubscribe</a> at any time.'
+/*
++ 'You can <a href="{host}/update{token}">update</a> your details '
++ 'or <a href="{host}/unsubscribe{token}">unsubscribe</a> at any time.'*/
 function email(p) {
     var html = mail.slice()
     const m = {}
