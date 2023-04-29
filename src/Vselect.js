@@ -46,8 +46,8 @@ class Vselect extends Html {
     }
     html = (o) => {
         if (!o) {
-            if (nav.admin()) return adminSel
-            else return userSel
+            if (nav.admin()) return select
+            else return selectV
         }
         else return this.vol_names(o)
     }
