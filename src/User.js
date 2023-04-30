@@ -28,7 +28,7 @@ class User extends Html {
         else return 'enter your email'
     }
     confirm = (r) => {
-        this.innerHTML = '<div class="message">Please check your email.</div>'
+        this.innerHTML = '<div class="message">Login link emailed.</div>'
         setTimeout(this.tt.close, 3000)
     }
     error = (e) => {

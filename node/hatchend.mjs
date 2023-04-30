@@ -2,7 +2,7 @@
 const debug = console.log.bind(console)
 import express from 'express'
 import { f, fz, save, sec } from './zip.mjs'
-import { send } from './mail.mjs'
+import { send, send_list } from './mail.mjs'
 import log4js from "log4js"
 import jwt from 'jsonwebtoken'
 import fs from 'fs'
@@ -129,6 +129,16 @@ app.post(config.url, (m, r) => {
                 const vu = f('gz/vs.gz')
                 resp(req, r, { vs: vu })
             }
+            else if (req === 'bulksend' && json.subject && json.message && json.list) {
+                const { subject, message, list, live } = json
+                log.info('req->', req, subject, { n: list.length }, { live: live || false })
+                send_list(list, subject, message, live)
+                    .then(s => resp(req, r, { sent: s }))
+                    .catch(e => {
+                        log.info({ error: e })
+                        resp(req, r, { error: e }, 500)
+                    })
+            }
             else if (req === 'save' && json.files) {
                 const { files } = json, zips = {}, fs = Object.keys(files)
                 log.info('req->', req, fs)
@@ -175,5 +185,5 @@ function start() {
         log.info(`listening on ${config.url} port ${config.port}`)
     })
 }
-
+export { log }
 export default start

@@ -3,14 +3,15 @@ import { STSClient, GetSessionTokenCommand } from '@aws-sdk/client-sts'
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
 import { f } from './zip.mjs'
 import jwt from 'jsonwebtoken'
+import { log } from './hatchend.mjs'
 
 const config = f('config.json', true)
 const mail = f('mail.html', true)
 const aws = config.aws
 
-function send_list(list) {
-    const length = Object.keys(list).length
-    log.info({ sending: emails })
+function send_list(list, subject, message, live) {
+    const length = list.length
+    log.info({ sending: length })
     return new Promise((s, f) => {
         aws.clientDefault = { outputFormat: 'json' }
         const sts = new STSClient(aws)
@@ -27,7 +28,7 @@ function send_list(list) {
             })
             const n = 10
             for (var i = 0; i < length; i += n) {
-                const { sent, failed } = await send_batch(n, list, i, ses)
+                const { sent, failed } = await send_batch(n, list, i, ses, subject, message, live)
                 if (i === n) s({ sending: { sent, failed, length } })
                 log.info({ sent, failed })
                 await new Promise(resolve => setTimeout(resolve, 1000))
@@ -36,16 +37,20 @@ function send_list(list) {
     })
 }
 
-function send_batch(n, list, i, ses) {
-    const emails = Object.keys(list).slice(i, i + n)
-    const commands = emails.map(email => new SendEmailCommand(params(list[email])))
-    return new Promise((s, f) => {
-        ses.sendBatch(commands).then(r => {
-            const sent = r.Successful.length
-            const failed = r.Failed.length
-            s({ sent, failed })
-        }).catch(e => f(e))
+async function send_batch(n, list, i, ses, subject, message, live) {
+    const emails = list.slice(i, i + n)
+    const promises = emails.map(async r => {
+        return ses.send(new SendEmailCommand(email({ to: r.to.name, email: live && r.to.email, subject, message })))
+            .then(r => r.MessageId)
+            .catch(e => {
+                log.info({ error: e, email: live && r.to.email })
+                return false
+            })
     })
+    const results = await Promise.all(promises)
+    const sent = results.filter(r => r).length
+    const failed = emails.length - sent
+    return { sent, failed }
 }
 
 function html_text(html) {
