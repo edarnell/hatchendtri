@@ -21,6 +21,10 @@ class TT extends Html {
             }
         }
         else if (lk && !set) {
+            if (this.timeout) {
+                this.timeout = null
+                clearTimeout(this.timeout)
+            }
             this.remove(null, true)
             this.lk = null
         }
@@ -31,6 +35,10 @@ class TT extends Html {
         if (this.arrow) this.tt.remove()
         if (this.pop) this.tip.destroy()
         if (this.div) this.div.remove()
+        if (this.timeout) {
+            this.timeout = null
+            clearTimeout(this.timeout)
+        }
         if (listeners) {
             const lk = this.lk
             if (lk.hover || lk.tip) {
@@ -71,9 +79,9 @@ class TT extends Html {
     }
     click = (e) => {
         const lk = this.lk
-        this.timer = setTimeout(this.remove(), 2000) // for mobile but safe? - cancel on remove?
         if (lk) {
             e.preventDefault()
+            if (this.tt) this.timeout = setTimeout(this.remove, 1000)
             if (lk.popup) this.popup(e)
             else if (lk.nav) {
                 nav.nav(lk.href)
@@ -93,10 +101,6 @@ class TT extends Html {
         else debug({ TT: "click", o: this.o(), e })
     }
     tooltip = (e) => {
-        if (this.tt) {
-            if (this.tip) this.tip.destroy()
-            this.tt.remove()
-        }
         const tt = this.tt = document.createElement('div'),
             arrow = this.arrow = document.createElement('div'),
             link = this.lk,
