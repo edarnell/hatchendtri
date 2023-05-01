@@ -8,6 +8,33 @@ import { log } from './hatchend.mjs'
 const config = f('config.json', true)
 const mail = f('mail.html', true)
 const aws = config.aws
+/* may need something like this to avoid blocking the main thread
+const { fork } = require('child_process')
+
+function send_list(list, subject, message, live) {
+  const length = list.length
+  log.info({ sending: length })
+
+  return new Promise((resolve, reject) => {
+    const child = fork('./send-emails.js')
+
+    child.on('message', message => {
+      if (message.status === 'sent') {
+        resolve({ sending: { sent: message.sent, failed: message.failed, length } })
+      } else if (message.status === 'error') {
+        reject(message.error)
+      }
+    })
+
+    child.on('error', error => {
+      reject(error)
+    })
+
+    child.send({ list, subject, message, live })
+  })
+}
+*/
+
 
 function send_list(list, subject, message, live) {
     const length = list.length
@@ -27,20 +54,23 @@ function send_list(list, subject, message, live) {
                 }
             })
             const n = 10
+            let s = 0, f = 0
             for (var i = 0; i < length; i += n) {
                 const { sent, failed } = await send_batch(n, list, i, ses, subject, message, live)
                 if (i === n) s({ sending: { sent, failed, length } })
-                log.info({ sent, failed })
+                s += sent, f += failed
+                log.info({ sent: s, failed: f })
                 await new Promise(resolve => setTimeout(resolve, 1000))
             }
         }).catch(e => f(e))
     })
 }
 
+// should look to modify to bulk send
 async function send_batch(n, list, i, ses, subject, message, live) {
     const emails = list.slice(i, i + n)
     const promises = emails.map(async r => {
-        return ses.send(new SendEmailCommand(email({ to: r.to.name, email: live && r.to.email, subject, message })))
+        return ses.send(new SendEmailCommand(email({ to: r.to.name, email: live && r.to.email, subject, message, live: live || false })))
             .then(r => r.MessageId)
             .catch(e => {
                 log.info({ error: e, email: live && r.to.email })
@@ -68,17 +98,20 @@ function email(p) {
     const token = (p.email) ? jwt.sign({ email: p.email, ts: Date.now() }, config.key) : ''
     m.to = p.to || "Race Organiser"
     m.footer = (p.footer || _footer)
-    m.from = p.from || 'Ed darnell<br>Race Organiser'
+    m.from = p.from || 'Ed Darnell<br>Race Organiser'
     m.message = p.message && p.message.replace(/\n/g, "<br />\r\n") || ''
         ;['to', 'message', 'from', 'footer'].forEach(k => {
             const re = new RegExp('{{' + k + '}}', 'g')
             html = html.replace(re, m[k])
         })
     html = html.replace(/\{(volunteer|competitor|home|contact|details|results)(?:\.([^\s}]+))?\}/g, (match, page, link) => {
-        return `<a href="{host}/${page}{token}">${link || page}</a>`
+        return `<a href="{host}/${page}{token}">${(link && link.replace(/_/g, "&nbsp;")) || page}</a>`
+    })
+    html = html.replace(/\{(enter)(?:\.([^\s}]+))?\}/g, (match, page, link) => {
+        return `<a href="{host}">${(link && link.replace(/_/g, "&nbsp;")) || page}</a>`
     })
     html = html.replace(/\{token\}/g, '#' + token)
-    html = html.replace(/\{host\}/g, config.host)
+    html = html.replace(/\{host\}/g, p.live ? 'https://hatchendtri.com' : config.host)
     const text = "Dear " + m.to + "\r\n"
         + html_text(m.message) + "\r\n"
         + html_text(m.from) + "\r\n"

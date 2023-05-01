@@ -5,7 +5,7 @@ import html from './html/Admin.html'
 import { firstLast } from './roles'
 
 const form = { // section and options populated on load
-    list: { options: ['unsub', 'bounce', 'v2023', 'm2023', 'c2023', 'prev'] },
+    list: { options: ['v2023', 'm2023', 'c2023', 'prev', 'bounce', 'unsub'] },
     subject: { placeholder: 'subject' },
     message: { placeholder: 'message' },
     filter: { placeholder: 'name filter', width: '50rem' },
@@ -46,11 +46,14 @@ class Admin extends Html {
             this._table.setAttribute('param', 'update')
         })
     }
-    test = () => {
-        const f = this.getForm(form),
-            list = this._rows.slice(0, 20).map(r => ({ to: { name: r[0], email: r[2] } }))
-        req({ req: 'bulksend', subject: f.subject, message: f.message, list }).then(r => {
-            debug(r)
+    test = (e, o) => {
+        this.send(e, o, true)
+    }
+    send = (e, o, testing) => {
+        const f = this.getForm(form), rows = testing ? this._rows.slice(0, 20) : this._rows,
+            list = rows.map(r => ({ to: { name: r[0], email: r[2] } }))
+        req({ req: 'bulksend', subject: f.subject, message: f.message, list, live: !testing }).then(r => {
+            debug({ testing, r })
         })
     }
     listen = () => {
@@ -77,7 +80,6 @@ class Admin extends Html {
     trs = (o) => {
         const { name, param } = o.attr(), f = this.getForm(form),
             rs = this[f.list]
-        debug({ f, rs })
         this._table = o
         this._rows = []
         if (rs) this._rows = Object.values(rs).map(r => {
@@ -86,10 +88,15 @@ class Admin extends Html {
         }).filter(r => this.filter(r, f.filter)).sort((a, b) => a[1] > b[1] ? 1 : -1)
         return this._rows
     }
-    filter = (r, f) => {
+    filter = (r, fs) => {
         const name = r[0] + ' ' + r[1], email = r[2]
+        let ret
         if (name.includes("�")) return false
-        return f ? name.toLowerCase().includes(f.toLowerCase()) || email.toLowerCase().includes(f.toLowerCase()) : true
+        else if (!fs) ret = true
+        fs.split(',').forEach(f => ret = ret || name.toLowerCase().includes(f.toLowerCase())
+            || email.toLowerCase().includes(f.toLowerCase())
+        )
+        return ret
     }
     save = (e, o) => {
         req({ req: 'save', files: { cs: page.cs } }).then(r => debug({ r }))
@@ -100,7 +107,6 @@ class Admin extends Html {
     }
     update = (e, o) => {
         const { name, param } = o.attr()
-        debug({ 'update': o.attr(), e })
         this._table.setAttribute('param', 'update')
     }
 

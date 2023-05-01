@@ -21,24 +21,22 @@ class TT extends Html {
             }
         }
         else if (lk && !set) {
-            if (this.timeout) {
-                this.timeout = null
-                clearTimeout(this.timeout)
-            }
             this.remove(null, true)
             this.lk = null
         }
     }
-    remove = (e, listeners) => {
+    ttremove = () => {
         if (this.tip) this.tip.destroy()
         if (this.tt) this.tt.remove()
-        if (this.arrow) this.tt.remove()
-        if (this.pop) this.tip.destroy()
+        if (this.arrow) this.arrow.remove()
+        if (this.timer) clearTimeout(this.timer)
+        this.timer = this.tt = this.tip = this.arrow = null
+    }
+    remove = (e, listeners) => {
+        this.ttremove()
+        if (this.pop) this.pop.destroy()
         if (this.div) this.div.remove()
-        if (this.timeout) {
-            this.timeout = null
-            clearTimeout(this.timeout)
-        }
+        this.pop = this.div = null
         if (listeners) {
             const lk = this.lk
             if (lk.hover || lk.tip) {
@@ -81,7 +79,7 @@ class TT extends Html {
         const lk = this.lk
         if (lk) {
             e.preventDefault()
-            if (this.tt) this.timeout = setTimeout(this.remove, 1000)
+            if (this.tt) this.timer = setTimeout(this.ttremove, 1000)
             if (lk.popup) this.popup(e)
             else if (lk.nav) {
                 nav.nav(lk.href)
@@ -137,6 +135,7 @@ class TT extends Html {
         document.body.appendChild(popup)
         this.pop = createPopper(this.firstChild, popup, {
             placement: link.placement || 'top',
+            strategy: link.strategy || 'absolute',
             modifiers: [{ name: 'offset', options: { offset: [0, 8], }, },],
         })
     }

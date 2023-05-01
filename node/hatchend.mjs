@@ -131,7 +131,7 @@ app.post(config.url, (m, r) => {
             }
             else if (req === 'bulksend' && json.subject && json.message && json.list) {
                 const { subject, message, list, live } = json
-                log.info('req->', req, subject, { n: list.length }, { live: live || false })
+                log.info('req->', req, subject, { n: list.length }, { live })
                 send_list(list, subject, message, live)
                     .then(s => resp(req, r, { sent: s }))
                     .catch(e => {

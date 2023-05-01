@@ -15,6 +15,11 @@ class Nav extends Html {
     }
     html = () => html
     listen = () => {
+        const hash = window.location.hash, token = hash && hash.substring(1)
+        if (token && token.length > 10) {
+            localStorage.setItem('token', token)
+            window.location.hash = ''
+        }
         const p = window.location.pathname.replace('/', '')
         this.nav(p)
     }
@@ -73,6 +78,12 @@ class Nav extends Html {
     login = () => {
         const l = this.querySelector(`.nav li img[name="user"]`)
         l.click()
+    }
+    logout = () => {
+        localStorage.removeItem('token')
+        localStorage.removeItem('vs')
+        localStorage.removeItem('cs')
+        this.user('home')
     }
     nav = (pg) => {
         const _pg = pg && pg.replace('/', ''),

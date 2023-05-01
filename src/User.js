@@ -52,19 +52,16 @@ class User extends Html {
         else if (name === 'menu') return { icon: 'menu', tip: '' }
         else if (name === 'logout') return { tip: 'logout', click: this.logout }
     }
-    logout = () => {
-        localStorage.removeItem('token')
-        localStorage.removeItem('vs')
-        localStorage.removeItem('cs')
-        nav.user('home')
-        this.tt.close()
-    }
     html = (o) => {
         if (!o) {
             const token = localStorage.getItem('token')
             if (token) return user
             else return login
         }
+    }
+    logout() {
+        nav.logout()
+        this.tt.close()
     }
     form = (o) => {
         const { name, param } = o.attr()

@@ -17,11 +17,6 @@ class Html extends HTMLElement {
     }
     constructor() {
         super()
-        const hash = window.location.hash, token = hash && hash.substring(1)
-        if (token && token.length > 10) {
-            localStorage.setItem('token', token)
-            window.location.hash = ''
-        }
     }
     attributeChangedCallback(v, o, n) {
         if (o === '' && n === 'update') {
