@@ -101,6 +101,7 @@ class Vol extends Html {
     link = (o) => {
         const { name, param } = o.attr()
         if (name === 'details') return { tip: 'edit details', click: this.details }
+        else if (name === 'close') return { class: 'close', tip: 'save and close', click: this.save }
     }
     getF = () => {
         const r = this.getForm(form)
@@ -109,21 +110,6 @@ class Vol extends Html {
         if (r.arole === 'Role') r.arole = ''
         if (r.jrole === 'Role') r.jrole = ''
         return r
-    }
-    saveIcon = () => {
-        const d = this.form_data = this.getF(),
-            v = this.getForm(contact),
-            rolechange = JSON.stringify(d) !== JSON.stringify(this.v.year[2023]),
-            detailsChange = this.show_volD && JSON.stringify(v) !== JSON.stringify(this.v) || false
-        if (rolechange || detailsChange) {
-            form.save.class = 'icon active'
-            form.save.tip = 'save changes'
-        }
-        else {
-            form.save.class = 'icon'
-            form.save.tip = 'no changes to save'
-        }
-        this._save.setAttribute('param', 'update')
     }
     hidden = (race) => {
         const a = this.querySelector(`input[name=adult]`),
@@ -176,15 +162,13 @@ class Vol extends Html {
         if (roles || details) req({ req: 'save', vol: this.v.id, roles, details }).then(r => {
             this.tt.close()
         }).catch(e => debug({ e }))
+        else this.tt.close()
     }
     update = (e, o) => {
         const { name, param, type } = o.attr()
         if (name === 'asection' || name === 'jsection') selectSection(e, o, form, this, name.charAt(0))
         else if (name === 'arole' || name === 'jrole') selectRole(e, o, form, this, name.charAt(0))
         else if (name === 'adult' || name === 'junior' || name === 'none') this.hidden(name)
-        else if (name === 'close') this.tt.close()
-        else if (name === 'save') this.save()
-        this.saveIcon()
     }
 }
 export default Vol
