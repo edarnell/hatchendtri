@@ -1,0 +1,28 @@
+ErrorDocument 404 /404.html
+
+# Allow specified URLs
+RewriteRule ^(home|doc|results|volunteer|competitor|contact)/?$ index.html [L]
+
+# Map contact-us to contact
+RewriteRule ^contact-us/?$ contact [NC,L]
+
+# Serve all other files from the public directory
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . public%{REQUEST_URI} [L]
+
+# Block bad bots
+RewriteCond %{HTTP_USER_AGENT} BadBot [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} EvilSpider [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} FakeAgent [NC]
+RewriteRule .* - [F,L]
+
+# Limit access to sensitive files
+<Files ".htaccess">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Prevent directory browsing
+Options All -Indexes
+

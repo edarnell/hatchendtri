@@ -1,6 +1,7 @@
 import Html, { debug, page, _s } from './Html'
 import { req } from './data'
 import { lists, merge } from './lists'
+import { csv } from './csv'
 import html from './html/Admin.html'
 import { firstLast } from './roles'
 
@@ -10,7 +11,7 @@ const form = { // section and options populated on load
     message: { placeholder: 'message' },
     filter: { placeholder: 'name filter', width: '50rem' },
     C: { class: 'hidden form red bold', tip: 'clear name', submit: true },
-    Save: { class: 'form red' },
+    Save: { class: 'form red', tip: 'save cs' },
     Send: { class: 'form red' },
     Test: { class: 'form red' },
 }
@@ -19,7 +20,7 @@ class Admin extends Html {
     constructor() {
         super()
         this.data = 'vs_'
-        form.Send.tip = form.Save.tip = form.Test.tip = this.tip
+        form.Send.tip = form.Test.tip = this.tip
         form.Save.click = this.save
         form.Send.click = this.send
         form.Test.click = this.test
@@ -40,6 +41,7 @@ class Admin extends Html {
             })
             this.v2023 = v2023
             this.m2023 = m2023
+            page.cs = csv(r.zips['2023C.csv']) // for save
             this.c2023 = ls['2023C.csv']
             merge(done, ls['2023C.csv'])
             this.prev = merge(done, { ...ls['2017C.csv'], ...ls['2018C.csv'], ...ls['2019C.csv'], ...ls['2022W.csv'], ...ls['2022C.csv'] })
