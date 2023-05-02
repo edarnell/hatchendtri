@@ -8,16 +8,17 @@ function data(req) {
     return new Promise((s, f) => {
         if (page[req]) s(page[req])
         else if (localStorage.getItem(req)) {
-            const { date, data } = JSON.parse(localStorage.getItem(req))
-            page[req] = unzip(data)
+            const { date, data: d } = JSON.parse(localStorage.getItem(req))
+            page[req] = unzip(d)
             page[req + '_date'] = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
                 .format(new Date(date)).replace(",", " at ")
             ajax({ req: 'dates', files: [req] }).then(r => {
                 if (r.date[req] === date) {
-                    debug({ storage: req, date: r.date })
+                    debug({ storage: req, date: r.date[req] })
                     s(page[req])
                 }
                 else {
+                    debug({ stale: req, odate: r.date[req], date })
                     localStorage.removeItem(req)
                     data(req).then(r => s(r)).catch(e => f(e))
                 }

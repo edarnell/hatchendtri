@@ -1,13 +1,16 @@
 import Html, { debug, page, _s } from './Html'
+import { req } from './data'
 import html from './html/Volunteer.html'
 import greet from './html/greet.html'
+import greetY from './html/greetY.html'
+import greetN from './html/greetN.html'
 import { sections, section, roles, selectSection, selectRole, firstLast } from './roles'
 
 const form = { // section and options populated on load
   filter: { placeholder: 'name filter', width: '50rem' },
   C: { class: 'hidden form red bold', tip: 'clear name', submit: true },
   R: { class: 'hidden form red bold', tip: 'clear selection', submit: true },
-  New: { class: 'form green', tip: 'add new volunteer', popup: `{vsel.new}`, placement: 'bottom' },
+  New: { class: 'form green hidden', tip: 'add new volunteer', popup: `{vsel.new}`, placement: 'bottom' },
   section: { class: "form", options: ['Section'].concat(sections), tip: 'filter section' },
   role: { class: "form", options: ['Role'].concat(roles()), tip: 'filter role' },
   nr: { class: "form", options: ['Roles', 'Names'], tip: 'Display by role or name' },
@@ -33,6 +36,10 @@ class Volunteer extends Html {
       if (vol && nav.admin()) return { tip: 'update', theme: 'light', class: this.color(id), popup: `{vol.${_id}}` }
       else if (vol) return { tip: 'contact', theme: 'light', class: this.color(id), popup: `{contact.${name}}` }
     }
+    else if (name.startsWith('u_')) {
+      const id = name.substring(2), vol = page.vs[id], _id = name.substring(1)
+      if (vol) return { tip: 'contact', theme: 'light', class: this.color(id), popup: `{vol.${_id}}` }
+    }
     else if (name.charAt(1) === '_') {
       const f = { a: 'adult', j: 'junior', s: 'both', f: 'both' }, ajs = f[name.charAt(0)]
       return { tip: `fill ${ajs}`, popup: `{vsel.${name}}` }
@@ -46,7 +53,23 @@ class Volunteer extends Html {
   html = (o) => {
     const p = o && o.attr(), name = p && p.name
     if (!o) return html
-    else if (name === 'greet') return greet
+    else if (name === 'greet') {
+      if (nav.reply) {
+        const us = nav.users()
+        if (us) us.forEach(u => {
+          const roles = nav.reply === 'yes' ? { adult: true, junior: true } : { none: true }
+          req({ req: 'save', vol: u.id, roles }).then(r => {
+            debug({ r })
+          }).catch(e => debug({ e }))
+        })
+        return nav.reply === 'yes' ? greetY : greetN
+      }
+      else return greet
+      if (nav.admin()) {
+        const New = this.querySelector(`button[name=New]`)
+        New.classList.remove('hidden')
+      }
+    }
     else if (name === 'nr') {
       const f = this.form_data, nr = (f && f.nr) || 'Roles'
       this._nr = o

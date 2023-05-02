@@ -1,21 +1,14 @@
+
+# 404 redirect rule
 ErrorDocument 404 /404.html
-
+# Redirect specific URLs to index.html
+RewriteEngine On
 # Allow specified URLs
-RewriteRule ^(home|doc|results|volunteer|competitor|contact)/?$ index.html [L]
-
-# Map contact-us to contact
-RewriteRule ^contact-us/?$ contact [NC,L]
-
+RewriteRule ^(home|details|results|volunteer|competitor)/?$ index.html [L]
 # Serve all other files from the public directory
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . public%{REQUEST_URI} [L]
-
-# Block bad bots
-RewriteCond %{HTTP_USER_AGENT} BadBot [NC,OR]
-RewriteCond %{HTTP_USER_AGENT} EvilSpider [NC,OR]
-RewriteCond %{HTTP_USER_AGENT} FakeAgent [NC]
-RewriteRule .* - [F,L]
+RewriteRule ^(.*)$ /404.html [R=404,L]
 
 # Limit access to sensitive files
 <Files ".htaccess">
@@ -25,4 +18,3 @@ RewriteRule .* - [F,L]
 
 # Prevent directory browsing
 Options All -Indexes
-

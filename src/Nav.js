@@ -21,7 +21,11 @@ class Nav extends Html {
             window.location.hash = ''
         }
         const p = window.location.pathname.replace('/', '')
-        this.nav(p)
+        if (token && p === 'yes' || p === 'no') {
+            this.reply = p
+            this.nav('volunteer')
+        }
+        else this.nav(p)
     }
     image = () => {
         const bg = this.querySelector('.background-image')
@@ -33,8 +37,11 @@ class Nav extends Html {
         else return 'login'
     }
     name = () => {
-        if (this._user) return Object.values(this._user).map(u => `{link._${u.id}.${_s(u.name)}}`).join(', ')
+        if (this._user) return Object.values(this._user).map(u => `{link.u_${u.id}.${_s(u.name)}}`).join(', ')
         else return 'Volunteer'
+    }
+    users = () => {
+        if (this._user) return Object.values(this._user)
     }
     admin = () => {
         if (this._user) return Object.values(this._user).some(u => u.admin === true)

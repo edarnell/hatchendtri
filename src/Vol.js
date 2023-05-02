@@ -91,7 +91,6 @@ class Vol extends Html {
         this.setForm(f)
         this.hidden('adult')
         this.hidden('junior')
-        this.saveIcon()
         if (v.id === 0) {
             this.show_volD = true
             contact.name.value = v.name
@@ -140,10 +139,12 @@ class Vol extends Html {
                 c = race.charAt(0)
             if (x.checked) {
                 n.checked = false
-                s.classList.remove('hidden')
-                r.classList.remove('hidden')
-                form[`${c}section`].class = 'form'
-                form[`${c}role`].class = 'form'
+                if (nav.admin()) {
+                    s.classList.remove('hidden')
+                    r.classList.remove('hidden')
+                    form[`${c}section`].class = 'form'
+                    form[`${c}role`].class = 'form'
+                }
             }
             else {
                 s.classList.add('hidden')
@@ -168,7 +169,7 @@ class Vol extends Html {
         const { name, param, type } = o.attr()
         if (name === 'asection' || name === 'jsection') selectSection(e, o, form, this, name.charAt(0))
         else if (name === 'arole' || name === 'jrole') selectRole(e, o, form, this, name.charAt(0))
-        else if (name === 'adult' || name === 'junior' || name === 'none') this.hidden(name)
+        else if (nav.admin() && (name === 'adult' || name === 'junior' || name === 'none')) this.hidden(name)
     }
 }
 export default Vol

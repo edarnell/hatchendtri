@@ -104,7 +104,7 @@ function email(p) {
             const re = new RegExp('{{' + k + '}}', 'g')
             html = html.replace(re, m[k])
         })
-    html = html.replace(/\{(volunteer|competitor|home|contact|details|results)(?:\.([^\s}]+))?\}/g, (match, page, link) => {
+    html = html.replace(/\{(volunteer|competitor|home|details|results|yes|no)(?:\.([^\s}]+))?\}/g, (match, page, link) => {
         return `<a href="{host}/${page}{token}">${(link && link.replace(/_/g, "&nbsp;")) || page}</a>`
     })
     html = html.replace(/\{(enter)(?:\.([^\s}]+))?\}/g, (match, page, link) => {
