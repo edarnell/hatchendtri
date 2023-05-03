@@ -33,7 +33,7 @@ class Volunteer extends Html {
     }
     else if (name.startsWith('v_')) {
       const id = name.substring(2), vol = page.vs[id], _id = name.substring(1)
-      if (vol && nav.admin()) return { tip: 'update', theme: 'light', class: this.color(id), popup: `{vol.${_id}}` }
+      if (vol && nav.admin()) return { tip: 'update', theme: 'light', class: ' ', popup: `{vol.${_id}}` }
       else if (vol) return { tip: 'contact', theme: 'light', class: this.color(id), popup: `{contact.${name}}` }
     }
     else if (name.startsWith('u_')) {
@@ -107,15 +107,24 @@ class Volunteer extends Html {
       else return this.role_rows(s)
     }
   }
+  ticks = (l, id) => {
+    if (!l) return `<span class="grey">{link.v_${id}.?}</span>`
+    let ret = ''
+    if (l.none) return `<span class="red">{link.v_${id}.✗_✗}</span>`
+    if (l.adult) ret += `<span class="${l.arole ? 'green' : 'grey'}">{link.v_${id}.✓}</span>`
+    else ret += `<span class="red">{link.v_${id}.✗}</span>`
+    if (l.junior) ret += `<span class="${l.jrole ? 'green' : 'grey'}">{link.v_${id}.✓}</span>`
+    else ret += `<span class="red">{link.v_${id}.✗}</span>`
+    return ret
+  }
   tr = (id) => {
     const v = page.vs[id], { name, email } = v,
       c = firstLast(name),
       n = Object.keys(v.year).length,
       l = v.year[2023],
-      rl = (l && !l.n && (!l.adult || l.arole) && (!l.junior || l.jrole)),
       a = l && l.arole ? l.asection + ' ' + l.arole : '',
       j = l && l.jrole ? l.jsection + ' ' + l.jrole : ''
-    return [`{link.v_${id}.${rl ? '✓' : n}}`, `{link._${id}.${_s(c.first)}}`, c.last, a, j]
+    return [this.ticks(l, id), `{link._${id}.${_s(c.first)}}`, c.last, a, j]
   }
   sr = (id, s, r) => {
     const v = page.vs[id], { asection, arole, jsection, jrole } = (v.year && v.year[2023]) || {}

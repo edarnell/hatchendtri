@@ -27,7 +27,6 @@ const contact = { // section and options populated on load
 class Vol extends Html {
     constructor() {
         super()
-        this.popup = true
         this.data = 'vs'
     }
     //debug = (m) => debug({ Vol: m, o: this.o(), div: this })
@@ -162,9 +161,9 @@ class Vol extends Html {
             roles = (JSON.stringify(r) !== JSON.stringify(this.v.year[2023])) && r,
             details = (this.show_volD && JSON.stringify(v) !== JSON.stringify(this.v)) && v
         if (roles || details) req({ req: 'save', vol: this.v.id, roles, details }).then(r => {
-            this.tt.close()
+            this.popup.close()
         }).catch(e => debug({ e }))
-        else this.tt.close()
+        else this.popup.close()
     }
     update = (e, o) => {
         const { name, param, type } = o.attr()

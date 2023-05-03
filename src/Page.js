@@ -1,6 +1,5 @@
 import Html, { nav, set_page } from './Html'
 import Nav from './Nav'
-import Login from './Login'
 import Home from './Home'
 import Details from './Details'
 import Results from './Results'
@@ -25,7 +24,6 @@ const pages = {
 }
 function custom_pages() {
     customElements.define("ed-nav", Nav)
-    customElements.define("ed-login", Login)
     customElements.define("ed-page", Page)
     customElements.define("ed-home", Home)
     customElements.define("ed-details", Details)

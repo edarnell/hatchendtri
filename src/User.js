@@ -12,11 +12,11 @@ const form = {
 class User extends Html {
     constructor() {
         super()
-        this.popup = true
         form.send.tip = this.spamtt
         form.send.click = this.send
         this.spam = Math.floor(Math.random() * 3)
     }
+    debug = (m) => debug({ User: m, popup: this.popup })
     spamtt = () => {
         const complete = this.checkForm()
         if (complete) {
@@ -36,20 +36,13 @@ class User extends Html {
         this.innerHTML = `<div class="message error">Error sending</div>`
         setTimeout(this.tt.close, 3000)
     }
-    close = () => {
-        this.tt.close()
-    }
     var = (o) => {
         const { name, param } = o.attr()
         if (name === 'admin' && nav._user[52]) return "{link.admin}"
     }
-    listen = (v) => {
-        debug({ listen: v })
-    }
     link = (o) => {
         const { name, param } = o.attr()
-        if (name === 'close') return { class: 'close', tip: 'close', click: this.close }
-        else if (name === 'menu') return { icon: 'menu', tip: '' }
+        if (name === 'menu') return { icon: 'menu', tip: '' }
         else if (name === 'logout') return { tip: 'logout', click: this.logout }
     }
     html = (o) => {
@@ -60,8 +53,8 @@ class User extends Html {
         }
     }
     logout() {
+        this.popup.close()
         nav.logout()
-        this.tt.close()
     }
     form = (o) => {
         const { name, param } = o.attr()

@@ -11,7 +11,7 @@ class TT extends Html {
     listen = (set = true) => {
         const lk = this.lk
         if (lk && set) {
-            if (lk.popup || lk.click || lk.nav || lk.submit) {
+            if (lk.popup || lk.click || lk.nav || lk.submit || this.attr().name === 'close') {
                 this.addEventListener("click", this.click)
             }
             if (this._form) this.addEventListener("input", this.input)
@@ -44,7 +44,7 @@ class TT extends Html {
                 this.removeEventListener("mouseleave", this.remove)
             }
             if (this._form) this.removeEventListener("input", this.input)
-            if (lk.click || lk.popup || lk.nav || lk.submit) this.removeEventListener("click", this.click)
+            if (lk.click || lk.popup || lk.nav || lk.submit || this.attr().name === 'close') this.removeEventListener("click", this.click)
         }
     }
     link = () => {
@@ -52,8 +52,7 @@ class TT extends Html {
         const f = this.parent('link') || this.page('link')
         if (typeof f === 'function') ret = f(this)
         if (!ret && this.attr().name === 'close') {
-            const tt = this.parent('tt')
-            ret = { class: 'close', tip: 'close', click: tt.close }
+            ret = { class: 'close', tip: 'close', click: this.close }
         }
         return ret
     }
@@ -130,7 +129,7 @@ class TT extends Html {
         const link = this.lk, param = e.target.getAttribute("data-param")
         const html = typeof link.popup === 'function' ? link.popup(this) : link.popup
         popup.innerHTML = this.render(html)
-        popup.firstChild.tt = this
+        popup.firstChild.popup = this
         if (param) popup.firstChild.setAttribute("param", param)
         document.body.appendChild(popup)
         this.pop = createPopper(this.firstChild, popup, {
@@ -140,7 +139,12 @@ class TT extends Html {
         })
     }
     close = () => {
-        if (this.div) {
+        if (this.attr().name === 'close') {
+            const popup = this.parent('popup')
+            debug({ close: popup })
+            popup.close()
+        }
+        else if (this.div) {
             if (this.pop) this.pop.destroy()
             else debug({ TT: "close", o: this.o() })
             this.div.remove()

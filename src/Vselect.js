@@ -13,12 +13,11 @@ const form = {
 class Vselect extends Html {
     constructor() {
         super()
-        this.popup = true
         this.data = 'vs'
     }
     link = (o) => {
         const { name, param } = o.attr()
-        if (name === 'close') return { class: 'close', tip: 'close', click: this.tt.close }
+        if (name === 'close') return { class: 'close', tip: 'close', click: this.popup.close }
         else if (name === 'new') return { tip: 'check existing first' }
         else if (name === 'request') return { tip: 'click to request', click: this.request }
         else if (name.charAt(0) === '_') return { theme: 'light', tip: this.tip, click: this.setid }
@@ -35,15 +34,12 @@ class Vselect extends Html {
     }
     confirm = (r) => {
         this.innerHTML = '<div class="message">Role Requested</div>'
-        setTimeout(this.tt.close, 3000)
+        setTimeout(this.popup.close, 3000)
     }
     error = (e) => {
         debug({ e })
         this.innerHTML = `<div class="message error">Request Error</div>`
-        setTimeout(this.tt.close, 3000)
-    }
-    close = () => {
-        this.tt.close()
+        setTimeout(this.popup.close, 3000)
     }
     var = (o) => {
         const { name, param } = o.attr()
@@ -123,7 +119,7 @@ class Vselect extends Html {
         if (aj !== 'a') { vy.jsection = sec, vy.jrole = role, vy.junior = true, vy.none = false }
         if (aj !== 'j') { vy.asection = sec, vy.arole = role, vy.adult = true, vy.none = false }
         req({ req: 'save', vol: v.id, roles: vy }).then(r => {
-            this.tt.close()
+            this.popup.close()
         }).catch(e => debug({ e }))
     }
     update = (e, o) => {
