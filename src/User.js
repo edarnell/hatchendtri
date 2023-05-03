@@ -13,11 +13,11 @@ class User extends Html {
     constructor() {
         super()
         this.popup = true
-        form.send.tip = this.tt
+        form.send.tip = this.spamtt
         form.send.click = this.send
         this.spam = Math.floor(Math.random() * 3)
     }
-    tt = () => {
+    spamtt = () => {
         const complete = this.checkForm()
         if (complete) {
             const b = ['left', 'middle', 'right'], s = b[this.spam]
@@ -72,6 +72,7 @@ class User extends Html {
             complete = this.checkForm(),
             spam = this.checkSpam(),
             sendButton = this.querySelector(`button[name=send]`)
+        debug({ complete, spam, e, o })
         if (complete && !spam) {
             sendButton.classList.remove('disabled')
             sendButton.classList.add('primary')

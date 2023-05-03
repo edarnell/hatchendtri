@@ -38,12 +38,13 @@ class Form extends TT {
             ${form.required ? 'required' : ''}
             >${form.value || ''}</textarea>`
             case 'checkbox':
-                return `<span ${form.class ? `class="${form.class}"` : ''}>
-            <input type="checkbox" class="checkbox"
+                return `<input type="checkbox" class="${form.class ? 'checkbox ' + form.class : 'checkbox'}"
             ${form.value === true ? 'checked' : ''}
             name="${name}"
             ${form.required ? 'required' : ''}
-            />${form.label || ''}</span>`
+            />
+            ${form.label ? `<span ${form.class ? `class="${form.class}"` : ''}>${form.label}</span>`
+                        : ''}`
             case 'button':
                 const icon = form.icon && icons[form.icon], active = form.class && form.class.includes('active'),
                     img = icon && `<img name="${name}" data-image="${form.icon}" src="${active ? icon.active : icon.default}" class="${form.class || 'icon'}" />`

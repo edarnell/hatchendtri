@@ -21,6 +21,7 @@ const contact = { // section and options populated on load
     mobile: { placeholder: 'mobile', type: 'tel', width: '50rem' },
     notes: { placeholder: 'notes', rows: 1, cols: 20 },
     unsub: { class: 'bold red', label: 'Unsubscribe', tip: 'Warning - remove completely' },
+    admin: { class: 'bold red hidden', label: 'Admin', tip: 'Warning - admin rights' }
 }
 
 class Vol extends Html {
@@ -57,6 +58,7 @@ class Vol extends Html {
                 contact[k].value = v[k] === undefined ? '' : v[k]
             })
             this.show_volD = true
+            if (nav.admin(true)) contact.admin.class = 'bold red'
             this._volD.setAttribute('param', 'update')
         })
     }
@@ -65,7 +67,6 @@ class Vol extends Html {
         if (name === 'save') this._save = o
         if (form[name]) return form[name]
         else if (contact[name]) return contact[name]
-        else if (email[name]) return email[name]
     }
     var = (o) => {
         const { name, param } = o.attr(), v = this.v

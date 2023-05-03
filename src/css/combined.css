@@ -292,6 +292,14 @@ select:focus {
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
+.checkbox {
+    display: inline-block;
+    position: static;
+    margin-top: 0;
+    margin-right: 0.25rem;
+    margin-left: 0.25rem;
+}
+
 .primary {
     color: #fff;
     background-color: #007bff;
@@ -340,13 +348,7 @@ select:focus {
     display: none;
 }
 
-.checkbox {
-    display: inline-block;
-    position: static;
-    margin-top: 0;
-    margin-right: 0.25rem;
-    margin-left: 0.25rem;
-}
+
 
 /* AI created with theme dark or light */
 

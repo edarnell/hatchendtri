@@ -43,8 +43,11 @@ class Nav extends Html {
     users = () => {
         if (this._user) return Object.values(this._user)
     }
-    admin = () => {
-        if (this._user) return Object.values(this._user).some(u => u.admin === true)
+    admin = (ed) => {
+        let ret
+        if (this._user) ret = Object.values(this._user).some(u => u.admin === true)
+        if (ret && ed) ret = Object.values(this._user).some(u => u.email === 'ed@darnell.org.uk')
+        return ret
     }
     user = (p) => {
         const token = localStorage.getItem('token')
