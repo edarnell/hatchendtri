@@ -4,7 +4,7 @@ ErrorDocument 404 /404.html
 # Redirect specific URLs to index.html
 RewriteEngine On
 # Allow specified URLs
-RewriteRule ^(home|details|results|volunteer|competitor)/?$ index.html [L]
+RewriteRule ^(yes|no|home|details|results|volunteer|competitor)/?$ index.html [L]
 # Serve all other files from the public directory
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
