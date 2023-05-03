@@ -38,7 +38,7 @@ class Volunteer extends Html {
     }
     else if (name.startsWith('u_')) {
       const id = name.substring(2), vol = page.vs[id], _id = name.substring(1)
-      if (vol) return { tip: 'contact', theme: 'light', class: this.color(id), popup: `{vol.${_id}}` }
+      if (vol) return { tip: 'update', theme: 'light', class: this.color(id), popup: `{vol.${_id}}` }
     }
     else if (name.charAt(1) === '_') {
       const f = { a: 'adult', j: 'junior', s: 'both', f: 'both' }, ajs = f[name.charAt(0)]
@@ -64,10 +64,11 @@ class Volunteer extends Html {
         })
         return nav.reply === 'yes' ? greetY : greetN
       }
-      else return greet
-      if (nav.admin()) {
-        const New = this.querySelector(`button[name=New]`)
-        New.classList.remove('hidden')
+      else {
+        if (nav.admin()) {
+          form.New.class = 'form green'
+        }
+        return greet
       }
     }
     else if (name === 'nr') {

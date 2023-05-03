@@ -5,9 +5,9 @@ import volR from './html/Vol.html'
 import volD from './html/volD.html'
 
 const form = { // section and options populated on load
-    adult: { class: 'form' },
-    junior: { class: 'form' },
-    none: { class: 'form' },
+    adult: { class: 'bold', label: 'Adult', tip: 'available for adult race' },
+    junior: { class: 'bold', label: 'Junior', tip: 'available for junior race' },
+    none: { class: 'bold', label: 'None', tip: 'not available in 2023' },
     asection: { class: "form hidden", options: ['Section'].concat(sections) },
     arole: { class: "form hidden", options: ['Role'].concat(roles()) },
     jsection: { class: "form hidden", options: ['Section'].concat(sections) },
@@ -19,7 +19,8 @@ const contact = { // section and options populated on load
     name: { placeholder: 'name', width: '50rem' },
     email: { placeholder: 'email', type: 'email', width: '50rem' },
     mobile: { placeholder: 'mobile', type: 'tel', width: '50rem' },
-    notes: { placeholder: 'notes', rows: 1, cols: 20 }
+    notes: { placeholder: 'notes', rows: 1, cols: 20 },
+    unsub: { class: 'bold red', label: 'Unsubscribe', tip: 'Warning - remove completely' },
 }
 
 class Vol extends Html {
@@ -67,7 +68,6 @@ class Vol extends Html {
         else if (email[name]) return email[name]
     }
     var = (o) => {
-        debug({ var: o.attr(), v: this.v })
         const { name, param } = o.attr(), v = this.v
         this._name = o
         return v ? v.id ? `{link.details.${_s(v.name)}}` : 'New' : ''
