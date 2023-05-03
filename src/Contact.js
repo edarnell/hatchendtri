@@ -14,8 +14,7 @@ const form = {
 class Contact extends Html {
     constructor() {
         super()
-        this.popup = true
-        form.send.tip = this.tt
+        form.send.tip = this.sendtt
         this.spam = Math.floor(Math.random() * 3)
         const { name, param } = this.attr()
         let to = this._to = (name.charAt(0) === '_' ? name.substring(1) : null)
@@ -36,7 +35,6 @@ class Contact extends Html {
     }
     var = (o) => {
         const v = page.vs && page.vs[this._to]
-        debug({ var: o.attr(), to: this._to, v })
         if (v) {
             if (v) return `{link._${v.id}.${_s(v.name)}}`
             else this._toName = o
@@ -48,11 +46,8 @@ class Contact extends Html {
         const { name, param } = o.attr(), id = name.substring(1)
         if (name.startsWith('_') && page._page === 'volunteer') {
             const vol = page.vs[id], _id = name, vp = page.firstChild, admin = nav.admin()
-            debug({ name, vol, vp, admin })
-            if (vol && admin) return { tip: 'update', theme: 'light', class: vp.color(id), popup: `{vol.${_id}}` }
-            else return { tip: 'close', theme: 'light', class: vp.color(id), click: this.tt.close }
+            if (vol && admin) return { tip: 'update', theme: 'light', class: vp.color(id), popup: `{vol.${_id}}`, placement: 'bottom' }
         }
-        else if (name !== 'close') debug({ name, page: page._page })
     }
     form = (o) => {
         const { name } = o.attr(), k = name.toLowerCase()
@@ -60,12 +55,12 @@ class Contact extends Html {
     }
     confirm = (r) => {
         this.innerHTML = '<div class="message">Message sent</div>'
-        setTimeout(this.tt.close, 3000)
+        setTimeout(this.popup.close, 3000)
     }
     error = (e) => {
         debug({ e })
         this.innerHTML = `<div class="message error">Error sending</div>`
-        setTimeout(this.tt.close, 3000)
+        setTimeout(this.popup.close, 3000)
     }
     update = (e, o) => {
         const p = o && o.attr(), name = p.name,
@@ -100,7 +95,7 @@ class Contact extends Html {
         })
         return spam
     }
-    tt = () => {
+    sendtt = () => {
         const complete = this.checkForm()
         if (complete) {
             const b = ['left', 'middle', 'right'], s = b[this.spam]

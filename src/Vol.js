@@ -29,7 +29,7 @@ class Vol extends Html {
         super()
         this.data = 'vs'
     }
-    //debug = (m) => debug({ Vol: m, o: this.o(), div: this })
+    //debug = (m) => debug({ Vol: m, o: this.o(), popup: this.popup })
     html = (o) => {
         if (!o) return volR
         else {

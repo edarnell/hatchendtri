@@ -33,8 +33,8 @@ class Volunteer extends Html {
     }
     else if (name.startsWith('v_')) {
       const id = name.substring(2), vol = page.vs[id], _id = name.substring(1)
-      if (vol && nav.admin()) return { tip: 'update', theme: 'light', class: ' ', popup: `{vol.${_id}}` }
-      else if (vol) return { tip: 'contact', theme: 'light', class: this.color(id), popup: `{contact.${name}}` }
+      if (vol && nav.admin()) return { tip: 'update', class: ' ', theme: 'light', popup: `{vol.${_id}}` }
+      else if (vol) return { tip: 'contact', class: ' ', theme: 'light', popup: `{contact.${name}}` }
     }
     else if (name.startsWith('u_')) {
       const id = name.substring(2), vol = page.vs[id], _id = name.substring(1)
@@ -110,10 +110,10 @@ class Volunteer extends Html {
   ticks = (l, id) => {
     if (!l) return `<span class="grey">{link.v_${id}.?}</span>`
     let ret = ''
-    if (l.none) return `<span class="red">{link.v_${id}.✗_✗}</span>`
-    if (l.adult) ret += `<span class="${l.arole ? 'green' : 'grey'}">{link.v_${id}.✓}</span>`
+    if (l.none || !(l.adult || l.junior)) return `<span class="red">{link.v_${id}.✗✗}</span>`
+    if (l.adult) ret += `<span class="${l.arole ? 'green' : 'amber'}">{link.v_${id}.✓}</span>`
     else ret += `<span class="red">{link.v_${id}.✗}</span>`
-    if (l.junior) ret += `<span class="${l.jrole ? 'green' : 'grey'}">{link.v_${id}.✓}</span>`
+    if (l.junior) ret += `<span class="${l.jrole ? 'green' : 'amber'}">{link.v_${id}.✓}</span>`
     else ret += `<span class="red">{link.v_${id}.✗}</span>`
     return ret
   }

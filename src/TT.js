@@ -79,7 +79,7 @@ class TT extends Html {
         if (lk) {
             e.preventDefault()
             if (this.tt) this.timer = setTimeout(this.ttremove, 1000)
-            if (lk.popup) this.popup(e)
+            if (lk.popup) this.popdiv(e)
             else if (lk.nav) {
                 nav.nav(lk.href)
                 const p = this.parent('close')
@@ -119,7 +119,7 @@ class TT extends Html {
         })
         tt.setAttribute('data-show', '')
     }
-    popup = (e) => {
+    popdiv = (e) => {
         this.remove(null, true)
         this.addEventListener("click", this.close)
         const popup = this.div = document.createElement('div'),
@@ -141,7 +141,6 @@ class TT extends Html {
     close = () => {
         if (this.attr().name === 'close') {
             const popup = this.parent('popup')
-            debug({ close: popup })
             popup.close()
         }
         else if (this.div) {

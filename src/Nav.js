@@ -21,6 +21,7 @@ class Nav extends Html {
             window.location.hash = ''
         }
         const p = window.location.pathname.replace('/', '')
+        this.user()
         if (token && p === 'yes' || p === 'no') {
             this.reply = p
             this.nav('volunteer')
@@ -64,7 +65,8 @@ class Nav extends Html {
             const l = this.querySelector(`.nav li img[name="user"]`)
             l.src = (token) ? icons['user'].active : l.src = icons['user'].default
         }
-        if (p) this.nav(p)
+        const ui = this.querySelector(`ed-tt[name="user"]`)
+        if (p) ui.close()
     }
     wrap = () => {
         // not sure this is needed now
@@ -100,7 +102,7 @@ class Nav extends Html {
             pg_ = _pg && pages[_pg] ? _pg : 'home'
         //debug({ pg, _pg, page })
         this.image()
-        this.user()
+        this.user(pg_)
         this.toggle(true, this._page)
         this.toggle(false, pg_)
         const p = this.querySelector('.page')
