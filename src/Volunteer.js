@@ -33,12 +33,12 @@ class Volunteer extends Html {
     }
     else if (name.startsWith('v_')) {
       const id = name.substring(2), vol = page.vs[id], _id = name.substring(1)
-      if (vol && nav.admin()) return { tip: 'update', class: ' ', theme: 'light', popup: `{vol.${_id}}` }
-      else if (vol) return { tip: 'contact', class: ' ', theme: 'light', popup: `{contact.${name}}` }
+      if (vol && nav.admin()) return { tip: () => this.voltip(id), class: ' ', theme: 'light', popup: `{vol.${_id}}` }
+      else if (vol) return { tip: 'contact', class: ' ', theme: 'light', popup: `{contact.${_id}}` }
     }
     else if (name.startsWith('u_')) {
       const id = name.substring(2), vol = page.vs[id], _id = name.substring(1)
-      if (vol) return { tip: 'update', theme: 'light', class: this.color(id), popup: `{vol.${_id}}` }
+      if (vol) return { tip: () => this.voltip(id), theme: 'light', class: this.color(id), popup: `{vol.${_id}}` }
     }
     else if (name.charAt(1) === '_') {
       const f = { a: 'adult', j: 'junior', s: 'both', f: 'both' }, ajs = f[name.charAt(0)]
@@ -106,6 +106,16 @@ class Volunteer extends Html {
       if (sf && sf !== 'Section' && sf !== s) return []
       else return this.role_rows(s)
     }
+  }
+  voltip = (id) => {
+    const v = page.vs[id], l = v.year[2023] || {}
+    let ret = ''
+    if (l.none || !(l.adult || l.junior)) return `unavailable <span class="red">{link.v_${id}.✗✗}</span>`
+    if (l.adult) ret += `adult<span class="${l.arole ? 'green' : 'amber'}">{link.v_${id}.✓}</span>`
+    else ret += `adult<span class="red">{link.v_${id}.✗}</span>`
+    if (l.junior) ret += `junior<span class="${l.jrole ? 'green' : 'amber'}">{link.v_${id}.✓}</span>`
+    else ret += `junior<span class="red">{link.v_${id}.✗}</span>`
+    return ret
   }
   ticks = (l, id) => {
     if (!l) return `<span class="grey">{link.v_${id}.?}</span>`

@@ -12,7 +12,7 @@ const form = { // section and options populated on load
     arole: { class: "form hidden", options: ['Role'].concat(roles()) },
     jsection: { class: "form hidden", options: ['Section'].concat(sections) },
     jrole: { class: "form hidden", options: ['Role'].concat(roles()) },
-    save: { icon: 'save', tip: 'no changes to save', submit: true }
+    edit: { icon: 'edit', tip: 'update details', submit: true }
 }
 
 const contact = { // section and options populated on load
@@ -70,7 +70,7 @@ class Vol extends Html {
     var = (o) => {
         const { name, param } = o.attr(), v = this.v
         this._name = o
-        return v ? v.id ? `{link.details.${_s(v.name)}}` : 'New' : ''
+        return v ? v.id ? `{link.details.${_s(v.name)}_}` : 'New' : ''
     }
     listen = () => {
         const { name, param } = this.attr(),
@@ -99,7 +99,7 @@ class Vol extends Html {
     }
     link = (o) => {
         const { name, param } = o.attr()
-        if (name === 'details') return { tip: 'edit details', click: this.details }
+        if (name === 'details') return { tip: 'edit contact details', icon_: 'edit', click: this.details }
         else if (name === 'close') return { class: 'close', tip: 'save and close', click: this.save }
     }
     getF = () => {
@@ -169,7 +169,7 @@ class Vol extends Html {
         const { name, param, type } = o.attr()
         if (name === 'asection' || name === 'jsection') selectSection(e, o, form, this, name.charAt(0))
         else if (name === 'arole' || name === 'jrole') selectRole(e, o, form, this, name.charAt(0))
-        else if (nav.admin() && (name === 'adult' || name === 'junior' || name === 'none')) this.hidden(name)
+        else if (name === 'adult' || name === 'junior' || name === 'none') this.hidden(name)
     }
 }
 export default Vol

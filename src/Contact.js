@@ -45,8 +45,9 @@ class Contact extends Html {
     link = (o) => {
         const { name, param } = o.attr(), id = name.substring(1)
         if (name.startsWith('_') && page._page === 'volunteer') {
-            const vol = page.vs[id], _id = name, vp = page.firstChild, admin = nav.admin()
-            if (vol && admin) return { tip: 'update', theme: 'light', class: vp.color(id), popup: `{vol.${_id}}`, placement: 'bottom' }
+            const vol = page.vs[id], _id = name, vp = page.firstChild
+            if (vol) return nav.admin() ? { tip: 'update', theme: 'light', class: vp.color(id), popup: `{vol.${_id}}`, placement: 'bottom' }
+                : { tip: 'close', theme: 'light', class: vp.color(id), click: this.popup.close }
         }
     }
     form = (o) => {

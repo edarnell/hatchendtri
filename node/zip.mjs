@@ -54,6 +54,13 @@ function save(f, j, secure) {
     else fs.writeFileSync(f, zip(j))
 }
 
+function saveM(j) {
+    const ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z',
+        f = 'MailLog', o = fz(`gz/_${f}`) || {}
+    o[ts] = j
+    fs.writeFileSync(`gz/_${f}`, zip(o))
+}
+
 function savez(f, z) {
     fs.writeFileSync(f, z)
 }
@@ -78,4 +85,4 @@ if (import.meta.url === `file://${process.argv[1]}`) { // run from command line
     }
 }
 
-export { f, zip, unzip, fz, save, savez, sec }
+export { f, zip, unzip, fz, save, savez, sec, saveM }

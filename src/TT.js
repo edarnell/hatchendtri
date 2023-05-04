@@ -61,9 +61,10 @@ class TT extends Html {
         if (!link) debug({ TT: "link=(o)=>", o: this.o() })
         else {
             this.lk = link
-            const icon = (link.icon && icons[link.icon]) || (type === 'svg' && icons[k])
-            const w = icon ? `<img name="${k}" data-image="${link.icon || ''}" src="${icon.default}" class="${link.class || 'icon'}" />`
-                : param ? param.replace(/_/g, "&nbsp;") : name.replace(/_/g, "&nbsp;")
+            const icon = (link.icon_ && icons[link.icon_]) || (link.icon && icons[link.icon]) || (type === 'svg' && icons[k]),
+                img = icon ? `<img name="${k}" src="${icon.default}" class="${link.class || 'icon'}" />` : '',
+                w = link.icon || type === 'svg' ? img
+                    : param ? param.replace(/_/g, "&nbsp;") + img : name.replace(/_/g, "&nbsp;") + img
             if (link.nav) {
                 return `<a name="${k}" href="${link.href}">${w}</a>`
             }

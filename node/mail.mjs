@@ -70,10 +70,10 @@ function send_list(list, subject, message, live) {
 async function send_batch(n, list, i, ses, subject, message, live) {
     const emails = list.slice(i, i + n)
     const promises = emails.map(async r => {
-        return ses.send(new SendEmailCommand(email({ to: r.to.name, email: live && r.to.email, subject, message, live: live || false })))
+        return ses.send(new SendEmailCommand(email({ to: r.to.name, email: r.to.email, subject, message, live: live || false })))
             .then(r => r.MessageId)
             .catch(e => {
-                log.info({ error: e, email: live && r.to.email })
+                log.info({ error: e, email: r.to.email })
                 return false
             })
     })
@@ -118,7 +118,7 @@ function email(p) {
         + html_text(m.footer) + "\r\n"
     const ps = {
         Destination: {
-            ToAddresses: [p.email || config.admin_to],
+            ToAddresses: [(p.email && p.live) || config.admin_to],
         },
         Message: {
             Body: {

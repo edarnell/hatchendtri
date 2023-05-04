@@ -95,12 +95,12 @@ class Nav extends Html {
         localStorage.removeItem('token')
         localStorage.removeItem('vs')
         localStorage.removeItem('cs')
-        this.user('home')
+        this.nav('home')
     }
     nav = (pg) => {
         const _pg = pg && pg.replace('/', ''),
             pg_ = _pg && pages[_pg] ? _pg : 'home'
-        //debug({ pg, _pg, page })
+        if (window.location.pathname !== pg_) history.pushState({}, "", pg_)
         this.image()
         this.user(pg_)
         this.toggle(true, this._page)

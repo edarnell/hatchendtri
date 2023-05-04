@@ -1,7 +1,7 @@
 // npm install @aws-sdk/client-ses
 const debug = console.log.bind(console)
 import express from 'express'
-import { f, fz, save, sec } from './zip.mjs'
+import { f, fz, save, sec, saveM } from './zip.mjs'
 import { send, send_list } from './mail.mjs'
 import log4js from "log4js"
 import jwt from 'jsonwebtoken'
@@ -96,19 +96,13 @@ app.post(config.url, (m, r) => {
                 to_name = to && to.name.split(' ')[0],
                 from = email ? get_name(email, false) : from_name
             log.info('req->', req, id, to_email, from)
+            saveM(json)
             if (subject && message && (email || !to)) send({ to: to_name, email: to_email, from_email: email || from_email, from, subject, message })
                 .then(s => resp(req, r, { sent: s }))
             else resp(req, r, { message: 'no data' }, 400)
         }
         else if (auth) {
-            if (req === 'send_list') {
-                const { emails } = json
-                log.info('req->', req, emails.length)
-                //if (emails) send_list(emails)
-                resp(req, r, { sending: Object.keys(emails).length })
-                //else resp(req, r, { message: 'no data' }, 400)
-            }
-            else if (req === 'save' && json.vol !== undefined && (json.roles || json.details)) {
+            if (req === 'save' && json.vol !== undefined && (json.roles || json.details)) {
                 const { vol, roles, details } = json, vf = fz('gz/vs_.gz'), vs = vf || {},
                     v = details ? details : vs[vol], name = v.name || 0
                 log.info('req->', req, name)
@@ -131,6 +125,7 @@ app.post(config.url, (m, r) => {
             }
             else if (req === 'bulksend' && json.subject && json.message && json.list) {
                 const { subject, message, list, live } = json
+                saveM(json)
                 log.info('req->', req, subject, { n: list.length }, { live })
                 send_list(list, subject, message, live)
                     .then(s => resp(req, r, { sent: s }))
