@@ -80,7 +80,13 @@ class TT extends Html {
         if (lk) {
             e.preventDefault()
             if (this.tt) this.timer = setTimeout(this.ttremove, 1000)
-            if (lk.popup) this.popdiv(e)
+            if (lk.popup) {
+                this.popdiv(e)
+                if (typeof lk.click === 'function') {
+                    debug({ TT: "click", o: this.o(), e, lk })
+                    lk.click(e, this)
+                }
+            }
             else if (lk.nav) {
                 nav.nav(lk.href)
                 const p = this.parent('close')

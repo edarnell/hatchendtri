@@ -54,12 +54,12 @@ function send_list(list, subject, message, live) {
                 }
             })
             const n = 10
-            let s = 0, f = 0
+            let s_ = 0, f_ = 0
             for (var i = 0; i < length; i += n) {
                 const { sent, failed } = await send_batch(n, list, i, ses, subject, message, live)
                 if (i === n) s({ sending: { sent, failed, length } })
-                s += sent, f += failed
-                log.info({ sent: s, failed: f })
+                s_ += sent, f_ += failed
+                log.info({ sent: s_, failed: f_ })
                 await new Promise(resolve => setTimeout(resolve, 1000))
             }
         }).catch(e => f(e))
@@ -118,7 +118,7 @@ function email(p) {
         + html_text(m.footer) + "\r\n"
     const ps = {
         Destination: {
-            ToAddresses: [(p.email && p.live) || config.admin_to],
+            ToAddresses: [((p.live || config.live) && p.email) || config.admin_to],
         },
         Message: {
             Body: {

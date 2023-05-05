@@ -10,7 +10,6 @@ class Nav extends Html {
         this.id = 'nav'
         set_nav(this)
         this.i = Math.floor(Math.random() * 3)
-        pages.user.click = this.user
         pages.user.tip = this.tt
     }
     html = () => html

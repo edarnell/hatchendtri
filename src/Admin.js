@@ -11,9 +11,9 @@ const form = { // section and options populated on load
     message: { placeholder: 'message' },
     filter: { placeholder: 'name filter', width: '50rem' },
     C: { class: 'hidden form red bold', tip: 'clear name', submit: true },
-    Save: { class: 'form red', tip: 'save cs', popup: '<div class="message">saving.</div>' },
-    Send: { class: 'form red', popup: '<div class="message">sending.</div>' },
-    Test: { class: 'form red', popup: '<div class="message">sending test.</div>' },
+    Save: { class: 'form red', tip: 'save cs' },
+    Send: { class: 'form red' },
+    Test: { class: 'form red' },
 }
 
 class Admin extends Html {
@@ -59,22 +59,19 @@ class Admin extends Html {
     }
     send = (e, o, testing) => {
         const f = this.getForm(form), rows = testing ? this._rows.slice(0, 20) : this._rows,
-            list = rows.map(r => ({ to: { name: r[0], email: r[2] } }))
+            list = rows.map(r => ({ to: { name: r[0], email: r[2] } })),
+            pop = this.parent('popup')
         req({ req: 'bulksend', subject: f.subject, message: f.message, list, live: !testing }).then(r => {
-            o.innerHTML = `<div class="message">${rows.length} emails sent.</div>`
-            setTimeout(o.close, 3000)
+            debug({ r })
         }).catch(e => this.error(e, o))
     }
     save = (e, o) => {
         req({ req: 'save', files: { cs: page.cs } }).then(r => {
-            o.innerHTML = `<div class="message">competitors saved.</div>`
-            setTimeout(o.close, 3000)
+            debug({ r })
         }).catch(e => this.error(e, o))
     }
     error = (e, o) => {
         debug({ e })
-        o.innerHTML = `<div class="message error">Error</div>`
-        setTimeout(o.close, 3000)
     }
     html = (o) => {
         const p = o && o.attr(), name = p && p.name
