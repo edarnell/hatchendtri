@@ -30,9 +30,18 @@ function resp(req, r, json, status) {
 
 function get_name(email, split = true) {
     const vs = fz('gz/vs_.gz')
-    return Object.values(vs)
+    let ret = Object.values(vs)
         .filter(u => u.email === email)
         .map(u => split ? u.name.split(' ')[0] : u.name)
+        .join(', ')
+    return ret
+}
+
+function get_cname(email) {
+    const cs = fz('gz/cs_.gz')
+    return Object.values(cs)
+        .filter(u => u.email === email)
+        .map(u => `${u.first} ${u.last}`)
         .join(', ')
 }
 
@@ -104,7 +113,7 @@ app.post(config.url, (m, r) => {
                 to = id && vs[id],
                 to_email = to && to.email,
                 to_name = to && to.name.split(' ')[0],
-                from = email ? get_name(email, false) : from_name
+                from = email ? get_name(email, false) || get_cname(email) : from_name
             log.info('req->', req, id, to_email, from)
             saveM(json)
             if (subject && message && (email || !to)) send({ to: to_name, email: to_email, from_email: email || from_email, from, subject, message })
