@@ -37,7 +37,7 @@ class Comp extends Html {
     }
     html = (o) => {
         if (!o) {
-            if (this.c.swim400) return comp
+            if (this.c.swim400 !== undefined) return comp
             else this.junior()
         }
     }
