@@ -70,7 +70,7 @@ function send_list(list, subject, message, live) {
 async function send_batch(n, list, i, ses, subject, message, live) {
     const emails = list.slice(i, i + n)
     const promises = emails.map(async r => {
-        return ses.send(new SendEmailCommand(email({ to: r.to.name, email: r.to.email, subject, message, live: live || false })))
+        return ses.send(new SendEmailCommand(email({ to: r.to.name, email: r.to.email, subject, message, live })))
             .then(r => r.MessageId)
             .catch(e => {
                 log.info({ error: e, email: r.to.email })
@@ -95,7 +95,7 @@ const _footer = '<a href="{host}">Hatch End Triathlon</a> is organised and run b
 function email(p) {
     var html = mail.slice()
     const m = {}
-    const token = (p.email) ? jwt.sign({ email: p.email, ts: Date.now() }, config.key) : ''
+    const token = (p.email || p.uEmail) ? jwt.sign({ email: p.email || p.uEmail, ts: Date.now() }, config.key) : ''
     m.to = p.to || "Race Organiser"
     m.footer = (p.footer || _footer)
     m.from = p.from || 'Ed Darnell<br>Race Organiser'

@@ -57,10 +57,21 @@ class Volunteer extends Html {
       if (nav.reply) {
         const us = nav.users()
         if (us) us.forEach(u => {
-          const roles = nav.reply === 'yes' ? { adult: true, junior: true } : { none: true }
-          req({ req: 'save', vol: u.id, roles }).then(r => {
-            debug({ r })
-          }).catch(e => debug({ e }))
+          const uaj = u.year[2023], s = uaj && (uaj.adult || uaj.junior || uaj.none)
+          if (!s) {
+            const roles = nav.reply === 'yes' ? { adult: true, junior: true } : { none: true }
+            req({ req: 'save', vol: u.id, roles }).then(r => {
+              debug({ r })
+            }).catch(e => debug({ e }))
+          } else {
+            req({
+              req: 'send', data: {
+                subject: `volunteer ${nav.reply}`,
+                message: `current adult:${uaj.adult} junior:${uaj.junior} none:${uaj.none}\n` +
+                  `arole:${uaj.asection},${uaj.arole} jrole:${uaj.jsection},${uaj.jrole}`
+              }
+            })
+          }
         })
         return nav.reply === 'yes' ? greetY : greetN
       }

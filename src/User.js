@@ -38,7 +38,7 @@ class User extends Html {
     }
     var = (o) => {
         const { name, param } = o.attr()
-        if (name === 'admin' && nav._user[52]) return "{link.admin}"
+        if (name === 'admin' && nav.admin(true)) return "{link.admin}"
         else return ''
     }
     link = (o) => {

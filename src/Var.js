@@ -12,7 +12,7 @@ class Var extends Html {
     var = () => {
         const pvar = this.parent('var') || this.page('var')
         if (typeof pvar === 'function') return pvar(this)
-        else if (this.attr().name === 'name') return nav.name()
+        else if (this.attr().name === 'name') return nav.name(this.attr().param)
     }
 }
 export default Var

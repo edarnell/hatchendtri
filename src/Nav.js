@@ -33,33 +33,47 @@ class Nav extends Html {
         this.i = (this.i + 1) % 3
     }
     tt = () => {
-        if (this._user) return Object.values(this._user).map(u => `<div>${u.name}</div>`).join('')
+        const u = this._user
+        if (u) {
+            if (page._page === 'competitor' && u.comp) return Object.values(u.comp).map(c => `<div>${c.first} ${c.last}</div>`).join('')
+            else if (u.vol) return Object.values(u.vol).map(v => `<div>${v.name}</div>`).join('')
+            else if (u.comp) return Object.values(u.comp).map(c => `<div>${c.first} ${c.last}</div>`).join('')
+        }
         else return 'login'
     }
-    name = () => {
-        if (this._user) return Object.values(this._user).map(u => `{link.u_${u.id}.${_s(u.name)}}`).join(', ')
-        else return 'Volunteer'
+    name = (c_v) => {
+        let r
+        c_v = c_v || 'vol'
+        if (this._user && this._user[c_v]) r = Object.values(this._user[c_v]).map(u =>
+            `{link.u_${u.id}.${c_v === 'vol' ? _s(u.name) : _s(u.first + ' ' + u.last)}}`).join(', ')
+        else r = 'Volunteer'
+        return r
     }
-    users = () => {
-        if (this._user) return Object.values(this._user)
+    users = (c_v) => {
+        c_v = c_v || 'vol'
+        if (this._user && this._user[c_v]) return Object.values(this._user[c_v])
     }
     admin = (ed) => {
+        const u = this._user, vs = u && u.vol
         let ret
-        if (this._user) ret = Object.values(this._user).some(u => u.admin === true)
-        if (ret && ed) ret = Object.values(this._user).some(u => u.email === 'ed@darnell.org.uk')
+        if (vs) ret = Object.values(vs).some(u => u.admin === true)
+        if (ret && ed) ret = Object.values(vs).some(u => u.email === 'ed@darnell.org.uk')
         return ret
     }
     user = (p) => {
         const token = localStorage.getItem('token')
         if (this._token !== token) {
             this._token = token
-            this._user = null
-            if (token) req({ req: 'vol' }).then(r => {
-                this._user = r.vol.reduce((a, u) => {
+            this._user = { vol: null, comp: null }
+            if (token) req({ req: 'user' }).then(r => {
+                if (r.vol) this._user.vol = r.vol.reduce((a, u) => {
                     a[u.id] = u
                     return a
                 }, {})
-
+                if (r.comp) this._user.comp = r.comp.reduce((a, u) => {
+                    a[u.id] = u
+                    return a
+                }, {})
             })
             const l = this.querySelector(`.nav li img[name="user"]`)
             l.src = (token) ? icons['user'].active : l.src = icons['user'].default

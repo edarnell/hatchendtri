@@ -19,14 +19,23 @@ class Html extends HTMLElement {
         super()
     }
     attributeChangedCallback(v, o, n) {
+        this.debug ? this.debug(`attributeChangedCallback ${o}=>${n}`) : null
         if (o === '' && n === 'update') {
-            this.debug ? this.debug('attributeChangedCallback') : null
             this.setAttribute('param', '')
             this.disconnectedCallback()
             this.connectedCallback() // update
         }
     }
     //debug = () => debug({ Html: this.o() })
+    _upd() {
+        this.disconnectedCallback()
+        this.connectedCallback()
+    }
+    disconnectedCallback() {
+        this.debug ? this.debug("disconnectedCallback") : null
+        if (this.listen) this.listen(false)
+        this.innerHTML = ''
+    }
     connectedCallback() {
         if (this.innerHTML) this.debug ? this.debug("connectedCallback 1") : null
         else {
@@ -66,12 +75,6 @@ class Html extends HTMLElement {
             p = p.parentNode
         }
         return d
-    }
-
-    disconnectedCallback() {
-        this.debug ? this.debug("disconnectedCallback") : null
-        if (this.listen) this.listen(false)
-        this.innerHTML = ''
     }
     var_update = () => {
         this.vars.update.forEach(o => o.setAttribute('param', 'update'))
@@ -132,8 +135,9 @@ class Html extends HTMLElement {
             else if (t === 'vol') return `<ed-vol type="${t}" name="${l}" param="${c || ''}"></ed-vol>`
             else if (t === 'vsel') return `<ed-vsel type="${t}" name="${l}" param="${c || ''}"></ed-vsel>`
             else if (t === 'user') return `<ed-user type="${t}" name="user" param="${c || ''}"></ed-user>`
+            else if (t === 'comp') return `<ed-comp type="${t}" name="${l}" param="${c || ''}"></ed-comp>`
             else if (t === 'contact') return `<ed-contact type="${t}" name="${l}" param="${c || ''}"></ed-contact>`
-            else if (['input', 'select', 'checkbox', 'textarea', 'button'].indexOf(t) !== -1) {
+            else if (['input', 'select', 'checkbox', 'textarea', 'button', 'radio'].indexOf(t) !== -1) {
                 return `<ed-form type="${t}" name="${l}" param="${c || ''}"></ed-form>`
             }
             else if (['nav', 'svg', 'link'].indexOf(t) !== -1) {
@@ -148,13 +152,13 @@ class Html extends HTMLElement {
         }
         else return _html
     }
-    setForm = (vs) => {
-        if (vs) Object.keys(vs).forEach(k => {
+    setForm = (vs, form) => {
+        if (vs) Object.keys(vs).filter(k => !form || form[k]).forEach(k => {
             const fe = this.querySelector(`ed-form[name=${k}]`),
-                l = fe && fe.firstChild
+                l = fe && fe.querySelector('input, select, textarea')
             if (l) {
-                if (l && l.type === 'checkbox') l.checked = vs[k]
-                else if (l.tagName !== "BUTTON" && vs[k] !== undefined) l.value = vs[k]
+                if (l.type === 'checkbox' || l.type === 'radio') l.checked = vs[k]
+                else l.value = vs[k]
             }
             else debug({ setForm: this.o(), k })
         })
@@ -164,9 +168,8 @@ class Html extends HTMLElement {
         let ret = {}
         if (form) Object.keys(form).forEach(name => {
             const fe = this.querySelector(`ed-form[name=${name}]`),
-                l = fe && fe.firstChild
-            if (l && l.type === 'checkbox') ret[name] = l.checked
-            else if (l && l.tagName !== "BUTTON" && l.tagName !== "IMG") ret[name] = l.value
+                l = fe && fe.querySelector('input, select, textarea')
+            if (l) ret[name] = l.type === 'checkbox' || l.type === 'radio' ? l.checked : l.value
         })
         else debug({ setForm: this.o(), form })
         return ret

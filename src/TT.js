@@ -8,6 +8,7 @@ class TT extends Html {
     constructor() {
         super()
     }
+    //debug = (m) => debug({ TT: this.o(), m })
     listen = (set = true) => {
         const lk = this.lk
         if (lk && set) {

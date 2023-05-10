@@ -68,4 +68,11 @@ function save(data) {
     })
 }
 
-export { data, save, req }
+function cleanse(swim) {
+    // 400m freestyle world record as of 2021 03:40.07
+    const s = swim && swim.match(/^(?:00:)?((?:0)?[4-9]|[1][0-9]):[0-5][0-9]$/)
+    const r = s ? s[0].replace(/^00:/, '').replace(/^0/, '') : ''
+    return r
+}
+
+export { data, save, req, cleanse }

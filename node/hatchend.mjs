@@ -43,7 +43,17 @@ function get_vol(id, email) {
         admin = us.some(u => u.admin === true),
         self = id && us.some(u => u.id === id)
     if (id && (self || admin)) return vs[id]
-    else if (!id) return us
+    else if (!id) return us.length ? us : null
+}
+
+function get_comp(id, email) {
+    const cs = fz('gz/cs_.gz'),
+        us = Object.values(cs)
+            .filter(u => u.email === email),
+        admin = us.some(u => u.admin === true),
+        self = id && us.some(u => u.id === id)
+    if (id && (self || admin)) return cs[id]
+    else if (!id) return us.length ? us : null
 }
 
 app.post(config.url, (m, r) => {
@@ -102,28 +112,59 @@ app.post(config.url, (m, r) => {
             else resp(req, r, { message: 'no data' }, 400)
         }
         else if (auth) {
-            if (req === 'save' && json.vol !== undefined && (json.roles || json.details)) {
-                const { vol, roles, details } = json, vf = fz('gz/vs_.gz'), vs = vf || {},
-                    v = details ? details : vs[vol], name = v.name || 0
-                log.info('req->', req, name)
-                if (vs['NaN']) delete vs['NaN']
-                if (v.id * 1 === 0) {
-                    v.id = Math.max(...Object.keys(vs).filter(x => isNaN(x) === false)) + 1
-                    const bad_ids = Object.keys(vs).filter(x => isNaN(x) === true)
-                    debug({ new_id: v.id, v, bad_ids })
+            if (req === 'save') {
+                if (json.vol !== undefined && (json.roles || json.details)) {
+                    const { vol, roles, details } = json, vf = fz('gz/vs_.gz'), vs = vf || {},
+                        v = details ? details : vs[vol], name = v.name || 0
+                    log.info('req->', req, name)
+                    if (vs['NaN']) delete vs['NaN']
+                    if (v.id * 1 === 0) {
+                        v.id = Math.max(...Object.keys(vs).filter(x => isNaN(x) === false)) + 1
+                        const bad_ids = Object.keys(vs).filter(x => isNaN(x) === true)
+                        debug({ new_id: v.id, v, bad_ids })
+                    }
+                    if (roles) v.year[2023] = roles
+                    send({
+                        from_email: email, uEmail: email, subject: `vol ${v.unsub ? 'unsub' : 'update'} ${v.name}`,
+                        message: `{volunteer} \n` +
+                            (roles ? `adult: ${roles && roles.adult ? roles.arole ? `${roles.asection},${roles.arole}` : 'yes' : 'no'}\n` +
+                                `junior: ${roles && roles.junior ? roles.jrole ? `${roles.jsection},${roles.jrole}` : 'yes' : 'no'}\n`
+                                : `${details ? JSON.stringify(details) : ''}`)
+                    })
+                    if (v.unsub) {
+                        if (!vs[0]) vs[0] = {}
+                        vs[0][v.id] = { ...v }
+                        delete vs[vol]
+                    }
+                    else vs[v.id] = v
+                    save('vs', vs, true)
+                    const vu = f('gz/vs.gz')
+                    resp(req, r, { vs: vu })
                 }
-                if (roles) v.year[2023] = roles
-                if (v.unsub) {
-                    if (!vs[0]) vs[0] = {}
-                    vs[0][v.id] = { ...v }
-                    delete vs[vol]
+                else if (json.cid !== undefined && json.swim) {
+                    const { cid, swim } = json, cs = fz('gz/cs_.gz'),
+                        c = { ...cs[cid], ...swim }
+                    cs[cid] = c
+                    save('cs', cs, true)
+                    log.info('req->', req, cid, c.first, c.last, swim)
+                    send({
+                        from_email: email, uEmail: email, subject: `comp ${cid} ${c.first} ${c.last}`,
+                        message: `{competitor}\n ${JSON.stringify(json.swim)}`
+                    })
+                    resp(req, r, { comp: c })
                 }
-                else vs[v.id] = v
-                save('vs', vs, true)
-                const vu = f('gz/vs.gz')
-                resp(req, r, { vs: vu })
+                else if (json.files) {
+                    const { files } = json, zips = {}, fs = Object.keys(files)
+                    log.info('req->', req, fs)
+                    fs.forEach(fn => {
+                        save(fn, files[fn], true)
+                        zips[fn] = f(`gz/${fn}.gz`)
+                    })
+                    resp(req, r, { zips })
+                }
+                else resp(req, r, { message: 'Invalid request' }, 404)
             }
-            else if (req === 'bulksend' && json.subject && json.message && json.list) {
+            else if (req === 'bulksend' && !config.live && json.subject && json.message && json.list) {
                 const { subject, message, list, live } = json
                 saveM(json)
                 log.info('req->', req, subject, { n: list.length }, { live })
@@ -134,22 +175,16 @@ app.post(config.url, (m, r) => {
                         resp(req, r, { error: e }, 500)
                     })
             }
-            else if (req === 'save' && json.files) {
-                const { files } = json, zips = {}, fs = Object.keys(files)
-                log.info('req->', req, fs)
-                fs.forEach(fn => {
-                    save(fn, files[fn], true)
-                    zips[fn] = f(`gz/${fn}.gz`)
-                })
-                resp(req, r, { zips })
+            else if (req === 'user') {
+                const vol = get_vol(null, email), comp = get_comp(null, email)
+                log.info('req->', req,
+                    { vol: vol && vol.map(v => ({ id: v.id, name: v.name })) },
+                    { comp: comp && comp.map(c => ({ id: c.id, first: c.first, last: c.last })) })
+                resp(req, r, { vol, comp })
             }
-            else if (req === 'vol') {
+            else if (req === 'vol' && json.vol) {
                 const vs = fz('gz/vs_.gz'), vol = get_vol(json.vol, email)
-                if (Array.isArray(vol)) {
-                    log.info('req->', req, { vols: vol.map(v => ({ id: v.id, name: v.name })) })
-                    resp(req, r, { vol })
-                }
-                else if (vol) {
+                if (vol) {
                     log.info('req->', req, { id: json.vol, name: vol.name })
                     resp(req, r, { vol })
                 } else resp(req, r, { error: 'Unauthorized' }, 401)

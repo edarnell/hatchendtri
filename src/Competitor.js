@@ -1,5 +1,7 @@
-import Html, { debug, page } from './Html'
+import Html, { debug, page, nav } from './Html'
 import html from './html/Competitor.html'
+import greet from './html/comp_greet.html'
+import { cleanse } from './data'
 
 const cmap = {
   'Adult Experienced (17yrs+)': 'Ae',
@@ -34,7 +36,10 @@ class Competitor extends Html {
     this.data = 'cs'
     form.update = { class: 'form primary hidden', tip: this.formtip }
   }
-  html = () => html
+  html = (o) => {
+    if (!o) return html
+    else if (o.attr().name === 'greet') return this.greet(o)
+  }
   ths = (o) => {
     const { name } = o.attr()
     if (name === 'entries') return ['First', 'Last', 'Cat', 'M/F', 'Club']
@@ -46,10 +51,15 @@ class Competitor extends Html {
       return this.comp2023()
     }
   }
-  var = (o) => {
-    const { name, param } = o.attr()
-    if (name === 'date') return page.cs_date || ''
-    else debug({ var: name, vars: this.vars })
+  greet = (o) => {
+    const u = nav._user, cs = u && u.comp
+    if (cs) return greet
+    else return ''
+  }
+  comptip = (id) => {
+    const c = page.cs[id]
+    if (c.swim400) return `Swim 400m ${cleanse(c.swim400) || '? click to set'}` // TODO: add link to update
+    return "Junior times/preferences not required in advance"
   }
   tip = (e, o) => {
     const { name, param } = o.attr()
@@ -59,6 +69,10 @@ class Competitor extends Html {
   }
   link = (o) => {
     const { name } = o.attr()
+    if (name.startsWith('u_')) {
+      const id = name.substring(2), comp = page.cs[id], _id = name.substring(1)
+      if (comp) return { tip: () => this.comptip(id), theme: 'light', popup: `{comp.${_id}}` }
+    }
     const tt = {
       cat: { tip: this.tip },
       mf: { tip: this.tip },

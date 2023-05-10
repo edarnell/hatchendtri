@@ -3,7 +3,10 @@ import { csv } from './csv'
 
 function lists(r, es) {
     const mapM = { first: '"First Name"', last: '"Last Name"', email: '"Email Address"' }
-    const map = { first: 'Forename', last: 'Surname', gender: 'Gender', cat: 'EventName', eid: 'UniqueID', club: 'Club', email: 'email', phone: 'phone' }
+    const map = {
+        first: 'Forename', last: 'Surname', gender: 'Gender', cat: 'EventName', eid: 'UniqueID', club: 'Club', email: 'email', phone: 'phone',
+        swim400: 'Estimated_400m_swim_time',
+    }
     const ret = {}
     Object.keys(r.zips).forEach(k => {
         const ent = r.zips[k]

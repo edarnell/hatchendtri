@@ -292,12 +292,22 @@ select:focus {
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
+.swim {
+    width: 50px;
+}
+
 .checkbox {
     display: inline-block;
     position: static;
     margin-top: 0;
     margin-right: 0.25rem;
     margin-left: 0.25rem;
+}
+
+label {
+    display: inline-block;
+    margin-bottom: 0.5em;
+    font-weight: bold;
 }
 
 .primary {

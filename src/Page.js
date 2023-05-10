@@ -6,6 +6,7 @@ import Results from './Results'
 import Volunteer from './Volunteer'
 import Vol from './Vol'
 import User from './User'
+import Comp from './Comp'
 import Admin from './Admin'
 import Competitor from './Competitor'
 import Contact from './Contact'
@@ -35,6 +36,7 @@ function custom_pages() {
     customElements.define("ed-vol", Vol)
     customElements.define("ed-vsel", Vselect)
     customElements.define("ed-user", User)
+    customElements.define("ed-comp", Comp)
     custom_html()
 }
 class Page extends Html {

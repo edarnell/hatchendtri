@@ -10,10 +10,33 @@ const form = { // section and options populated on load
     subject: { placeholder: 'subject' },
     message: { placeholder: 'message' },
     filter: { placeholder: 'name filter', width: '50rem' },
+    cat: { options: ['Cat', 'Adult', 'An', 'Ae', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Youth'] },
+    mf: { options: ['M/F', 'M', 'F'] },
     C: { class: 'hidden form red bold', tip: 'clear name', submit: true },
     Save: { class: 'form red', tip: 'save cs' },
     Send: { class: 'form red' },
     Test: { class: 'form red' },
+}
+
+
+const cmap = {
+    'Adult Experienced (17yrs+)': 'Ae',
+    'Adult Novice (17yrs+)': 'An',
+    'Youths : 15-16 yrs': 'Youth',
+    'Tristar 3: 13-14 yrs': 'T3',
+    'Tristar 2: 11-12 yrs': 'T2',
+    'Tristar 1: 9-10 yrs': 'T1',
+    'Tristart: 8 yrs': 'TS'
+}
+const rCat = Object.entries(cmap).reduce((acc, [key, value]) => {
+    acc[value] = key
+    return acc
+}, {})
+
+const mfmap = {
+    'Open': 'M',
+    'Male': 'M',
+    'Female': 'F'
 }
 
 class Admin extends Html {
@@ -59,7 +82,7 @@ class Admin extends Html {
     }
     send = (e, o, testing) => {
         const f = this.getForm(form), rows = testing ? this._rows.slice(0, 20) : this._rows,
-            list = rows.map(r => ({ to: { name: r[0], email: r[2] } })),
+            list = rows.map(r => ({ to: { name: r[0], email: r[5] } })),
             pop = this.parent('popup')
         req({ req: 'bulksend', subject: f.subject, message: f.message, list, live: !testing }).then(r => {
             debug({ r })
@@ -79,7 +102,7 @@ class Admin extends Html {
     }
     ths = (o) => {
         const { name, param } = o.attr()
-        if (name === 'users') return ['first', 'last', 'email']
+        if (name === 'users') return ['first', 'last', 'cat', 'm/f', 'club', 'email']
     }
     mergeNames = (rs) => {
         let first = '', last = ''
@@ -98,20 +121,33 @@ class Admin extends Html {
         this._rows = []
         if (rs) this._rows = Object.values(rs).map(r => {
             const { first, last } = this.mergeNames(r)
-            return [first, last, r[0].email]
-        }).filter(r => this.filter(r, f.filter)).sort((a, b) => a[1] > b[1] ? 1 : -1)
+            return [first, last, cmap[r[0].cat] || '', mfmap[r[0].gender] || '', r[0].club || '', r[0].email]
+        }).filter(r => this.filter(r, f)).sort((a, b) => a[1] > b[1] ? 1 : -1)
         return this._rows
     }
     filter = (r, fs) => {
-        const name = r[0] + ' ' + r[1], email = r[2]
-        let ret
-        if (name.includes("�")) return false
-        else if (!fs) ret = true
-        fs.split(',').forEach(f => ret = ret || name.toLowerCase().includes(f.toLowerCase())
-            || email.toLowerCase().includes(f.toLowerCase())
-        )
-        return ret
+        const { cat, mf, filter } = fs || {},
+            f = filter && filter.toLowerCase(),
+            t = [r[0].toLowerCase(), r[1].toLowerCase(), r[4].toLowerCase(), r[5].toLowerCase()],
+            cs = cat === 'Adult' ? ['An', 'Ae'] : cat === 'Junior' ? ['TS', 'T1', 'T2', 'T3', 'Youth'] : [cat]
+        if (cat && cat !== 'Cat' && !cs.includes(r[2])) return false
+        if (mf && mf !== 'M/F' && r[3] !== mf) return false
+        if (f && !t.join(',').includes(f)) return false
+        return true
     }
+    /*
+  filter = (r, fs) => {
+      const name = r[0] + ' ' + r[1], cat = r[2], club = r[3], email = r[4]
+      let ret
+      if (name.includes("�")) return false
+      else if (!fs) ret = true
+      fs.split(',').forEach(f => ret = ret || name.toLowerCase().includes(f.toLowerCase())
+          || email.toLowerCase().includes(f.toLowerCase())
+          || cat.toLowerCase().includes(f.toLowerCase())
+          || club.toLowerCase().includes(f.toLowerCase())
+      )
+      return ret
+  }*/
     form = (o) => {
         const { name, param } = o.attr()
         if (form[name]) return form[name]

@@ -17,14 +17,26 @@ class Form extends TT {
         if (!form) debug({ Form: "define form=(o)=>", o: this.o(), form })
         else switch (type) {
             case 'input':
-                return `<input
+                return `${form.label ? `<label for="${name}">${form.label}</label>` : ''}
+            <input
             type="${form.type || 'text'}"
             name="${name}"
+            ${form.label ? `id="${name}"` : ''}
             ${form.placeholder ? `placeholder="${form.placeholder}"` : ''}
+            ${form.pattern ? `pattern="${form.pattern}"` : ''}
             ${form.required ? 'required' : ''}
             ${form.value ? `value="${form.value}"` : ''}
             class="${form.class || 'form'}" 
             />`
+            case 'radio':
+                return `<input type="radio"
+            name="${form.radio}"
+            value="${name}"
+            ${form.label ? `id="${name}"` : ''}
+            ${form.required ? 'required' : ''}
+            ${form.value ? `value="${form.value}"` : ''}
+            />
+            ${form.label ? `<label for="${name}">${form.label}</label>` : ''}`
             case 'select':
                 return `<select class="${form.class || 'form'}" 
             name="${name}">
@@ -41,10 +53,10 @@ class Form extends TT {
                 return `<input type="checkbox" class="${form.class ? 'checkbox ' + form.class : 'checkbox'}"
             ${form.value === true ? 'checked' : ''}
             name="${name}"
+            ${form.label ? `id="${name}"` : ''}
             ${form.required ? 'required' : ''}
             />
-            ${form.label ? `<span ${form.class ? `class="${form.class}"` : ''}>${form.label}</span>`
-                        : ''}`
+            ${form.label ? `<label for="${name}">${form.label}</label>` : ''}`
             case 'button':
                 const icon = form.icon && icons[form.icon], active = form.class && form.class.includes('active'),
                     img = icon && `<img name="${name}" data-image="${form.icon}" src="${active ? icon.active : icon.default}" class="${form.class || 'icon'}" />`

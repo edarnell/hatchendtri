@@ -1,7 +1,16 @@
 import { debug } from './Html'
+
 function csv(ent, map) {
     //const map = { first: '"First Name"', last: '"Last Name"', email: '"Email Address"' }
-    const cmap = { first: 'Forename', last: 'Surname', gender: 'Gender', cat: 'EventName', eid: 'UniqueID', club: 'Club', email: 'email', phone: 'phone' }
+    const cmap = {
+        first: 'Forename', last: 'Surname', gender: 'Gender',
+        swim400: 'Estimated_400m_swim_time',
+        cat: 'EventName',
+        eid: 'UniqueID',
+        club: 'Club',
+        email: 'email',
+        phone: 'phone'
+    }
     const rows = ent.split('\n')
     const cs = {}
     const head = rows[0].split(',').map(s => s.replace(/[\n\r]/g, '')), c = {}
