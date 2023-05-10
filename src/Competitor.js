@@ -58,7 +58,7 @@ class Competitor extends Html {
   }
   comptip = (id) => {
     const c = page.cs[id]
-    if (c.swim400 !== undefined) return `Swim 400m ${cleanse(c.swim400) || '? click to set'}` // TODO: add link to update
+    if (c.swim400) return `Swim 400m ${cleanse(c.swim400) || '? click to set'}` // TODO: add link to update
     return "Junior times/preferences not required in advance"
   }
   tip = (e, o) => {

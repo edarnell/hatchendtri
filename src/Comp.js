@@ -25,8 +25,9 @@ class Comp extends Html {
     //debug = (m) => debug({ Vol: m, o: this.o(), popup: this.popup })
     listen = (o) => {
         if (!this._f) {
-            if (this.c.swim400) this.c.swim400 = cleanse(this.c.swim400)
-            this.setForm(this.c, form)
+            const c = { ...this.c }
+            if (c.swim400) c.swim400 = cleanse(c.swim400)
+            this.setForm(c, form)
             this._f = this.getForm(form)
         }
     }
@@ -37,7 +38,7 @@ class Comp extends Html {
     }
     html = (o) => {
         if (!o) {
-            if (this.c.swim400 !== undefined) return comp
+            if (this.c.swim400) return comp
             else this.junior()
         }
     }
