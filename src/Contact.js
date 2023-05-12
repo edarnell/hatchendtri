@@ -7,7 +7,7 @@ const form = {
     email: { placeholder: 'email', type: 'email', required: true },
     subject: { placeholder: 'subject', required: true },
     message: { placeholder: 'message...', required: true },
-    send: { class: 'form primary disabled', submit: true, tt: '...' },
+    send: { class: 'form primary disabled', submit: true },
     spam1: {}, spam2: {}, spam3: {},
 }
 
@@ -25,9 +25,9 @@ class Contact extends Html {
     html = (o) => {
         if (!o) return html
         else {
-            const name = o.attr().name
-            if (name === 'spam') return nav._user ? '' : '{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} '
-            else if (name === 'from') return nav._user ? '' : '{input.name}<br />{input.email}<br />'
+            const name = o.attr().name, user = nav._user && (nav._user.vol || nav._user.comp)
+            if (name === 'spam') return user ? '' : '{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} '
+            else if (name === 'from') return user ? '' : '{input.name}<br />{input.email}<br />'
         }
     }
     listen = () => {
@@ -79,32 +79,39 @@ class Contact extends Html {
         }
     }
     checkForm = () => {
-        const data = this.getForm(form)
+        const data = this.getForm(form), user = nav._user && (nav._user.vol || nav._user.comp)
         let complete = true
-        if (nav._user) return data.message && data.subject
+        if (user) return data.message && data.subject
         else Object.keys(form).forEach(k => {
             const f = form[k]
             if (f.required && !data[k]) complete = false
         })
+        if (data.email && !data.email.match(/^[^@]+@[^@]+$/)) complete = false
         return complete
     }
     checkSpam = () => {
-        const data = this.getForm(form)
-        let spam = false;
-        if (!nav._user) ['spam1', 'spam2', 'spam3'].forEach((k, i) => {
+        const data = this.getForm(form), user = nav._user && (nav._user.vol || nav._user.comp)
+        let spam = false
+        if (!user) ['spam1', 'spam2', 'spam3'].forEach((k, i) => {
             spam = spam || data[k] !== (i === this.spam)
         })
         return spam
     }
     sendtt = () => {
-        const complete = this.checkForm()
+        const complete = this.checkForm(),
+            user = nav._user && (nav._user.vol || nav._user.comp)
         if (complete) {
             const b = ['left', 'middle', 'right'], s = b[this.spam]
             const spam = this.checkSpam()
             if (spam) return `please tick the ${s} box`
             else return 'send email'
         }
-        else return 'complete the form'
+        else if (user) return 'complete the form'
+        else {
+            const data = this.getForm(form)
+            if (data.email && !data.email.match(/^[^@]+@[^@]+$/)) return 'invalid email address'
+            else return 'complete the form'
+        }
     }
 }
 export default Contact

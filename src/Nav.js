@@ -34,7 +34,7 @@ class Nav extends Html {
     }
     tt = () => {
         const u = this._user
-        if (u) {
+        if (u && (u.vol || u.comp)) {
             if (page._page === 'competitor' && u.comp) return Object.values(u.comp).map(c => `<div>${c.first} ${c.last}</div>`).join('')
             else if (u.vol) return Object.values(u.vol).map(v => `<div>${v.name}</div>`).join('')
             else if (u.comp) return Object.values(u.comp).map(c => `<div>${c.first} ${c.last}</div>`).join('')
@@ -48,6 +48,13 @@ class Nav extends Html {
             `{link.u_${u.id}.${c_v === 'vol' ? _s(u.name) : _s(u.first + ' ' + u.last)}}`).join(', ')
         else r = 'Volunteer'
         return r
+    }
+    uid = (id, c_v) => {
+        c_v = c_v || 'comp'
+        const cs = this._user && this._user[c_v]
+        let ret = false
+        if (id && cs) Object.values(cs).forEach(u => { if (u.id * 1 === id * 1) ret = true })
+        return ret
     }
     users = (c_v) => {
         c_v = c_v || 'vol'

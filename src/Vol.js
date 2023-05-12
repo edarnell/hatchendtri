@@ -58,7 +58,7 @@ class Vol extends Html {
             })
             this.show_volD = true
             if (nav.admin(true)) contact.admin.class = 'bold red'
-            this._volD.setAttribute('param', 'update')
+            this._volD._upd()
         })
     }
     form = (o) => {

@@ -1,4 +1,4 @@
-import Html, { debug, page, nav } from './Html'
+import Html, { debug, page, nav, _s } from './Html'
 import html from './html/Competitor.html'
 import greet from './html/comp_greet.html'
 import { cleanse } from './data'
@@ -68,10 +68,10 @@ class Competitor extends Html {
     else if (name === 'Entries') return `${this.rows} rows selected`
   }
   link = (o) => {
-    const { name } = o.attr()
+    const { name, param } = o.attr(), user = nav._user && nav._user.comp
     if (name.startsWith('u_')) {
       const id = name.substring(2), comp = page.cs[id], _id = name.substring(1)
-      if (comp) return { tip: () => this.comptip(id), theme: 'light', popup: `{comp.${_id}}` }
+      return { tip: () => this.comptip(id), theme: 'light', popup: `{comp.${_id}}` }
     }
     const tt = {
       cat: { tip: this.tip },
@@ -104,8 +104,11 @@ class Competitor extends Html {
     return true
   }
   comp2023 = () => {
-    const ret = Object.values(page.cs).filter(this.filter)
-      .map(c => [c.first, c.last, `{link.cat.${cmap[c.cat]}}`, `{link.mf.${mfmap[c.gender]}}`, c.club || ''])
+    const user = nav._user && nav._user.comp, ret = Object.values(page.cs).filter(this.filter)
+      .map(c => [(nav.admin() || nav.uid(c.id)) ? `{link.u_${c.id}.${_s(c.first)}}` : c.first,
+      (nav.admin() || nav.uid(c.id)) ? ` {link.u_${c.id}.${_s(c.last)}}` : c.last,
+      `{link.cat.${cmap[c.cat]}}`,
+      `{link.mf.${mfmap[c.gender]}}`, c.club || ''])
       .sort((a, b) => a[1] > b[1] ? 1 : -1)
     this.rows = ret.length
     return ret

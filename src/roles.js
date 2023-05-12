@@ -469,8 +469,8 @@ const section = {
                 "name": "Field Footbridge",
                 "qty": {
                     "adult": {
-                        "min": 1,
-                        "max": "2"
+                        "min": 2,
+                        "max": 2
                     },
                     "junior": {
                         "min": 0,
@@ -482,8 +482,8 @@ const section = {
                 "name": "Headstone Width Restrict",
                 "qty": {
                     "adult": {
-                        "min": "1",
-                        "max": "2"
+                        "min": 3,
+                        "max": 3
                     },
                     "junior": {
                         "min": 0,

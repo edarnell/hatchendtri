@@ -3,6 +3,10 @@ scp -i ../.ssh/epdarnell.pem ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/node/g
 scp -i ../.ssh/epdarnell.pem ubuntu@ec2.freemaths.uk:/home/ubuntu/.pm2/logs/hatchend*.log node/live
 
 Copy to Live
+
+scp -i ../.ssh/epdarnell.pem public/SiteMap.pdf ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/public
+scp -i ../.ssh/epdarnell.pem public/JuniorBriefing.pdf ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/public
+
 rem scp -i ../.ssh/epdarnell.pem node/mail.html ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/node
 rem scp -i ../.ssh/epdarnell.pem node/package.json ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/node
 rem scp -i ../.ssh/epdarnell.pem node/config.json ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/node

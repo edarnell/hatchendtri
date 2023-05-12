@@ -70,15 +70,16 @@ app.post(config.url, (m, r) => {
     if (m.headers.a_hatchend !== '20230521') return resp(req, r, { message: 'Invalid request' }, 404)
     const h = m.headers.authorization, token = h && h.startsWith('Bearer ') ? h.substring(7) : null,
         auth = token ? jwt.verify(token, config.key) : null,
-        email = auth ? auth.email : null
+        email = auth ? auth.email : null,
+        aed = email && email === 'ed@darnell.org.uk'
     if (req) {
         if (req === 'files' && json.files) {
             const { files } = json, zips = {}
             log.info('req->', req, files)
             let ok = true
             files.forEach(fn => {
-                if (auth && email === 'ed@darnell.org.uk' && fn.endsWith('.csv')) zips[fn] = f(`lists/${fn}`, true)
-                else if (auth && email === 'ed@darnell.org.uk' && fn === 'vs_') zips[fn] = f(`gz/${fn}.gz`)
+                if (aed && fn.endsWith('.csv')) zips[fn] = f(`lists/${fn}`, true)
+                else if (aed && fn === 'vs_') zips[fn] = f(`gz/${fn}.gz`)
                 else if (sec(fn) && !auth) ok = false
                 else zips[fn] = f(`gz/${fn}.gz`)
             })
@@ -173,7 +174,7 @@ app.post(config.url, (m, r) => {
                 }
                 else resp(req, r, { message: 'Invalid request' }, 404)
             }
-            else if (req === 'bulksend' && !config.live && json.subject && json.message && json.list) {
+            else if (req === 'bulksend' && !config.live && json.subject && json.message && json.list && aed) {
                 const { subject, message, list, live } = json
                 saveM(json)
                 log.info('req->', req, subject, { n: list.length }, { live })
@@ -197,6 +198,13 @@ app.post(config.url, (m, r) => {
                     log.info('req->', req, { id: json.vol, name: vol.name })
                     resp(req, r, { vol })
                 } else resp(req, r, { error: 'Unauthorized' }, 401)
+            }
+            else if (req === 'comp' && json.cid && aed) {
+                const cs = fz('gz/cs_.gz'), c = cs[json.cid]
+                if (c) {
+                    log.info('req->', req, { id: c.cid, name: `${c.first} ${c.last}` })
+                    resp(req, r, { comp: c })
+                } else resp(req, r, { message: 'no comp' }, 400)
             }
             else {
                 log.info('req->', req)
