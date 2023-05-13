@@ -249,11 +249,11 @@ const section = {
                 "qty": {
                     "adult": {
                         "min": 3,
-                        "max": 3
+                        "max": 6
                     },
                     "junior": {
                         "min": 3,
-                        "max": 3
+                        "max": 6
                     }
                 }
             },

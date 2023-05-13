@@ -80,6 +80,7 @@ app.post(config.url, (m, r) => {
             files.forEach(fn => {
                 if (aed && fn.endsWith('.csv')) zips[fn] = f(`lists/${fn}`, true)
                 else if (aed && fn === 'vs_') zips[fn] = f(`gz/${fn}.gz`)
+                else if (aed && fn === 'cs_') zips[fn] = f(`gz/${fn}.gz`)
                 else if (sec(fn) && !auth) ok = false
                 else zips[fn] = f(`gz/${fn}.gz`)
             })

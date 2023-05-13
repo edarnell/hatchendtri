@@ -27,4 +27,22 @@ function csv(ent, map) {
     //debug({ cs })
     return cs
 }
-export { csv }
+
+function csvE(ent) {
+    //const map = { first: '"First Name"', last: '"Last Name"', email: '"Email Address"' }
+    const rows = ent.split('\n')
+    const cs = {}
+    const head = rows[0].split(',').map(s => s.replace(/[\n\r]/g, '')), c = {}
+    head.forEach(k => c[k] = head.indexOf(k))
+    cs[0] = c
+    for (var i = 1; i < rows.length; i++) {
+        if (!rows[i]) continue
+        const row = rows[i].split(',').map(s => s.replace(/[\n\r]/g, '')), r = {}
+        Object.keys(c).forEach(k => r[k] = row[c[k]])
+        cs[r['UniqueID']] = r
+    }
+    //debug({ cs })
+    return cs
+}
+
+export { csv, csvE }

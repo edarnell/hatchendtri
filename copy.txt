@@ -4,6 +4,7 @@ scp -i ../.ssh/epdarnell.pem ubuntu@ec2.freemaths.uk:/home/ubuntu/.pm2/logs/hatc
 
 Copy to Live
 
+scp -i ../.ssh/epdarnell.pem node/gz/cs*.gz ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/node/gz
 scp -i ../.ssh/epdarnell.pem public/SiteMap.pdf ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/public
 scp -i ../.ssh/epdarnell.pem public/JuniorBriefing.pdf ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/public
 

@@ -38,7 +38,7 @@ class Volunteer extends Html {
     }
     else if (name.startsWith('u_')) {
       const id = name.substring(2), vol = page.vs[id], _id = name.substring(1)
-      if (vol) return { tip: () => this.voltip(id), theme: 'light', class: this.color(id), popup: `{vol.${_id}}` }
+      if (vol) return { tip: () => this.voltip(id), theme: 'light', class: this.color(id) }
     }
     else if (name.charAt(1) === '_') {
       const f = { a: 'adult', j: 'junior', s: 'both', f: 'both' }, ajs = f[name.charAt(0)]

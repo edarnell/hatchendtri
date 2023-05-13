@@ -8,7 +8,7 @@ class Table extends Html {
         const table = this.rows()
         let html
         if (table) html = this.render_table(table)
-        else debug({ table: "ths=>{},trs=>()", o: this.debug() })
+        else debug({ table: "ths=>{},trs=>()", o: this.o() })
         return html
     }
     rows = () => {
