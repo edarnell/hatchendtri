@@ -39,7 +39,9 @@ function csvE(ent) {
         if (!rows[i]) continue
         const row = rows[i].split(',').map(s => s.replace(/[\n\r]/g, '')), r = {}
         Object.keys(c).forEach(k => r[k] = row[c[k]])
-        cs[r['UniqueID']] = r
+        if (!cs[r['UniqueID']]) debug({ error: row })
+        if (cs[r['UniqueID']]) debug({ dupe: cs[r['UniqueID']] })
+        else cs[r['UniqueID']] = r
     }
     //debug({ cs })
     return cs

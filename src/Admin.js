@@ -7,7 +7,7 @@ import { firstLast } from './roles'
 import { unzip } from './unzip'
 
 const form = { // section and options populated on load
-    list: { options: ['cs', 'vs', 'v2023', 'm2023', 'c2023', 'prev', 'bounce', 'unsub'] },
+    list: { options: ['cs', 'csE', 'vs', 'v2023', 'm2023', 'c2023', 'prev', 'bounce', 'unsub'] },
     subject: { placeholder: 'subject' },
     message: { placeholder: 'message' },
     filter: { placeholder: 'name filter', width: '50rem' },
@@ -51,6 +51,12 @@ class Admin extends Html {
         else if (f.list === 'vs') {
             req({ req: 'files', files: ['vs_'] }).then(r => {
                 debug({ r })
+            })
+        }
+        else if (f.list === 'csE') {
+            req({ req: 'files', files: ['2023C.csv'] }).then(r => {
+                this.cE = csvE(r.zips['2023C.csv'])
+                this._table._upd()
             })
         }
         //else this.lists()
@@ -132,7 +138,8 @@ class Admin extends Html {
         const { name, param } = o.attr(), f = this.getForm(form),
             rs = this[f.list]
         this._table = o
-        if (f.list === 'cs') return this._rows = this.compE()
+        if (f.list === 'cs') return this._rows = this.comp()
+        else if (f.list === 'csE') return this._rows = this.compE()
         else if (f.list === 'vs') return this._rows = this.vol2023()
         else this._rows = []
         debug({ rs })
@@ -259,16 +266,24 @@ class Admin extends Html {
         c.swim400 = c.early = undefined
     }
     check = (c) => {
-        if (!c.cat.startsWith('Adult') && !c.cat.includes(c.ageGroup.replace('Tristars', 'Tristar').replace('Tristar Start', 'Tristart'))) debug({ c, ageGroup: c.ageGroup, cat: c.cat })
+        if (c.cat && c.ageGfoup && !c.cat.startsWith('Adult') && !c.cat.includes(c.ageGroup.replace('Tristars', 'Tristar').replace('Tristar Start', 'Tristart'))) debug({ c, ageGroup: c.ageGroup, cat: c.cat })
+        else if (this.cE && (!this.cE[c.eid] || this.cE[c.eid].email !== c.email)) debug({ c, eid: c.eid })
     }
-    comp2023 = () => {
+    compE = () => {
+        const ids = Object.values(page.cs_).map(c => c.eid)
+        if (this.cE) Object.keys(this.cE).forEach(eid => {
+            if (ids.indexOf(eid) === -1) debug({ missing: eid, c: this.cE[eid] })
+        })
         Object.values(page.cs_).forEach(c => this.check(c))
+        if (ids) debug({ ec: ids.length, cs: Object.keys(page.cs_).length })
+        //const mel = this.cE && this.cE[2899649]
+        //debug({ mel, ids })
         const ret = Object.values(page.cs_).filter(this.filterC).sort(this.sort)
             .map(c => [c.n, c.brief, c.start, c.first, c.last, c.ageGroup, mfmap[c.gender], c.early ? 'Y' : '', c.late ? 'Y' : '', c.stroke ? 'Y' : '', c.deaf ? 'Y' : '', this.swim(c), c.club || ''])
         this.rows = ret.length
         return ret
     }
-    compE = () => {
+    comp = () => {
         const es = {}
         Object.values(page.cs_).forEach(c => {
             if (c.email) {
