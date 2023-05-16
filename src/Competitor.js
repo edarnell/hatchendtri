@@ -58,8 +58,7 @@ class Competitor extends Html {
   }
   comptip = (id) => {
     const c = page.cs[id]
-    if (c.swim400) return `Swim 400m ${cleanse(c.swim400) || '? not given'}` // TODO: add link to update
-    return "Junior times/preferences not required in advance"
+    return `Briefing ${c.brief}, Start ${c.start}<br />Register and rack your bike before the briefing.` // TODO: add link to update
   }
   tip = (e, o) => {
     const { name, param } = o.attr()
@@ -71,7 +70,7 @@ class Competitor extends Html {
     const { name, param } = o.attr(), user = nav._user && nav._user.comp
     if (name.startsWith('u_')) {
       const id = name.substring(2), comp = page.cs[id], _id = name.substring(1)
-      return { tip: () => this.comptip(id), theme: 'light' }
+      return { tip: () => this.comptip(id) }
     }
     const tt = {
       cat: { tip: this.tip },

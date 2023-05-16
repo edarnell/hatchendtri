@@ -12,7 +12,7 @@ function f(f, s) {
 
 function sec(f) { // auth and email only for csv data
     // add to list as needed
-    return ['vs', 'cs'].includes(f)
+    return ['vs'].includes(f)
 }
 
 function anon(o, d) {

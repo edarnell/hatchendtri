@@ -14,7 +14,7 @@ const form = { // section and options populated on load
     cat: { options: ['Cat', 'Adult', 'An', 'Ae', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Youth'] },
     mf: { options: ['M/F', 'M', 'F'] },
     C: { class: 'hidden form red bold', tip: 'clear name', submit: true },
-    Save: { class: 'form red', tip: 'save cs' },
+    Save: { class: 'form red', tip: 'disabled' },
     Send: { class: 'form red' },
     Test: { class: 'form red' },
 }
@@ -40,20 +40,20 @@ class Admin extends Html {
         super()
         if (!nav.admin(true)) nav.nav('home')
         else this.data = 'cs_'
-        form.Save.click = this.save
+        //form.Save.click = this.save
         form.Test.tip = form.Send.tip = this.tip
         form.Test.click = this.test
         form.Send.click = this.send
     }
     listen = () => {
         const f = this.getForm(form)
-        if (f.list === 'cs') this.comp2023()
+        if (f.list === 'cs') this.compE()
         else if (f.list === 'vs') {
             req({ req: 'files', files: ['vs_'] }).then(r => {
                 debug({ r })
             })
         }
-        else this.lists()
+        //else this.lists()
         /*
         else if (this._table) {
             req({ req: 'files', files: ['2023C.csv'] }).then(r => {
@@ -98,9 +98,11 @@ class Admin extends Html {
         }).catch(e => this.error(e, o))
     }
     save = (e, o) => {
+        /* comment to prevent accidental save
         if (page.cs_) req({ req: 'save', files: { cs: page.cs_ } }).then(r => {
             debug({ r })
         }).catch(e => this.error(e, o))
+        */
     }
     error = (e, o) => {
         debug({ e })
@@ -112,8 +114,8 @@ class Admin extends Html {
     ths = (o) => {
         const { name, param } = o.attr()
         const f = this.getForm(form)
-        if (f.list === 'cs') return ['#', 'Brief', 'Start', 'first', 'last', 'AgeGrp', 'm/f', , 'E', 'L', 'B', 'D', 'mm:ss', 'club']
-        else if (f.list === 'vs') return ['names', 'email']
+        //if (f.list === 'cs') return ['#', 'Brief', 'Start', 'first', 'last', 'AgeGrp', 'm/f', , 'E', 'L', 'B', 'D', 'mm:ss', 'club']
+        if (f.list === 'vs' || f.list === 'cs') return ['names', 'email']
         else if (name === 'users') return ['first', 'last', 'cat', 'm/f', 'club', 'email']
     }
     mergeNames = (rs) => {
@@ -130,7 +132,7 @@ class Admin extends Html {
         const { name, param } = o.attr(), f = this.getForm(form),
             rs = this[f.list]
         this._table = o
-        if (f.list === 'cs') return this._rows = this.comp2023()
+        if (f.list === 'cs') return this._rows = this.compE()
         else if (f.list === 'vs') return this._rows = this.vol2023()
         else this._rows = []
         debug({ rs })
@@ -260,17 +262,35 @@ class Admin extends Html {
         if (!c.cat.startsWith('Adult') && !c.cat.includes(c.ageGroup.replace('Tristars', 'Tristar').replace('Tristar Start', 'Tristart'))) debug({ c, ageGroup: c.ageGroup, cat: c.cat })
     }
     comp2023 = () => {
-        //let n = { A: 201, TS: 1, T1: 31, T2: 101, T3: 161, Youth: 21 }, ln = { l: { n: 0, t: 0 }, m: { n: 0, t: 0 }, r: { n: 0, t: 0 } }
-        //let del = []
-        //Object.values(page.cs_).sort((a, b) => this.swim(a, true) - this.swim(b, true)).forEach(c => this.number(c, n, del))
-        //debug({ del })
-        //del.forEach(c => delete page.cs_[c.id])
-        //Object.values(page.cs_).sort(this.sort).forEach((c, i) => this.start(c, ln, i))
-        //if (page.cs_['202']) this.fix()
         Object.values(page.cs_).forEach(c => this.check(c))
         const ret = Object.values(page.cs_).filter(this.filterC).sort(this.sort)
             .map(c => [c.n, c.brief, c.start, c.first, c.last, c.ageGroup, mfmap[c.gender], c.early ? 'Y' : '', c.late ? 'Y' : '', c.stroke ? 'Y' : '', c.deaf ? 'Y' : '', this.swim(c), c.club || ''])
         this.rows = ret.length
+        return ret
+    }
+    compE = () => {
+        const es = {}
+        Object.values(page.cs_).forEach(c => {
+            if (c.email) {
+                if (this.filterC(c)) {
+                    if (es[c.email.toLowerCase()]) es[c.email.toLowerCase()].push(c)
+                    else es[c.email.toLowerCase()] = [c]
+                }
+            }
+            else debug({ c })
+        })
+        let ret = []
+        Object.keys(es).forEach(e => {
+            const cs = es[e], nm = []
+            cs.forEach(c => {
+                if (!c.first) debug({ c })
+                else {
+                    const first = c.first
+                    nm.push(first)
+                }
+            })
+            ret.push([nm.join(', '), e])
+        })
         return ret
     }
     vol2023 = () => {
