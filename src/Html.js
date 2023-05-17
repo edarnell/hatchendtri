@@ -136,6 +136,7 @@ class Html extends HTMLElement {
             else if (t === 'vsel') return `<ed-vsel type="${t}" name="${l}" param="${c || ''}"></ed-vsel>`
             else if (t === 'user') return `<ed-user type="${t}" name="user" param="${c || ''}"></ed-user>`
             else if (t === 'comp') return `<ed-comp type="${t}" name="${l}" param="${c || ''}"></ed-comp>`
+            else if (t === 'labels') return `<ed-labels type="${t}" name="${l}" param="${c || ''}"></ed-labels>`
             else if (t === 'contact') return `<ed-contact type="${t}" name="${l}" param="${c || ''}"></ed-contact>`
             else if (['input', 'select', 'checkbox', 'textarea', 'button', 'radio'].indexOf(t) !== -1) {
                 return `<ed-form type="${t}" name="${l}" param="${c || ''}"></ed-form>`

@@ -515,3 +515,57 @@ label {
     border: 1px solid #800;
     color: #800;
 }
+
+.labels {
+    column-count: 2;
+    column-gap: 20px;
+    /* Add other necessary styles for the container */
+}
+
+.big {
+    font-size: 28px;
+}
+
+.huge {
+    font-size: 38px;
+}
+
+.label {
+    break-inside: avoid;
+    width: 98mm;
+    height: 35.5mm;
+    line-height: 1;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 20px;
+    color: black;
+    text-align: center;
+    overflow: hidden;
+    border: none;
+    outline: none;
+    /* outline doesn't occupy space like border does */
+}
+
+@media print {
+    @page {
+        margin: 19mm 0 0 0;
+        /* Adjust the margins as needed */
+    }
+
+    .header {
+        display: none;
+    }
+
+    .background-image {
+        display: none;
+    }
+
+    .label {
+        /* Avery 5160 labels -- CSS and HTML by MM at Boulder Information Services */
+        /* 2019 J8163 labels - removed margin-right: 3mm; printed as A4 with 20mm top and 0 other borders */
+        padding: 3mm 3mm 0;
+    }
+
+    .page-break {
+        page-break-after: always;
+    }
+}

@@ -25,16 +25,19 @@ const contact = { // section and options populated on load
 class Comp extends Html {
     constructor() {
         super()
-        this.data = 'cs'
+        //if (!this.page.cs_) this.data = 'cs'
         const { name, param } = this.attr(),
             cid = this.cid = name.substring(1),
-            c = this.c = page.cs[cid]
+            c = this.c = page.cs_ ? page.cs_[cid] : page.cs[cid]
     }
     //debug = (m) => debug({ Vol: m, o: this.o(), popup: this.popup })
     listen = (o) => {
         if (!this._f) {
             const c = { ...this.c }
-            if (c.swim400) c.swim400 = cleanse(c.swim400)
+            if (c.swim400 && c.swim400 !== cleanse(c.swim400)) {
+                debug({ c })
+                c.swim400 = cleanse(c.swim400)
+            }
             this.setForm(c, form)
             this._f = this.getForm(form)
         }
@@ -46,7 +49,8 @@ class Comp extends Html {
     }
     html = (o) => {
         if (!o) {
-            if (this.c.swim400) return comp
+            if (page.cs_) return comp
+            else if (this.c.swim400) return comp
             else this.junior()
         }
         else {

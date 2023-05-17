@@ -8,13 +8,20 @@ import { unzip } from './unzip'
 
 const form = { // section and options populated on load
     list: { options: ['cs', 'csE', 'vs', 'v2023', 'm2023', 'c2023', 'prev', 'bounce', 'unsub'] },
-    subject: { placeholder: 'subject' },
-    message: { placeholder: 'message' },
     filter: { placeholder: 'name filter', width: '50rem' },
     cat: { options: ['Cat', 'Adult', 'An', 'Ae', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Youth'] },
     mf: { options: ['M/F', 'M', 'F'] },
     C: { class: 'hidden form red bold', tip: 'clear name', submit: true },
+    New: { class: 'form red', tip: 'disabled' },
+}
+// Todo refine into schedule function
+const schedule = {
     Save: { class: 'form red', tip: 'disabled' },
+}
+// todo refine into email function 
+const fmail = {
+    subject: { placeholder: 'subject' },
+    message: { placeholder: 'message' },
     Send: { class: 'form red' },
     Test: { class: 'form red' },
 }
@@ -40,10 +47,12 @@ class Admin extends Html {
         super()
         if (!nav.admin(true)) nav.nav('home')
         else this.data = 'cs_'
-        //form.Save.click = this.save
+        /* todo refine functionality
+        form.Save.click = this.save
         form.Test.tip = form.Send.tip = this.tip
         form.Test.click = this.test
         form.Send.click = this.send
+        */
     }
     listen = () => {
         const f = this.getForm(form)
@@ -117,6 +126,7 @@ class Admin extends Html {
         const f = this.getForm(form)
         //if (f.list === 'cs') return ['#', 'Brief', 'Start', 'first', 'last', 'AgeGrp', 'm/f', , 'E', 'L', 'B', 'D', 'mm:ss', 'club']
         if (f.list === 'vs' || f.list === 'cs') return ['names', 'email']
+        else if (f.list === 'csE') return ['#', 'Brief', 'Start', 'First', 'Last', 'AgeGrp', 'M/F', 'E', 'L', 'B', 'D', 'Swim', 'Club']
         else if (name === 'users') return ['first', 'last', 'cat', 'm/f', 'club', 'email']
     }
     mergeNames = (rs) => {
@@ -275,7 +285,7 @@ class Admin extends Html {
         //const mel = this.cE && this.cE[2899649]
         //debug({ mel, ids })
         const ret = Object.values(page.cs_).filter(this.filterC).sort(this.sort)
-            .map(c => [c.n, c.brief, c.start, c.first, c.last, c.ageGroup, mfmap[c.gender], c.early ? 'Y' : '', c.late ? 'Y' : '', c.stroke ? 'Y' : '', c.deaf ? 'Y' : '', this.swim(c), c.club || ''])
+            .map(c => [`{link.c_${c.id}.${c.n}}`, c.brief, c.start, c.first, c.last, c.ageGroup, mfmap[c.gender], c.early ? 'Y' : '', c.late ? 'Y' : '', c.stroke ? 'Y' : '', c.deaf ? 'Y' : '', this.swim(c), c.club || ''])
         this.rows = ret.length
         return ret
     }
@@ -343,6 +353,13 @@ class Admin extends Html {
     form = (o) => {
         const { name, param } = o.attr()
         if (form[name]) return form[name]
+    }
+    link = (o) => {
+        const { name } = o.attr()
+        if (name.startsWith('c_')) {
+            const id = name.substring(2), _id = name.substring(1)
+            return { tip: 'edit', class: ' ', theme: 'light', popup: `{comp.${_id}}` }
+        }
     }
     update = (e, o) => {
         const { name, param } = o.attr()

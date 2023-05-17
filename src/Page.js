@@ -11,6 +11,7 @@ import Admin from './Admin'
 import Competitor from './Competitor'
 import Contact from './Contact'
 import Vselect from './Vselect'
+import Labels from './Labels'
 import { custom_html } from './custom_html'
 const debug = console.log.bind(console)
 const pages = {
@@ -22,6 +23,7 @@ const pages = {
     competitor: { nav: 'Competitor', href: 'competitor', tip: 'entry system' },
     contact: { popup: `{contact}`, icon: 'email', href: 'contact', tip: 'contact us', placement: 'bottom-end', strategy: 'fixed' },
     user: { popup: `{user}`, icon: 'user', tip: 'login', placement: 'bottom-end' },
+    labels: { nav: 'Labels', href: 'labels', tip: 'competitor labels' },
 }
 function custom_pages() {
     customElements.define("ed-nav", Nav)
@@ -37,6 +39,7 @@ function custom_pages() {
     customElements.define("ed-vsel", Vselect)
     customElements.define("ed-user", User)
     customElements.define("ed-comp", Comp)
+    customElements.define("ed-labels", Labels)
     custom_html()
 }
 class Page extends Html {
