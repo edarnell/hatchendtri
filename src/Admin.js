@@ -47,18 +47,13 @@ class Admin extends Html {
     }
     listen = () => {
         const f = this.getForm(form)
-        if (f.list === 'cs') this.compE()
+        if (f.list === 'cs') this.comp()
         else if (f.list === 'vs') {
             req({ req: 'files', files: ['vs_'] }).then(r => {
                 debug({ r })
             })
         }
-        else if (f.list === 'csE') {
-            req({ req: 'files', files: ['2023C.csv'] }).then(r => {
-                this.cE = csvE(r.zips['2023C.csv'])
-                this._table._upd()
-            })
-        }
+
         //else this.lists()
         /*
         else if (this._table) {
@@ -270,12 +265,13 @@ class Admin extends Html {
         else if (this.cE && (!this.cE[c.eid] || this.cE[c.eid].email !== c.email)) debug({ c, eid: c.eid })
     }
     compE = () => {
-        const ids = Object.values(page.cs_).map(c => c.eid)
+        const ids = {}
+        Object.values(page.cs_).forEach(c => ids[c.eid] = c)
         if (this.cE) Object.keys(this.cE).forEach(eid => {
-            if (ids.indexOf(eid) === -1) debug({ missing: eid, c: this.cE[eid] })
+            if (!ids[eid]) debug({ missing: eid, cE: this.cE[eid] })
         })
         Object.values(page.cs_).forEach(c => this.check(c))
-        if (ids) debug({ ec: ids.length, cs: Object.keys(page.cs_).length })
+        if (ids) debug({ ids, cE: this.cE })
         //const mel = this.cE && this.cE[2899649]
         //debug({ mel, ids })
         const ret = Object.values(page.cs_).filter(this.filterC).sort(this.sort)
@@ -354,6 +350,12 @@ class Admin extends Html {
         if (f.list === 'vs' && !page.vs_) {
             req({ req: 'files', files: ['vs_'] }).then(r => {
                 page.vs_ = unzip(r.zips.vs_.data)
+                this._table._upd()
+            })
+        }
+        else if (f.list === 'csE') {
+            req({ req: 'files', files: ['2023C.csv'] }).then(r => {
+                this.cE = csvE(r.zips['2023C.csv'])
                 this._table._upd()
             })
         }
