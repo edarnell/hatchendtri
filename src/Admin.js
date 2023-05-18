@@ -5,14 +5,16 @@ import { csv, csvE } from './csv'
 import html from './html/Admin.html'
 import { firstLast } from './roles'
 import { unzip } from './unzip'
+import { labels } from './labels'
 
 const form = { // section and options populated on load
-    list: { options: ['cs', 'csE', 'vs', 'v2023', 'm2023', 'c2023', 'prev', 'bounce', 'unsub'] },
+    list: { options: ['cs', 'csE', 'vs', 'labels', 'alabels', 'jlabels', 'v2023', 'm2023', 'c2023', 'prev', 'bounce', 'unsub'] },
     filter: { placeholder: 'name filter', width: '50rem' },
     cat: { options: ['Cat', 'Adult', 'An', 'Ae', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Youth'] },
     mf: { options: ['M/F', 'M', 'F'] },
     C: { class: 'hidden form red bold', tip: 'clear name', submit: true },
-    New: { class: 'form red', tip: 'disabled' },
+    New: { class: 'form green', tip: 'add new comp', popup: `{comp.new}`, placement: 'bottom' },
+
 }
 // Todo refine into schedule function
 const schedule = {
@@ -55,24 +57,28 @@ class Admin extends Html {
         */
     }
     listen = () => {
+        if (this._table) this._table._upd()
+    }
+    update = (e, o) => {
+        const { name, param } = o.attr()
         const f = this.getForm(form)
-        if (f.list === 'cs') this.comp()
-        else if (f.list === 'vs') {
+        if (f.list === 'vs' && !page.vs_) {
             req({ req: 'files', files: ['vs_'] }).then(r => {
-                debug({ r })
-            })
-        }
-
-        //else this.lists()
-        /*
-        else if (this._table) {
-            req({ req: 'files', files: ['2023C.csv'] }).then(r => {
-                this.cE = csvE(r.zips['2023C.csv'])
-                //debug({ cE: this.cE })
+                page.vs_ = unzip(r.zips.vs_.data)
                 this._table._upd()
             })
         }
-        */
+        else if (f.list === 'csE') {
+            req({ req: 'files', files: ['2023C.csv'] }).then(r => {
+                this.cE = csvE(r.zips['2023C.csv'])
+                this._table._upd()
+            })
+        }
+        else if (f.list === 'labels') {
+            this._labels._upd()
+            this._table._upd()
+        }
+        else this._table._upd()
     }
     tip = () => `${this._rows ? this._rows.length : 0} emails`
     lists = () => {
@@ -118,8 +124,13 @@ class Admin extends Html {
         debug({ e })
     }
     html = (o) => {
-        const p = o && o.attr(), name = p && p.name
+        const p = o && o.attr(), name = p && p.name, f = this.getForm(form), l = f && f.list
         if (!o) return html
+        else if (name === 'labels') {
+            this._labels = o
+            if (l === 'labels') return labels(page.cs_)
+            else return ''
+        }
     }
     ths = (o) => {
         const { name, param } = o.attr()
@@ -128,6 +139,7 @@ class Admin extends Html {
         if (f.list === 'vs' || f.list === 'cs') return ['names', 'email']
         else if (f.list === 'csE') return ['#', 'Brief', 'Start', 'First', 'Last', 'AgeGrp', 'M/F', 'E', 'L', 'B', 'D', 'Swim', 'Club']
         else if (name === 'users') return ['first', 'last', 'cat', 'm/f', 'club', 'email']
+        else return ''
     }
     mergeNames = (rs) => {
         let first = '', last = ''
@@ -143,9 +155,11 @@ class Admin extends Html {
         const { name, param } = o.attr(), f = this.getForm(form),
             rs = this[f.list]
         this._table = o
-        if (f.list === 'cs') return this._rows = this.comp()
+        if (f.list === 'cs') return page.cs_ ? this._rows = this.comp() : ''
         else if (f.list === 'csE') return this._rows = this.compE()
         else if (f.list === 'vs') return this._rows = this.vol2023()
+        else return ''
+        /*
         else this._rows = []
         debug({ rs })
         if (rs) this._rows = Object.values(rs).map(r => {
@@ -153,6 +167,7 @@ class Admin extends Html {
             return [first, last, cmap[r[0].cat] || '', mfmap[r[0].gender] || '', r[0].club || '', r[0].email]
         }).filter(r => this.filter(r, f)).sort((a, b) => a[1] > b[1] ? 1 : -1)
         return this._rows
+        */
     }
     filter = (r, fs) => {
         const { cat, mf, filter } = fs || {},
@@ -361,24 +376,6 @@ class Admin extends Html {
             return { tip: 'edit', class: ' ', theme: 'light', popup: `{comp.${_id}}` }
         }
     }
-    update = (e, o) => {
-        const { name, param } = o.attr()
-        const f = this.getForm(form)
-        if (f.list === 'vs' && !page.vs_) {
-            req({ req: 'files', files: ['vs_'] }).then(r => {
-                page.vs_ = unzip(r.zips.vs_.data)
-                this._table._upd()
-            })
-        }
-        else if (f.list === 'csE') {
-            req({ req: 'files', files: ['2023C.csv'] }).then(r => {
-                this.cE = csvE(r.zips['2023C.csv'])
-                this._table._upd()
-            })
-        }
-        else this._table._upd()
-    }
-
 }
 
 export default Admin
