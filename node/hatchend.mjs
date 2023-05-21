@@ -152,15 +152,15 @@ app.post(config.url, (m, r) => {
                     const vu = f('gz/vs.gz')
                     resp(req, r, { vs: vu })
                 }
-                else if (json.cid !== undefined && json.swim) {
-                    const { cid, swim } = json, cs = fz('gz/cs_.gz'),
-                        c = { ...cs[cid], ...swim }
-                    cs[cid] = c
+                else if (json.comp) {
+                    const cn = json.comp, cs = fz('gz/cs_.gz'),
+                        co = cs[cn.id],
+                        c = cs[cn.id] = co ? { ...co, ...cn } : cn
                     save('cs', cs, true)
-                    log.info('req->', req, cid, c.first, c.last, swim)
+                    log.info('req->', req, { c, co, cn })
                     send({
-                        from_email: email, uEmail: email, subject: `comp ${cid} ${c.first} ${c.last}`,
-                        message: `{competitor}\n ${JSON.stringify(json.swim)}`
+                        from_email: email, uEmail: email, subject: `comp ${c.id} ${c.first} ${c.last}`,
+                        message: `{competitor}\n ${JSON.stringify(json.comp)}`
                     })
                     resp(req, r, { comp: c })
                 }

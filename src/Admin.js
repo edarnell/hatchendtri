@@ -3,6 +3,7 @@ import { req, cleanse } from './data'
 import { lists, merge } from './lists'
 import { csv, csvE } from './csv'
 import html from './html/Admin.html'
+import bulk from './html/bulkEmail.html'
 import { firstLast } from './roles'
 import { unzip } from './unzip'
 import { labels } from './labels'
@@ -49,6 +50,8 @@ class Admin extends Html {
         super()
         if (!nav.admin(true)) nav.nav('home')
         else this.data = 'cs_'
+        fmail.Send.click = this.send
+        fmail.Test.click = this.test
         /* todo refine functionality
         form.Save.click = this.save
         form.Test.tip = form.Send.tip = this.tip
@@ -107,9 +110,9 @@ class Admin extends Html {
         this.send(e, o, true)
     }
     send = (e, o, testing) => {
-        const f = this.getForm(form), rows = testing ? this._rows.slice(0, 20) : this._rows,
+        const f = this.getForm(form), fm = this.getForm(fmail), rows = testing ? this._rows.slice(0, 20) : this._rows,
             list = rows.map(r => ({ to: { name: r[0], email: r[1] } }))
-        req({ req: 'bulksend', subject: f.subject, message: f.message, list, live: !testing }).then(r => {
+        req({ req: 'bulksend', subject: fm.subject, message: fm.message, list, live: !testing }).then(r => {
             debug({ r })
         }).catch(e => this.error(e, o))
     }
@@ -128,7 +131,12 @@ class Admin extends Html {
         if (!o) return html
         else if (name === 'labels') {
             this._labels = o
-            if (l === 'labels') return labels(page.cs_)
+            if (l === 'labels') return labels()
+            else return ''
+        }
+        else if (name === 'bulkEmail') {
+            this._labels = o
+            if (l === 'cs') return bulk
             else return ''
         }
     }
@@ -137,7 +145,7 @@ class Admin extends Html {
         const f = this.getForm(form)
         //if (f.list === 'cs') return ['#', 'Brief', 'Start', 'first', 'last', 'AgeGrp', 'm/f', , 'E', 'L', 'B', 'D', 'mm:ss', 'club']
         if (f.list === 'vs' || f.list === 'cs') return ['names', 'email']
-        else if (f.list === 'csE') return ['#', 'Brief', 'Start', 'First', 'Last', 'AgeGrp', 'M/F', 'E', 'L', 'B', 'D', 'Swim', 'Club']
+        else if (f.list === 'csE') return ['#', 'Brief', 'Start', 'First', 'Last', 'AgeGrp', 'M/F', 'BT', 'D', 'Swim', 'B', 'Club']
         else if (name === 'users') return ['first', 'last', 'cat', 'm/f', 'club', 'email']
         else return ''
     }
@@ -285,24 +293,47 @@ class Admin extends Html {
         c.start = '12:30'
         c.swim400 = c.early = undefined
     }
+    add = (eid, n, brief, start) => {
+        if (!page.cs_[eid]) {
+            const c = page.cs_[eid] = {}, cE = this.cE[eid]
+            c.id = c.eid = eid
+            c.n = n
+            c.first = cE.Forename
+            c.last = cE.Surname
+            c.gender = cE.Gender
+            c.ageGroup = cE.AgeGroup
+            c.cat = cE.EventName
+            c.email = cE.email
+            c.phone = cE.phone
+            c.club = cE.Club
+            c.brief = brief
+            c.start = start
+            debug({ eid, c, cE })
+        } else debug({ eid })
+    }
     check = (c) => {
         if (c.cat && c.ageGfoup && !c.cat.startsWith('Adult') && !c.cat.includes(c.ageGroup.replace('Tristars', 'Tristar').replace('Tristar Start', 'Tristart'))) debug({ c, ageGroup: c.ageGroup, cat: c.cat })
         else if (this.cE && (!this.cE[c.eid] || this.cE[c.eid].email !== c.email)) debug({ c, eid: c.eid })
     }
     compE = () => {
         const ids = {}
+        this.add(2899649, 385, '7:10', '7:35')
+        this.add(2919214, 97, '11:20', '11:40')
         Object.values(page.cs_).forEach(c => ids[c.eid] = c)
         if (this.cE) Object.keys(this.cE).forEach(eid => {
-            if (!ids[eid]) debug({ missing: eid, cE: this.cE[eid] })
+            if (!ids[eid]) {
+                debug({ missing: eid, cE: this.cE[eid] })
+            }
         })
         Object.values(page.cs_).forEach(c => this.check(c))
         if (ids) debug({ ids, cE: this.cE })
         //const mel = this.cE && this.cE[2899649]
         //debug({ mel, ids })
         const ret = Object.values(page.cs_).filter(this.filterC).sort(this.sort)
-            .map(c => [`{link.c_${c.id}.${c.n}}`, c.brief, c.start, c.first, c.last, c.ageGroup, mfmap[c.gender], c.early ? 'Y' : '', c.late ? 'Y' : '', c.stroke ? 'Y' : '', c.deaf ? 'Y' : '', this.swim(c), c.club || ''])
+            .map(c => [`{link.c_${c.id}.${c.n}}`, c.brief, c.start, c.first, c.last, c.ageGroup, mfmap[c.gender], this.cE[c.eid].MemberOf, c.deaf ? 'Y' : '', this.swim(c), c.stroke ? 'Y' : '', c.club || ''])
         this.rows = ret.length
         return ret
+        // .map(c => [`{link.c_${c.id}.${c.n}}`, c.brief, c.start, c.first, c.last, c.ageGroup, mfmap[c.gender], c.early ? 'Y' : '', c.late ? 'Y' : '', c.stroke ? 'Y' : '', c.deaf ? 'Y' : '', this.swim(c), c.club || ''])
     }
     comp = () => {
         const es = {}
@@ -353,6 +384,7 @@ class Admin extends Html {
             })
             ret.push([nm.join(', '), e])
         })
+        debug({ es: Object.keys(es).join(', ') })
         return ret
     }
     briefing(s) {
@@ -368,12 +400,13 @@ class Admin extends Html {
     form = (o) => {
         const { name, param } = o.attr()
         if (form[name]) return form[name]
+        else if (fmail[name]) return fmail[name]
     }
     link = (o) => {
         const { name } = o.attr()
         if (name.startsWith('c_')) {
             const id = name.substring(2), _id = name.substring(1)
-            return { tip: 'edit', class: ' ', theme: 'light', popup: `{comp.${_id}}` }
+            return { tip: 'edit', class: ' ', theme: 'light', placement: 'bottom', popup: `{comp.${_id}}` }
         }
     }
 }

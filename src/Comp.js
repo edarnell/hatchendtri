@@ -2,6 +2,7 @@ import Html, { debug, page, _s } from './Html'
 import { req, cleanse } from './data'
 import comp from './html/Comp.html'
 import compD from './html/compD.html'
+import swimD from './html/swimD.html'
 
 function diff(a, b) { return JSON.stringify(a) !== JSON.stringify(b) }
 
@@ -9,12 +10,13 @@ const swimTip = '<i>400m swim estimate</i><br />5:00-8:00 fast/club<br />8:00-10
 const form = { // section and options populated on load
     swim400: { class: 'form swim', label: "Swim&nbsp;Estimate", placeholder: 'mm:ss', tip: swimTip, width: '30px', pattern: "^([4-9]|1[0-9]):[0-5][0-9]$", required: true, theme: 'light' },
     stroke: { class: 'bold', label: 'breast-stroke', tip: 'slower wider lane' },
+    n: { class: 'form swim', placeholder: '#', required: true, width: '30px' },
+    brief: { class: 'form swim', placeholder: 'briefing', required: true, width: '30px' },
+    start: { class: 'form swim', placeholder: 'start', required: true, width: '30px' },
     early: { radio: 'start', class: 'bold', label: 'early', tip: 'early start preference (less traffic)' },
     late: { radio: 'start', class: 'bold', label: 'late', tip: 'later start preference' },
     either: { radio: 'start', class: 'bold', label: 'either', tip: 'best scheduling' },
     deaf: { class: 'bold', label: 'deaf', tip: 'for briefing &amp; marshalls' },
-}
-const contact = { // section and options populated on load
     first: { placeholder: 'first name', required: true },
     last: { placeholder: 'last name', required: true },
     email: { placeholder: 'email', type: 'email', required: true },
@@ -28,7 +30,8 @@ class Comp extends Html {
         //if (!this.page.cs_) this.data = 'cs'
         const { name, param } = this.attr(),
             cid = this.cid = name.substring(1),
-            c = this.c = page.cs_ ? page.cs_[cid] : page.cs[cid]
+            c = this.c = cid === 'new' ? {} : page.cs_ ? page.cs_[cid] : page.cs[cid]
+        debug({ c })
     }
     //debug = (m) => debug({ Vol: m, o: this.o(), popup: this.popup })
     listen = (o) => {
@@ -55,11 +58,8 @@ class Comp extends Html {
         }
         else {
             const { name, param } = o.attr()
-            if (name === 'compD') {
-                this._compD = o
-                if (this.show_compD) return compD
-                else return ''
-            }
+            if (name === 'compD') return compD
+            else if (name === 'swimD') return swimD
         }
     }
     details = (o) => {
@@ -109,13 +109,13 @@ class Comp extends Html {
         setTimeout(this.popup.close, 2000)
     }
     save = () => {
-        const f = this.getForm(form)
-        if (f && f.swim400) f.swim400 = cleanse(f.swim400)
-        if (f && f.swim400) req({ req: 'save', cid: this.c.id, swim: f }).then(r => {
-            if (r.comp) page.cs[this.c.id] = r.comp
+        const f = this.getForm(form), comp = { ...this.c, ...f }
+        //if (f && f.swim400) f.swim400 = cleanse(f.swim400)
+        debug({ c: this.c, f, comp })
+        req({ req: 'save', comp }).then(r => {
+            if (r.comp) page.cs_[r.comp.id] = r.comp
             this.confirm()
         }).catch(e => this.error(e))
-        else this.error({ message: 'invalid swim time' })
     }
 }
 export default Comp

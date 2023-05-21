@@ -559,6 +559,10 @@ label {
         display: none;
     }
 
+    .admin {
+        display: none;
+    }
+
     .label {
         /* Avery 5160 labels -- CSS and HTML by MM at Boulder Information Services */
         /* 2019 J8163 labels - removed margin-right: 3mm; printed as A4 with 20mm top and 0 other borders */

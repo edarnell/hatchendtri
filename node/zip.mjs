@@ -15,8 +15,9 @@ function sec(f) { // auth and email only for csv data
     return ['vs'].includes(f)
 }
 
-function anon(o, d) {
+function anon(j, d) {
     // could add cache here
+    let o = { ...j }
     const ks = ['email', 'phone', 'mobile']
     for (let k in o) {
         if (ks.includes(k)) {
