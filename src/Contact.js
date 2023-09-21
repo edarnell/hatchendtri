@@ -55,7 +55,9 @@ class Contact extends Html {
         return form[k]
     }
     confirm = (r) => {
-        this.innerHTML = '<div class="message">Message sent</div>'
+        this.innerHTML = `
+        <div class="message">Message sent</div>
+        `
         setTimeout(this.popup.close, 3000)
     }
     error = (e) => {

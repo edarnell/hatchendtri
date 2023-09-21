@@ -1,12 +1,14 @@
 import Html, { debug, page, _s } from './Html'
 import html from './html/Results.html'
 import photo from './icon/photo.svg'
+import {req} from './data'
+import {str2csv} from './csv'
 
 const form = {
   filter: { placeholder: 'name,name,...', width: '50rem' },
   mf: { options: ['M/F', 'M', 'F'] },
   cat: { options: ['Cat', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Y', 'Adult', 'S*', 'SY', 'S1', 'S2', 'S3', 'S4', 'V*', 'V1', 'V2', 'V3', 'V4'] },
-  year: { options: ['Year', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2017', '2018', '2019', '2022'] },
+  year: { options: ['Year', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2017', '2018', '2019', '2022','2023'] },
   n: { options: ['N', '1', '3', '5', '10', '20'] },
   c: { class: 'form red bold hidden', tip: 'clear all filters', submit: true },
 }
@@ -17,11 +19,18 @@ class Results extends Html {
     this.data = 'results'
   }
   //debug = (m) => debug({ Results: m })
+  listen=()=>{
+  }
   html = (o) => {
     const p = o && o.attr(), name = p && p.name, param = p && p.param
     if (name === 'results_all') {
       this._results_all = o
-      return this.results_all()
+      if (!page.results[2023]) req({ req: 'files', files:['2023R_.csv'] }).then(r => {
+        debug({'2023R':r})
+        if (page.results) page.results[2023]=str2csv(r.zips['2023R_.csv'])
+        return this._results_all._upd()
+    })
+    return this.results_all()
     }
     else if (name === 'results_year') return this.results_year(param)
     else if (!o) return html
@@ -53,7 +62,8 @@ class Results extends Html {
         ths = th.filter(x => cs[x] !== undefined),
         ns = ths.map(th => cs[th]),
         rs = this.filter(year),
-        trs = rs.map(r => ns.map((n, i) => i === 1 ? `{link.name.${r[n].replace(/\s+/g, '_')}}` : r[n]))
+        trs = rs.map(r=> ns.map((n, i) => i === 1 ? `{link.name.${r[n].replace(/\s+/g, '_')}}` : r[n]))
+        debug ({trs})
       return trs
     } else debug({ ths: o.attr() })
     debug({ trs: o.attr() })
@@ -196,6 +206,7 @@ class Results extends Html {
   results_all = () => {
     const years = Object.keys(page.results).reverse()
     let n = 0
+    debug({results:page.results})
     return years.map(year => {
       let rows = n < 100 ? this.filter(year) : []
       n += rows.length

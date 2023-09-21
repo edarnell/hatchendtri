@@ -1,5 +1,11 @@
 import { debug } from './Html'
 
+function str2csv(ent) { // could add code to map first line.
+    const rows = ent.split('\n')
+    const rs = rows.map(r=>r.split(',').map(s => s.replace(/[\n\r]/g, '')))
+    return rs
+}
+
 function csv(ent, map) {
     //const map = { first: '"First Name"', last: '"Last Name"', email: '"Email Address"' }
     const cmap = {
@@ -13,9 +19,14 @@ function csv(ent, map) {
     }
     const rows = ent.split('\n')
     const cs = {}
-    const head = rows[0].split(',').map(s => s.replace(/[\n\r]/g, '')), c = {}
+    const head = rows[0].split(',').map(s => s.replace(/[\n\r]/g, ''))
+    , c = {}
     head.forEach(k => c[k] = head.indexOf(k))
-    map = map || cmap
+    if (map===0) {
+        debug({ head, c })
+        return c
+    }
+    else map = map || cmap
     for (var i = 1; i < rows.length; i++) {
         if (!rows[i]) continue
         const row = rows[i].split(',').map(s => s.replace(/[\n\r]/g, '')), r = {}
@@ -45,4 +56,4 @@ function csvE(ent) {
     return cs
 }
 
-export { csv, csvE }
+export { csv, csvE, str2csv }

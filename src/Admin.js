@@ -7,9 +7,10 @@ import bulk from './html/bulkEmail.html'
 import { firstLast } from './roles'
 import { unzip } from './unzip'
 import { labels } from './labels'
+import AdminResults from './AdminResults'
 
 const form = { // section and options populated on load
-    list: { options: ['cs', 'csE', 'vs', 'labels', 'alabels', 'jlabels', 'v2023', 'm2023', 'c2023', 'prev', 'bounce', 'unsub'] },
+    list: { options: ['select', 'results', 'cs', 'csE', 'vs', 'labels', 'alabels', 'jlabels', 'v2023', 'm2023', 'c2023', 'prev', 'bounce', 'unsub'] },
     filter: { placeholder: 'name filter', width: '50rem' },
     cat: { options: ['Cat', 'Adult', 'An', 'Ae', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Youth'] },
     mf: { options: ['M/F', 'M', 'F'] },
@@ -49,39 +50,15 @@ class Admin extends Html {
     constructor() {
         super()
         if (!nav.admin(true)) nav.nav('home')
-        else this.data = 'cs_'
-        fmail.Send.click = this.send
-        fmail.Test.click = this.test
-        /* todo refine functionality
-        form.Save.click = this.save
-        form.Test.tip = form.Send.tip = this.tip
-        form.Test.click = this.test
-        form.Send.click = this.send
-        */
+        this.f={results:()=>new AdminResults(this)}
     }
     listen = () => {
         if (this._table) this._table._upd()
     }
     update = (e, o) => {
         const { name, param } = o.attr()
-        const f = this.getForm(form)
-        if (f.list === 'vs' && !page.vs_) {
-            req({ req: 'files', files: ['vs_'] }).then(r => {
-                page.vs_ = unzip(r.zips.vs_.data)
-                this._table._upd()
-            })
-        }
-        else if (f.list === 'csE') {
-            req({ req: 'files', files: ['2023C.csv'] }).then(r => {
-                this.cE = csvE(r.zips['2023C.csv'])
-                this._table._upd()
-            })
-        }
-        else if (f.list === 'labels') {
-            this._labels._upd()
-            this._table._upd()
-        }
-        else this._table._upd()
+        const fm = this.getForm(form)
+        if (fm.list && this.f[fm.list]) this.f[fm.list]()
     }
     tip = () => `${this._rows ? this._rows.length : 0} emails`
     lists = () => {

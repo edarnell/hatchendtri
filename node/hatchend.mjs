@@ -8,6 +8,10 @@ import jwt from 'jsonwebtoken'
 import fs from 'fs'
 
 const config = f('config.json', true)
+const ps = fs.readFileSync('./photos/2023.txt').toString().split('\n')
+function photos(cn) {
+    return ps.filter(n => n.startsWith(`${cn} `));
+}
 
 log4js.configure(config.log4js)
 const log = log4js.getLogger()
