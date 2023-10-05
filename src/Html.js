@@ -1,3 +1,15 @@
+/*TODO
+resturcture to have single HTMLElement as DOM root
+Migrate HTML to be Object DOM with shared methods for data, ajax etc.
+
+render callback - use requestAnimationFrame - called after repaint (ask AI if needed)
+element.innerHTML = 'New content';
+requestAnimationFrame(() => {
+  // Code to run after the next repaint
+  console.log('Element has finished rendering');
+});
+*/
+
 const debug = console.log.bind(console)
 import { data } from './data.js'
 var nav, page
