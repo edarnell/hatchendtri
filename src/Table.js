@@ -1,8 +1,8 @@
-import Html, { debug } from './Html'
+import { debug } from './Dom'
 
-class Table extends Html {
-    constructor() {
-        super()
+class Table {
+    constructor(parent, name, param) {
+        Object.assign(this, { parent, name, param })
     }
     html = () => {
         const table = this.rows()
@@ -12,8 +12,8 @@ class Table extends Html {
         return html
     }
     rows = () => {
-        const ths = this.parent('ths') || this.page('ths'), trs = this.parent('trs') || this.page('trs')
-        if (typeof ths === 'function' && typeof trs === 'function') return { ths: ths(this), trs: trs(this) }
+        const { name, param } = this, p = this.parent.page
+        return { ths: p.ths(name, param), trs: p.trs(name, param) }
     }
     render_table = (table) => {
         const { ths, trs } = table

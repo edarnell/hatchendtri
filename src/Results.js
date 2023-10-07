@@ -1,72 +1,53 @@
-import Html, { debug, page, _s } from './Html'
+import { debug, _s } from './Dom'
 import html from './html/Results.html'
 import photo from './icon/photo.svg'
-import {req} from './data'
-import {str2csv} from './csv'
+import { req } from './data'
+import { str2csv } from './csv'
 
-const form = {
-  filter: { placeholder: 'name,name,...', width: '50rem' },
-  mf: { options: ['M/F', 'M', 'F'] },
-  cat: { options: ['Cat', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Y', 'Adult', 'S*', 'SY', 'S1', 'S2', 'S3', 'S4', 'V*', 'V1', 'V2', 'V3', 'V4'] },
-  year: { options: ['Year', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2017', '2018', '2019', '2022','2023'] },
-  n: { options: ['N', '1', '3', '5', '10', '20'] },
-  c: { class: 'form red bold hidden', tip: 'clear all filters', submit: true },
-}
-
-class Results extends Html {
-  constructor() {
-    super()
+class Results {
+  constructor(page) {
+    this.page = page
+    this.id = 'results'
     this.data = 'results'
-  }
-  //debug = (m) => debug({ Results: m })
-  listen=()=>{
-  }
-  html = (o) => {
-    const p = o && o.attr(), name = p && p.name, param = p && p.param
-    if (name === 'results_all') {
-      this._results_all = o
-      if (!page.results[2023]) req({ req: 'files', files:['2023R_.csv'] }).then(r => {
-        debug({'2023R':r})
-        if (page.results) page.results[2023]=str2csv(r.zips['2023R_.csv'])
-        return this._results_all._upd()
-    })
-    return this.results_all()
+    this.form = {
+      filter: { placeholder: 'name,name,...', width: '50rem' },
+      mf: { options: ['M/F', 'M', 'F'] },
+      cat: { options: ['Cat', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Y', 'Adult', 'S*', 'SY', 'S1', 'S2', 'S3', 'S4', 'V*', 'V1', 'V2', 'V3', 'V4'] },
+      year: {
+        options: ['Year', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2017', '2018', '2019', '2022', '2023']
+      },
+      n: { options: ['N', '1', '3', '5', '10', '20'] },
+      C: { class: 'form red bold hidden', tip: 'clear all filters', submit: true },
     }
+  }
+  html = (name, param) => {
+    if (name === 'results_all') return this.results_all()
     else if (name === 'results_year') return this.results_year(param)
-    else if (!o) return html
+    else return html
   }
-  link = (o) => {
-    const { name, param } = o.attr()
-    if (name === 'year') return { tip: this.yearTip, click: this.year }
+  link = (name, param) => {
+    if (name === 'year') return { tip: `${param.replace(/_/g, " ")} all results`, click: this.year }
     else if (name === 'name') return { tip: `${param.replace(/_/g, " ")} all results`, click: this.name }
-    else debug({ link: o.attr() })
+    else debug({ link: { name, param } })
   }
-  form = (o) => {
-    const { name } = o.attr(), k = name.toLowerCase()
-    return form[k]
-  }
-  ths = (o) => {
-    const { name, param } = o.attr()
+  ths = (name, param) => {
     if (name === 'results_year') {
       const year = param, th = ['Pos', 'Name', 'MF', 'Cat', 'Total', 'Swim', 'T1', 'Bike', 'T2', 'Run', 'Club'],
         cs = this.cols(year),
         ths = th.filter(x => cs[x] !== undefined)
       return ths
-    } else debug({ ths: o.attr() })
+    } else debug({ ths: { name, param } })
   }
-  trs = (o) => {
-    const { name, param } = o.attr()
+  trs = (name, param) => {
     if (name === 'results_year') {
       const year = param, th = ['Pos', 'Name', 'MF', 'Cat', 'Total', 'Swim', 'T1', 'Bike', 'T2', 'Run', 'Club'],
         cs = this.cols(year),
         ths = th.filter(x => cs[x] !== undefined),
         ns = ths.map(th => cs[th]),
         rs = this.filter(year),
-        trs = rs.map(r=> ns.map((n, i) => i === 1 ? `{link.name.${r[n].replace(/\s+/g, '_')}}` : r[n]))
-        debug ({trs})
+        trs = rs.map(r => ns.map((n, i) => i === 1 ? `{link.name.${r[n].replace(/\s+/g, '_')}}` : r[n]))
       return trs
-    } else debug({ ths: o.attr() })
-    debug({ trs: o.attr() })
+    } else debug({ trs: { name, param } })
   }
   toggle = (o) => {
     const { name, type, param } = o && o.attr(),
@@ -76,7 +57,7 @@ class Results extends Html {
     return (param && val === param.replace(/_/g, " ")) ? clear[name] || '' : param.replace(/_/g, " ")
   }
   form_vals = () => {
-    const f = this.form_data = this.getForm(form),
+    const f = this.form_data = this.page.getForm(this.form),
       C = { filter: '', mf: 'M/F', cat: 'Cat', year: 'Year', n: 'N' }
     let ret = {}
     Object.keys(f).forEach(k => ret[k] = f[k] === C[k] ? '' : f[k])
@@ -95,10 +76,9 @@ class Results extends Html {
     this._results_all.setAttribute('param', 'update')
   }
   year = (e, o) => {
-    const { name, param } = o.attr(), year = param
-    if (year !== this.form_data.year) this.setForm({ year })
-    else this.setForm({ year: 'Year' })
-    this.refresh()
+    const { name, param } = o
+    debug({ name, param })
+    //this.page.setForm(e, o)
   }
   name = (e, o) => {
     const { param } = o.attr(), n = _s(param, true), f = _s(this.form_data.filter, true)
@@ -137,7 +117,7 @@ class Results extends Html {
     return ret
   }
   filter = (yr) => {
-    const results = page.results, c = this.cols(yr),
+    const results = this.page.data.results, c = this.cols(yr),
       { year, cat, mf, filter, n } = this.form_vals()
     let ret = []
     for (var i = 1; i < results[yr].length; i++) {
@@ -195,7 +175,7 @@ class Results extends Html {
     return (this.np && year === '2022' && this.np[num]) ? `<image class="icon" name="${num}" src="${photo}">` : null
   }
   cols(year) {
-    const r = page.results
+    const r = this.page.data.results
     let c = {}, cn = 0
     r[year][0].forEach(n => { c[n] = cn++ })
     return c
@@ -204,9 +184,9 @@ class Results extends Html {
     return `<h5>{link.year.${year}}</h5>{table.results_year.${year}}`
   }
   results_all = () => {
-    const years = Object.keys(page.results).reverse()
+    const r = this.page.data.results, years = Object.keys(r).reverse()
     let n = 0
-    debug({results:page.results})
+    //debug({ years, r })
     return years.map(year => {
       let rows = n < 100 ? this.filter(year) : []
       n += rows.length

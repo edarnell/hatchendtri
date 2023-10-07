@@ -1,19 +1,31 @@
-import Html, { set_nav, page, _s, debug } from './Html'
+import css from './css/combined.css'
+import favicon from './icon/jetstream.ico'
+import { Html, debug, dom } from './Dom'
 import html from './html/Nav.html'
 import { icons } from './icons'
-import { pages } from './Page'
-import { req } from './data'
+import Page from './Page'
+const pages = {
+    home: { nav: 'Home', href: 'home', tip: 'overview, updates and entry link' },
+    details: { nav: 'Details', href: 'details', tip: 'detailed event information' },
+    results: { nav: 'Results', href: 'results', tip: 'results from 2000 onwards' },
+    volunteer: { nav: 'Volunteer', href: 'volunteer', tip: 'volunteer system' },
+    admin: { nav: 'Admin', href: 'admin', tip: 'data admin' },
+    competitor: { nav: 'Competitor', href: 'competitor', tip: 'entry system' },
+    contact: { popup: `{contact}`, icon: 'email', href: 'contact', tip: 'contact us', placement: 'bottom-end', strategy: 'fixed' },
+    user: { popup: `{user}`, icon: 'user', tip: 'login', placement: 'bottom-end' },
+}
 const images = ['url("swim.jpg")', 'url("bike.jpg")', 'url("run.jpg")']
 class Nav extends Html {
     constructor() {
         super()
-        this.id = 'nav'
-        set_nav(this)
         this.i = Math.floor(Math.random() * 3)
         pages.user.tip = this.tt
+        this.page = new Page(this)
+        this.init(css, favicon)
+        this.render(html, null, this.nav)
+        this.id = 'nav'
     }
-    html = () => html
-    listen = () => {
+    /*listen = () => {
         const hash = window.location.hash, token = hash && hash.substring(1)
         if (token && token.length > 10) {
             localStorage.setItem('token', token)
@@ -26,9 +38,9 @@ class Nav extends Html {
             this.nav('volunteer')
         }
         else this.nav(p)
-    }
+    }*/
     image = () => {
-        const bg = this.querySelector('.background-image')
+        const bg = this.querySelector('#background')
         bg.style.backgroundImage = images[this.i]
         this.i = (this.i + 1) % 3
     }
@@ -95,15 +107,15 @@ class Nav extends Html {
         else nav.style.paddingTop = '20px'
     }
     toggle = (active, page) => {
-        const l = (active) ? this.querySelector('.nav li img.active') || this.querySelector('.nav li a.active')
-            : this.querySelector(`.nav li img[name="${page}"]`) || this.querySelector(`.nav li a[name="${page}"]`)
+        const name = page.charAt(0).toUpperCase() + page.slice(1),
+            l = this.querySelector(`[id*="nav_${name}"]`)
         if (l) {
-            if (active) l.classList.remove('active')
+            if (!active) l.classList.remove('active')
             else if (l.classList) l.classList.add('active')
             else l.classList = ['active']
             if (l.tagName === 'IMG') {
                 const img = l.getAttribute('data-image')
-                l.src = (active) ? icons[img].default : icons[img].active
+                l.src = (!active) ? icons[img].default : icons[img].active
             }
         }
     }
@@ -118,19 +130,15 @@ class Nav extends Html {
         this.nav('home')
     }
     nav = (pg) => {
-        const _pg = pg && pg.replace('/', ''),
-            pg_ = _pg && pages[_pg] ? _pg : 'home'
-        if (window.location.pathname !== pg_) history.pushState({}, "", pg_)
-        this.image()
-        this.user(pg_)
-        this.toggle(true, this._page)
-        this.toggle(false, pg_)
-        const p = this.querySelector('.page')
-        p.innerHTML = pages[pg_].nav
-        if (page) page.load(pg_) // may not have loaded yet
-        else if (!page) {
-            this._page = pg_ // will be used when page loads
+        if (!pages[this.path]) this.path = 'home'
+        if (pg && pg !== this.path && pages[pg]) {
+            this.toggle(false, pg)
+            this.path = pg
         }
+        this.toggle(true, this.path)
+        this.page.load(this.path) // may not have loaded yet
+        this.image()
     }
 }
 export default Nav
+export { pages }
