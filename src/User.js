@@ -72,21 +72,17 @@ if (p) ui.close()
 
 
 import Html, { debug, page, _s } from './Html'
-import { req } from './data'
 import user from './html/user.html'
 import login from './html/login.html'
-
-const form = {
-    email: { placeholder: 'email', type: 'email', required: true },
-    send: { class: 'form disabled', submit: true },
-    spam1: {}, spam2: {}, spam3: {},
-}
 
 class User extends Html {
     constructor() {
         super()
-        form.send.tip = this.spamtt
-        form.send.click = this.send
+        this.form = {
+            email: { placeholder: 'email', type: 'email', required: true },
+            send: { class: 'form disabled', click:this.send, tt:this.spamtt},
+            spam1: {}, spam2: {}, spam3: {},
+        }       
         this.spam = Math.floor(Math.random() * 3)
     }
     //debug = (m) => debug({ User: m, popup: this.popup })
@@ -126,10 +122,6 @@ class User extends Html {
             else return login
         }
     }
-    form = (o) => {
-        const { name, param } = o.attr()
-        return form[name]
-    }
     update = (e, o) => {
         const p = o && o.attr(), name = p.name,
             complete = this.checkForm(),
@@ -151,7 +143,7 @@ class User extends Html {
         }
     }
     checkForm = () => {
-        const data = this.getForm(form)
+        const data = this.form_data = this.getForm()
         let complete = true
         Object.keys(form).forEach(k => {
             const f = form[k]
@@ -160,7 +152,7 @@ class User extends Html {
         return complete
     }
     checkSpam = () => {
-        const data = this.getForm(form)
+        const data = this.form_data
         let spam = false
             ;['spam1', 'spam2', 'spam3'].forEach((k, i) => {
                 spam = spam || data[k] !== (i === this.spam)

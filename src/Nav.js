@@ -8,6 +8,7 @@ import Details from './Details'
 import Results from './Results'
 import Data from './Data.js'
 import Contact from './Contact'
+import User from './User'
 
 const pages = {
     home: { nav: 'Home', href: 'home', tip: 'overview, updates and entry link' },
@@ -32,15 +33,8 @@ class Nav extends Html {
         pages.contact.popup = this.contact
         pages.user.popup = this.user
     }
-    contact = (p, id) => {
-        debug({ contact: p })
-        const pop = new Contact()
-        pop.id = id
-        pop.page = pop
-        pop.popup = p
-        pop.render(pop)
-        return pop
-    }
+    contact = () => new Contact()
+    user = () => new User()
     html = () => html
     loaded = () => this.load()
     image = () => {

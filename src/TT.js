@@ -134,7 +134,11 @@ class TT {
         document.body.appendChild(popup)
         const l = this.el(), link = this.lk
         l.addEventListener("click", this.close)
-        link.popup(this, id)
+        const p=link.popup()
+        p.id = id
+        p.page = p
+        p.popup = this
+        p.render(p)
         this.pop = createPopper(l, popup, {
             placement: link.placement || 'top',
             strategy: link.strategy || 'absolute',
