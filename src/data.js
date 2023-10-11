@@ -1,8 +1,54 @@
-import { page, debug } from './Html'
+import { debug } from './Html'
 import { ajax } from './ajax'
 import { unzip } from './unzip'
 
+class Data {
+    constructor(nav) {
+        this.data = {}
+        this.nav = nav
+    }
+    get = (req) => {
+        return new Promise((s, f) => {
+            if (this.data[req]) s(this)
+            else if (localStorage.getItem(req)) {
+                const { date, data: d } = JSON.parse(localStorage.getItem(req))
+                this.data[req] = unzip(d)
+                this.data[req + '_date'] = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+                    .format(new Date(date)).replace(",", " at ")
+                //debug({ req, date: this.data[req + '_date'], data: this.data[req] })
+                ajax({ req: 'dates', files: [req] }).then(r => {
+                    if (r.date[req] === date) {
+                        debug({ storage: req, date: r.date[req] })
+                        s(this)
+                    }
+                    else {
+                        debug({ stale: req, odate: r.date[req], date })
+                        localStorage.removeItem(req)
+                        this.get(req).then(r => s(r)).catch(e => f(e))
+                    }
+                }).catch(e => f(e))
+            }
+            else ajax({ req: 'files', files: [req] }).then(r => {
+                if (r.zips && r.zips[req]) {
+                    debug({ req, date: r.date })
+                    //if (req === '2023C') page[req] = r.zips[req]
+                    //else {
+                    localStorage.setItem(req, JSON.stringify(r.zips[req]))
+                    this.data[req] = unzip(r.zips[req].data)
+                    debug({ date: r.zips[req].date })
+                    this.data[req + '_date'] = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
+                        .format(new Date(r.zips[req].date)).replace(",", " at ")
+                    //}
+                    s(this)
+                }
+                else f(r)
+            }).catch(e => f(e))
+        })
+    }
+}
+export default Data
 
+/*
 function data(req) {
     // can imrove to cache with local storage
     return new Promise((s, f) => {
@@ -74,5 +120,4 @@ function cleanse(swim) {
     const r = s ? s[0].replace(/^00:/, '').replace(/^0/, '') : ''
     return r
 }
-
-export { data, save, req, cleanse }
+*/

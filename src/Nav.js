@@ -1,9 +1,14 @@
 import css from './css/combined.css'
 import favicon from './icon/jetstream.ico'
-import { Html, debug, dom } from './Dom'
+import Html, { debug, error } from './Html'
 import html from './html/Nav.html'
 import { icons } from './icons'
-import Page from './Page'
+import Home from './Home'
+import Details from './Details'
+import Results from './Results'
+import Data from './Data.js'
+import Contact from './Contact'
+
 const pages = {
     home: { nav: 'Home', href: 'home', tip: 'overview, updates and entry link' },
     details: { nav: 'Details', href: 'details', tip: 'detailed event information' },
@@ -11,94 +16,37 @@ const pages = {
     volunteer: { nav: 'Volunteer', href: 'volunteer', tip: 'volunteer system' },
     admin: { nav: 'Admin', href: 'admin', tip: 'data admin' },
     competitor: { nav: 'Competitor', href: 'competitor', tip: 'entry system' },
-    contact: { popup: `{contact}`, icon: 'email', href: 'contact', tip: 'contact us', placement: 'bottom-end', strategy: 'fixed' },
-    user: { popup: `{user}`, icon: 'user', tip: 'login', placement: 'bottom-end' },
+    contact: { icon: 'email', tip: 'contact us', placement: 'bottom-end', strategy: 'fixed' },
+    user: { icon: 'user', tip: 'login', placement: 'bottom-end' },
 }
 const images = ['url("swim.jpg")', 'url("bike.jpg")', 'url("run.jpg")']
 class Nav extends Html {
     constructor() {
         super()
-        this.i = Math.floor(Math.random() * 3)
-        pages.user.tip = this.tt
-        this.page = new Page(this)
-        this.init(css, favicon)
-        this.render(html, null, this.nav)
+        this.nav = this
+        this.d = new Data(this)
         this.id = 'nav'
+        this.i = Math.floor(Math.random() * 3)
+        this.init(css, favicon)
+        this.render(this, 'root')
+        pages.contact.popup = this.contact
+        pages.user.popup = this.user
     }
-    /*listen = () => {
-        const hash = window.location.hash, token = hash && hash.substring(1)
-        if (token && token.length > 10) {
-            localStorage.setItem('token', token)
-            window.location.hash = ''
-        }
-        const p = window.location.pathname.replace('/', '')
-        this.user()
-        if (token && p === 'yes' || p === 'no') {
-            this.reply = p
-            this.nav('volunteer')
-        }
-        else this.nav(p)
-    }*/
+    contact = (p, id) => {
+        debug({ contact: p })
+        const pop = new Contact()
+        pop.id = id
+        pop.page = pop
+        pop.popup = p
+        pop.render(pop)
+        return pop
+    }
+    html = () => html
+    loaded = () => this.load()
     image = () => {
-        const bg = this.querySelector('#background')
+        const bg = this.q('#background')
         bg.style.backgroundImage = images[this.i]
         this.i = (this.i + 1) % 3
-    }
-    tt = () => {
-        const u = this._user
-        if (u && (u.vol || u.comp)) {
-            if (page._page === 'competitor' && u.comp) return Object.values(u.comp).map(c => `<div>${c.first} ${c.last}</div>`).join('')
-            else if (u.vol) return Object.values(u.vol).map(v => `<div>${v.name}</div>`).join('')
-            else if (u.comp) return Object.values(u.comp).map(c => `<div>${c.first} ${c.last}</div>`).join('')
-        }
-        else return 'login'
-    }
-    name = (c_v) => {
-        let r
-        c_v = c_v || 'vol'
-        if (this._user && this._user[c_v]) r = Object.values(this._user[c_v]).map(u =>
-            `{link.u_${u.id}.${c_v === 'vol' ? _s(u.name) : _s(u.first + ' ' + u.last)}}`).join(', ')
-        else r = 'Volunteer'
-        return r
-    }
-    uid = (id, c_v) => {
-        c_v = c_v || 'comp'
-        const cs = this._user && this._user[c_v]
-        let ret = false
-        if (id && cs) Object.values(cs).forEach(u => { if (u.id * 1 === id * 1) ret = true })
-        return ret
-    }
-    users = (c_v) => {
-        c_v = c_v || 'vol'
-        if (this._user && this._user[c_v]) return Object.values(this._user[c_v])
-    }
-    admin = (ed) => {
-        const u = this._user, vs = u && u.vol
-        let ret
-        if (vs) ret = Object.values(vs).some(u => u.admin === true)
-        if (ret && ed) ret = Object.values(vs).some(u => u.email === 'ed@darnell.org.uk')
-        return ret
-    }
-    user = (p) => {
-        const token = localStorage.getItem('token')
-        if (this._token !== token) {
-            this._token = token
-            this._user = { vol: null, comp: null }
-            if (token) req({ req: 'user' }).then(r => {
-                if (r.vol) this._user.vol = r.vol.reduce((a, u) => {
-                    a[u.id] = u
-                    return a
-                }, {})
-                if (r.comp) this._user.comp = r.comp.reduce((a, u) => {
-                    a[u.id] = u
-                    return a
-                }, {})
-            })
-            const l = this.querySelector(`.nav li img[name="user"]`)
-            l.src = (token) ? icons['user'].active : l.src = icons['user'].default
-        }
-        const ui = this.querySelector(`ed-tt[name="user"]`)
-        if (p) ui.close()
     }
     wrap = () => {
         // not sure this is needed now
@@ -107,8 +55,7 @@ class Nav extends Html {
         else nav.style.paddingTop = '20px'
     }
     toggle = (active, page) => {
-        const name = page.charAt(0).toUpperCase() + page.slice(1),
-            l = this.querySelector(`[id*="nav_${name}"]`)
+        const l = this.q(`[id*="nav_${page}"]`)
         if (l) {
             if (!active) l.classList.remove('active')
             else if (l.classList) l.classList.add('active')
@@ -118,27 +65,40 @@ class Nav extends Html {
                 l.src = (!active) ? icons[img].default : icons[img].active
             }
         }
+        else error({ toggle: { active, page, l } })
     }
-    login = () => {
-        const l = this.querySelector(`.nav li img[name="user"]`)
-        l.click()
+    create(pg) {
+        switch (pg) {
+            case 'home': return new Home()
+            case 'details': return new Details()
+            case 'results': return new Results()
+            case 'volunteer': this.pages[pg] = new Volunteer(this); break
+            case 'vol': this.pages[pg] = new Vol(this); break
+            case 'user': this.pages[pg] = new User(this); break
+            case 'comp': this.pages[pg] = new Comp(this); break
+            case 'admin': this.pages[pg] = new Admin(this); break
+            case 'competitor': this.pages[pg] = new Competitor(this); break
+            case 'contact': this.pages[pg] = new Contact(this); break
+            case 'vselect': this.pages[pg] = new Vselect(this); break
+            default: error({ create: { page: pg } })
+        }
     }
-    logout = () => {
-        localStorage.removeItem('token')
-        localStorage.removeItem('vs')
-        localStorage.removeItem('cs')
-        this.nav('home')
-    }
-    nav = (pg) => {
+    load = (pg) => {
         if (!pages[this.path]) this.path = 'home'
         if (pg && pg !== this.path && pages[pg]) {
-            this.toggle(false, pg)
+            //if (this.page) this.unload(this.page)
+            this.toggle(false, this.path)
             this.path = pg
         }
+        const p = pages[this.path]
+        this.page = p.o ?? (p.o = this.create(this.path))
         this.toggle(true, this.path)
-        this.page.load(this.path) // may not have loaded yet
+        this.render(this.page, 'page')
+        history.pushState(null, null, `/${this.path}`);
         this.image()
     }
+
+
 }
 export default Nav
 export { pages }

@@ -1,20 +1,9 @@
-/*TODO
-resturcture to have single HTMLElement as DOM root
-Migrate HTML to be Object DOM with shared methods for data, ajax etc.
-
-render callback - use requestAnimationFrame - called after repaint (ask AI if needed)
-element.innerHTML = 'New content';
-requestAnimationFrame(() => {
-  // Code to run after the next repaint
-  console.log('Element has finished rendering');
-});
-*/
-
 const debug = console.log.bind(console)
-import { data } from './data.js'
-var nav, page
-function set_nav(o) { nav = o }
-function set_page(o) { page = o }
+const error = console.error.bind(console)
+import TT from './TT.js'
+import IN from './IN.js'
+import Table from './Table.js'
+
 function _s(s, p) {
     if (p === undefined) return s && s.replace(/\s/g, "&nbsp;")
     else {
@@ -23,169 +12,142 @@ function _s(s, p) {
     }
 }
 
-class Html extends HTMLElement {
-    static get observedAttributes() {
-        return ['param']
-    }
-    constructor() {
-        super()
-    }
-    attributeChangedCallback(v, o, n) {
-        this.debug ? this.debug(`attributeChangedCallback ${o}=>${n}`) : null
-        if (o === '' && n === 'update') {
-            this.setAttribute('param', '')
-            this.disconnectedCallback()
-            this.connectedCallback() // update
+class Html {
+    static nav
+    constructor(p, name, param) {
+        if (p) {
+            const id = this.id = name + (param ? '_' + param : '')
+            this.page = p.page
+            this.html = () => p.page.html(name, param)
+            if (!p.div) p.div = {}
+            p.div[id] = this
         }
     }
-    //debug = () => debug({ Html: this.o() })
-    _upd() {
-        this.disconnectedCallback()
-        this.connectedCallback()
+    q = (q) => document.querySelector(q)
+    fe = (n) => {
+        const f = this.form, d = f && f[n], o = d && d.o, l = o && this.q(`#${o.id}`)
+        if (!l) error({ fe: { f, n, d, o, l } })
+        return l
     }
-    disconnectedCallback() {
-        this.debug ? this.debug("disconnectedCallback") : null
-        if (this.listen) this.listen(false)
-        this.innerHTML = ''
-    }
-    connectedCallback() {
-        if (this.innerHTML) this.debug ? this.debug("connectedCallback 1") : null
-        else {
-            this.debug ? this.debug("connectedCallback 2") : null
-            if (this.data) {
-                this.debug ? this.debug("data") : null
-                data(this.data).then(() => {
-                    this.debug ? this.debug("s(data)") : null
-                    this.render_html()
-                })
-                    .catch(e => {
-                        this.debug ? this.debug({ "f(data)": e }) : null
-                        if (e.res && e.res.status === 401) {
-                            nav.login()
-                        }
-                        else debug({ "f(data)": e })
-                    })
-            }
-            else this.render_html()
-        }
-    }
-    render_html = () => {
-        const html = this.html ? this.html() : null
-        if (typeof html === 'string') {
-            this.render(html, true)
-            if (this.listen) this.listen(true)
-            const tt = this.parent('tt')
-            if (tt && tt.pop) tt.pop.update()
-        }
-        else debug({ Html: "html(o)=>", o: this.o(), depth: this.depth() })
-    }
-    depth = () => {
-        let d = 0
-        let p = this.parentNode
-        while (p && p !== document) {
-            d++
-            p = p.parentNode
-        }
-        return d
-    }
-    var_update = () => {
-        this.vars.update.forEach(o => o.setAttribute('param', 'update'))
-        this.vars.update = []
-    }
-    page = (a) => {
-        return a ? page && page.firstChild[a] : page && page.firstChild
-    }
-    o = () => {
-        return { "o.name": this.attr().name, "o._id()": this._id() }
-    }
-    attr = () => {
-        return {
-            name: this.getAttribute("name"),
-            type: this.getAttribute("type"),
-            param: this.getAttribute("param")
-        }
-    }
-    parent = (type) => {
-        let p = this.parentNode
-        while (p && !(p.popup && (!type || p[type]))) {
-            //if (type === 'close') debug({ p: p.tagName, type: p[type] })
-            p = p.parentNode
-        }
-        return p ? p[type] : p
-    }
-    _id = () => {
-        let p = this, c, id = ''
-        while (p) {
-            if (p.tagName && p.tagName.startsWith('ED-')) {
-                const { name } = p.attr()
-                if (c) {
-                    let n
-                    const { name: cname } = c.attr(),
-                        os = p.querySelectorAll(`${c.tagName}[name=${cname}]`)
-                    if (os.length) os.forEach((o, i) => { if (o === c) n = i })
-                    else (n = 0)
-                    if (!os || name === cname || n) {
-                        // const warn= add specific warning code about naming
-                        debug({ warn: '_id', p: `${p.tagName} ${name}`, c: `${c.tagName} ${cname}`, os: os.length, n })
-                    }
-                    if (n > 0) id += `_${n}`
-                }
-                id = id ? name + '_' + id : name
-                c = p
-            }
-            p = p.parentNode
-        }
-        return id
-    }
-    render = (html, set) => {
-        if (typeof html !== 'string') return debug({ html, id: this.id })
-        const _html = html.replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, l, c) => {
-            if (t === 'page') return `<ed-${l} name="${l}"></ed-${l}>`
-            else if (t === 'div') return `<ed-div type="${t}" name="${l}" param="${c || ''}"></ed-div>`
-            else if (t === 'table') return `<ed-table type="${t}" name="${l}" param="${c || ''}"></ed-table>`
-            else if (t === 'var') return `<ed-var type="${t}" name="${l}" param="${c || ''}"></ed-var>`
-            else if (t === 'vol') return `<ed-vol type="${t}" name="${l}" param="${c || ''}"></ed-vol>`
-            else if (t === 'vsel') return `<ed-vsel type="${t}" name="${l}" param="${c || ''}"></ed-vsel>`
-            else if (t === 'user') return `<ed-user type="${t}" name="user" param="${c || ''}"></ed-user>`
-            else if (t === 'comp') return `<ed-comp type="${t}" name="${l}" param="${c || ''}"></ed-comp>`
-            else if (t === 'contact') return `<ed-contact type="${t}" name="${l}" param="${c || ''}"></ed-contact>`
-            else if (['input', 'select', 'checkbox', 'textarea', 'button', 'radio'].indexOf(t) !== -1) {
-                return `<ed-form type="${t}" name="${l}" param="${c || ''}"></ed-form>`
-            }
-            else if (['nav', 'svg', 'link'].indexOf(t) !== -1) {
-                return `<ed-tt type="${t}" name="${l}" param="${c || ''}"></ed-tt>`
-            }
-            else return match
+    render(o, id = o.id) {
+        debug({ render: { o, id } })
+        if (!o.d && o.data) this.nav.d.get(o.data).then(r => {
+            o.d = r
+            this.render(o, id)
         })
-        if (set) {
-            // debug({ html, id: this.id, set, this: this.debug() })
-            this.innerHTML = _html
-            //this.var_update()
+        else {
+            if (o === this) {
+                this.unload(this)
+            }
+            else {
+                if (!this.div) this.div = {}
+                if (this.div[id]) this.unload(this.div[id])
+                this.div[id] = o
+            }
+            const _html = this.replace(o)
+            const e = this.q(`#${id}`)
+            if (e) e.innerHTML = _html
+            else error({ render: this, id })
+            requestAnimationFrame(() => {
+                //debug({ render: done })
+                this.listen(o)
+                if (o.loaded) o.loaded()
+            })
         }
-        else return _html
     }
-    setForm = (vs, form) => {
-        if (vs) Object.keys(vs).filter(k => !form || form[k]).forEach(k => {
-            const fe = this.querySelector(`ed-form[name=${k}]`),
-                l = fe && fe.querySelector('input, select, textarea')
+    replace = (o, html) => {
+        const _html = (html || o.html()).replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, l, c) => {
+            return this.links(o, t, l, c)
+        })
+        return _html
+    }
+    listen = (p) => {
+        debug({ listen: p.id, p })
+        if (p.div) Object.keys(p.div).forEach(d => this.listen(p.div[d]))
+        if (p.tt) Object.keys(p.tt).forEach(id => p.tt[id].listen())
+        if (p.form) Object.keys(p.form).forEach(id => p.form[id].o && p.form[id].o.listen())
+    }
+    unload = (p) => {
+        //debug({ unload: p.id })
+        if (p.div) {
+            Object.keys(p.div).forEach(d => this.unload(p.div[d]))
+            p.div = {}
+        }
+        if (p.tt) {
+            Object.keys(p.tt).forEach(id => p.tt[id].remove(null, true))
+            p.tt = {}
+        }
+        if (p.form) {
+            Object.keys(p.form).forEach(id => {
+                const f = p.form[id]
+                if (f.o) f.o.remove(null, true)
+                f.o = null
+            })
+        }
+    }
+    reload = (n) => {
+        if (!n) this.render(this)
+        else if (this.div[n]) this.render(this.div[n])
+    }
+    links = (o, t, l, c) => {
+        if (t === 'div') {
+            const div = new Html(o, l, c)
+            return this.replace(div)
+        }
+        else if (t === 'var') {
+            return this.var(l, c)
+        }
+        else if (t === 'table') {
+            const tbl = new Table(o, l, c)
+            return this.replace(o, tbl.html())
+        }
+        else if (['input', 'button', 'select', 'textarea', 'checkbox'].includes(t)) {
+            const ipt = new IN(o, t, l, c)
+            return ipt.html()
+        }
+        else {
+            const tt = new TT(o, t, l, c)
+            return tt.html()
+        }
+    }
+    init(css, favicon) {
+        const link = document.createElement('link');
+        link.rel = 'shortcut icon';
+        link.href = favicon;
+        link.type = 'image/x-icon';
+        document.head.appendChild(link);
+        const style = document.createElement('style')
+        style.innerHTML = css
+        document.head.appendChild(style)
+        const hash = window.location.hash, token = hash && hash.substring(1)
+        if (token && token.length > 10) {
+            localStorage.setItem('token', token)
+            window.location.hash = ''
+        }
+        this.path = window.location.pathname.replace('/', '')
+    }
+    setForm = (vs) => {
+        if (vs && this.form) Object.keys(vs).forEach(k => {
+            const l = this.fe(k)
             if (l) {
                 if (l.type === 'checkbox' || l.type === 'radio') l.checked = vs[k]
                 else l.value = vs[k]
             }
-            else debug({ setForm: this.o(), k })
+            else error({ setForm: k, vs })
         })
-        else debug({ setForm: this.o(), vs })
+        else error({ setForm: vs })
+        return this.getForm()
     }
-    getForm = (form) => {
+    getForm = () => {
         let ret = {}
-        if (form) Object.keys(form).forEach(name => {
-            const fe = this.querySelector(`ed-form[name=${name}]`),
-                l = fe && fe.querySelector('input, select, textarea')
+        if (this.form) Object.keys(this.form).forEach(name => {
+            const l = this.fe(name)
             if (l) ret[name] = l.type === 'checkbox' || l.type === 'radio' ? l.checked : l.value
         })
-        else debug({ setForm: this.o(), form })
+        else error({ getForm: this })
         return ret
     }
+
 }
 export default Html
-export { debug, nav, page, set_nav, set_page, _s }
+export { debug, error, _s }

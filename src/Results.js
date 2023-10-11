@@ -1,27 +1,38 @@
-import { debug, _s } from './Dom'
+import Html, { debug, error, _s } from './Html.js'
 import html from './html/Results.html'
 import photo from './icon/photo.svg'
-import { req } from './data'
-import { str2csv } from './csv'
 
-class Results {
-  constructor(page) {
-    this.page = page
+class Results extends Html {
+  constructor() {
+    super()
     this.id = 'results'
+    this.page = this
     this.data = 'results'
     this.form = {
-      filter: { placeholder: 'name,name,...', width: '50rem' },
-      mf: { options: ['M/F', 'M', 'F'] },
-      cat: { options: ['Cat', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Y', 'Adult', 'S*', 'SY', 'S1', 'S2', 'S3', 'S4', 'V*', 'V1', 'V2', 'V3', 'V4'] },
+      filter: { tip: 'filter by name or club', placeholder: 'name,name,...', width: '50rem' },
+      mf: { tip: 'select Male/Open or Female', options: ['M/F', 'M', 'F'] },
+      cat: { tip: 'select category', options: ['Cat', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Y', 'Adult', 'S*', 'SY', 'S1', 'S2', 'S3', 'S4', 'V*', 'V1', 'V2', 'V3', 'V4'] },
       year: {
+        tip: 'select year',
         options: ['Year', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2017', '2018', '2019', '2022', '2023']
       },
-      n: { options: ['N', '1', '3', '5', '10', '20'] },
-      C: { class: 'form red bold hidden', tip: 'clear all filters', submit: true },
+      n: { tip: 'show first N results', options: ['N', '1', '3', '5', '10', '20'] },
+      C: { tip: 'clear all filters', class: 'form red bold hidden', click: this.C },
     }
   }
+  C = () => {
+    this.form_data = this.setForm({ filter: '', mf: 'M/F', cat: 'Cat', year: 'Year', n: 'N' })
+    this.refresh()
+  }
+  input = (e, o) => {
+    this.form_data = this.getForm()
+    this.refresh()
+  }
+  loaded = () => {
+    this.form_data = this.getForm()
+  }
   html = (name, param) => {
-    if (name === 'results_all') return this.results_all()
+    if (name === 'results_all') return `<div id="results_all">${this.results_all()}</div>`
     else if (name === 'results_year') return this.results_year(param)
     else return html
   }
@@ -57,33 +68,27 @@ class Results {
     return (param && val === param.replace(/_/g, " ")) ? clear[name] || '' : param.replace(/_/g, " ")
   }
   form_vals = () => {
-    const f = this.form_data = this.page.getForm(this.form),
+    const f = this.form_data,
       C = { filter: '', mf: 'M/F', cat: 'Cat', year: 'Year', n: 'N' }
     let ret = {}
-    Object.keys(f).forEach(k => ret[k] = f[k] === C[k] ? '' : f[k])
+    Object.keys(C).forEach(k => ret[k] = (!f || (f[k] === C[k]) ? '' : f[k]))
     return ret
-  }
-  update = (e, o) => {
-    const p = o && o.attr(), name = p && p.name
-    if (name === 'C') this.setForm({ filter: '', mf: 'M/F', cat: 'Cat', year: 'Year', n: 'N' }, form)
-    this.refresh()
   }
   refresh = () => {
     const f = this.form_vals(),
       blank = Object.keys(f).filter(k => f[k] === '').length,
-      c = this.querySelector(`button[name=C]`)
+      c = this.fe('C')
     c && c.classList[blank ? 'remove' : 'add']('hidden')
-    this._results_all.setAttribute('param', 'update')
+    this.reload('results_all')
   }
   year = (e, o) => {
-    const { name, param } = o
-    debug({ name, param })
-    //this.page.setForm(e, o)
+    this.form_data = this.setForm({ year: o.param })
+    this.refresh()
   }
   name = (e, o) => {
-    const { param } = o.attr(), n = _s(param, true), f = _s(this.form_data.filter, true)
-    if (n !== f) this.setForm({ filter: _s(param, false) })
-    else this.setForm({ filter: '' })
+    const { param } = o, n = _s(param, true), f = _s(this.form_data.filter, true)
+    if (n !== f) this.form_data = this.setForm({ filter: _s(param, false) })
+    else this.form_data = this.setForm({ filter: '' })
     this.refresh()
   }
   yearTip = (e, o) => {
@@ -117,7 +122,7 @@ class Results {
     return ret
   }
   filter = (yr) => {
-    const results = this.page.data.results, c = this.cols(yr),
+    const results = this.d.data['results'], c = this.cols(yr),
       { year, cat, mf, filter, n } = this.form_vals()
     let ret = []
     for (var i = 1; i < results[yr].length; i++) {
@@ -175,16 +180,15 @@ class Results {
     return (this.np && year === '2022' && this.np[num]) ? `<image class="icon" name="${num}" src="${photo}">` : null
   }
   cols(year) {
-    const r = this.page.data.results
-    let c = {}, cn = 0
-    r[year][0].forEach(n => { c[n] = cn++ })
+    const r = this.d.data['results'], c = {}
+    r[year][0].forEach((n, i) => { c[n] = i })
     return c
   }
   results_year = (year) => {
     return `<h5>{link.year.${year}}</h5>{table.results_year.${year}}`
   }
   results_all = () => {
-    const r = this.page.data.results, years = Object.keys(r).reverse()
+    const r = this.d.data['results'], years = Object.keys(r).reverse()
     let n = 0
     //debug({ years, r })
     return years.map(year => {

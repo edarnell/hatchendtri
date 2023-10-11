@@ -1,19 +1,21 @@
-import { debug } from './Dom'
+const debug = console.log.bind(console)
+const error = console.error.bind(console)
 
 class Table {
-    constructor(parent, name, param) {
-        Object.assign(this, { parent, name, param })
+    constructor(p, name, param) {
+        Object.assign(this, { p, name, param })
+        this.page = p.page
     }
     html = () => {
         const table = this.rows()
         let html
         if (table) html = this.render_table(table)
-        else debug({ table: "ths=>{},trs=>()", o: this.o() })
+        else debug({ table: "ths=>{},trs=>()", p: this.p })
         return html
     }
     rows = () => {
-        const { name, param } = this, p = this.parent.page
-        return { ths: p.ths(name, param), trs: p.trs(name, param) }
+        const { page, name, param } = this
+        return { ths: page.ths(name, param), trs: page.trs(name, param) }
     }
     render_table = (table) => {
         const { ths, trs } = table
@@ -23,7 +25,7 @@ class Table {
             return `<table><thead>${this.head(ths)}</thead><tbody>${this.body(trs)}</tbody></table>`
         }
         else {
-            debug({ Table: "Table ths=(o)=> trs=(o)=>", o: this.o() })
+            debug({ Table: "Table ths=(o)=> trs=(o)=>" })
             return ''
         }
     }
