@@ -3,6 +3,11 @@
         <b>Contact {var.contact}</b> {link.close.×}
     </div>
     <div class="card-body">
-        {div.form}
+        <form>
+            {var.name_email}
+            {input.subject}<br />
+            {textarea.message}<br />
+            {var.spam} {button.send}
+        </form>
     </div>
 </div>

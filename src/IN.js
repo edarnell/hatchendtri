@@ -6,69 +6,74 @@ import TT from './TT'
 class IN extends TT {
     constructor(p, type, name, param) {
         super(p, type, name, param, true)
-        this.lk = this.p.form ? this.p.form[name] : this.p.page.form[name]
-        this.lk.o = this
-        this.id = this.p.id + '_' + this.name + '_IN'
+        this.id = 'IN_' + this.name + '_' + this.p.id
+        const f = this.p._p('form'), form = f && f()
+        this.lk = form && form[name]
+        if (!this.lk) error({ IN: this, f, form, name })
+        else {
+            if (!p.frm) p.frm = {}
+            p.frm[name] = this
+        }
     }
     html = () => {
-        const { p, name, type, param } = this, form = this.lk
+        const { lk, name, type, param } = this
         //debug({ name, type, param, form })
         switch (type) {
             case 'input':
-                return `${form.label ? `<label for="${this.id}">${form.label}</label>` : ''}
+                return `${lk.label ? `<label for="${this.id}">${lk.label}</label>` : ''}
             <input
-            type="${form.type || 'text'}"
+            type="${lk.type || 'text'}"
             name="${name}"
             id="${this.id}"
-            ${form.placeholder ? `placeholder="${form.placeholder}"` : ''}
-            ${form.pattern ? `pattern="${form.pattern}"` : ''}
-            ${form.required ? 'required' : ''}
-            ${form.value ? `value="${form.value}"` : ''}
-            class="${form.class || 'form'}" 
+            ${lk.placeholder ? `placeholder="${lk.placeholder}"` : ''}
+            ${lk.pattern ? `pattern="${lk.pattern}"` : ''}
+            ${lk.required ? 'required' : ''}
+            ${lk.value ? `value="${lk.value}"` : ''}
+            class="${lk.class || 'form'}" 
             />`
             case 'radio':
                 return `<input type="radio"
-            name="${form.radio}"
+            name="${lk.radio}"
             value="${name}"
             id="${this.id}"
-            ${form.required ? 'required' : ''}
-            ${form.value ? `value="${form.value}"` : ''}
+            ${lk.required ? 'required' : ''}
+            ${lk.value ? `value="${lk.value}"` : ''}
             />
-            ${form.label ? `<label for="${this.id}">${form.label}</label>` : ''}`
+            ${lk.label ? `<label for="${this.id}">${lk.label}</label>` : ''}`
             case 'select':
-                return `<select class="${form.class || 'form'}" 
+                return `<select class="${lk.class || 'form'}" 
             name="${name}"
             id="${this.id}">
-            ${form.options.map(o => typeof o === 'string' ? `<option value="${o}" ${o === form.value ? 'selected' : ''}>${o}</option>`
-                    : `<option value="${o.value}" ${o.value === form.value ? 'selected' : ''}>${o.name}</option>`).join('')}
+            ${lk.options.map(o => typeof o === 'string' ? `<option value="${o}" ${o === lk.value ? 'selected' : ''}>${o}</option>`
+                    : `<option value="${o.value}" ${o.value === lk.value ? 'selected' : ''}>${o.name}</option>`).join('')}
             </select>`
             case 'textarea':
-                return `<textarea rows="${form.rows || 5}" cols="${form.cols || 25}" class="${form.class || 'form'}" 
+                return `<textarea rows="${lk.rows || 5}" cols="${lk.cols || 25}" class="${lk.class || 'form'}" 
             name="${name}"
             id="${this.id}"
-            ${form.placeholder ? `placeholder="${form.placeholder}"` : ''}
-            ${form.required ? 'required' : ''}
-            >${form.value || ''}</textarea>`
+            ${lk.placeholder ? `placeholder="${lk.placeholder}"` : ''}
+            ${lk.required ? 'required' : ''}
+            >${lk.value || ''}</textarea>`
             case 'checkbox':
-                return `<input type="checkbox" class="${form.class ? 'checkbox ' + form.class : 'checkbox'}"
-            ${form.value === true ? 'checked' : ''}
+                return `<input type="checkbox" class="${lk.class ? 'checkbox ' + form.class : 'checkbox'}"
+            ${lk.value === true ? 'checked' : ''}
             name="${name}"
             id="${this.id}"
-            ${form.required ? 'required' : ''}
+            ${lk.required ? 'required' : ''}
             />
-            ${form.label ? `<label for="${this.id}">${form.label}</label>` : ''}`
+            ${lk.label ? `<label for="${this.id}">${lk.label}</label>` : ''}`
             case 'button':
-                const icon = form.icon && icons[form.icon], active = form.class && form.class.includes('active'),
-                    img = icon && `<img name="${name}" data-image="${form.icon}" src="${active ? icon.active : icon.default}" class="${form.class || 'icon'}" />`
+                const icon = lk.icon && icons[lk.icon], active = lk.class && lk.class.includes('active'),
+                    img = icon && `<img name="${name}" data-image="${lk.icon}" src="${active ? icon.active : icon.default}" class="${lk.class || 'icon'}" />`
                 return img || `<button 
             name="${name}" 
             id="${this.id}"
-            class="${form.class || 'form'}">${param || name}</button>`
+            class="${lk.class || 'form'}">${param || name}</button>`
         }
     }
     input = e => {
         e.preventDefault()
-        const p = this.p, page = p.page, ipt = p.input || page.input
+        const ipt = this.p._p('input')
         if (ipt) ipt(e, this)
         else debug({ Form: this, e })
     }

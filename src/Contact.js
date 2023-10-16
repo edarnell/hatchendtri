@@ -1,85 +1,79 @@
 import Html, { debug, _s } from './Html'
 import html from './html/Contact.html'
 import { ajax } from './ajax'
+import { nav } from './Nav'
 
 class Contact extends Html {
     constructor() {
         super()
-        this.form = {
-            name: { placeholder: 'name', required: true },
-            email: { placeholder: 'email', type: 'email', required: true },
+        this.spam = Math.floor(Math.random() * 3)
+    }
+    form = () => {
+        let form = {
             subject: { placeholder: 'subject', required: true },
             message: { placeholder: 'message...', required: true },
-            send: { class: 'form primary disabled', click: this.input, tip: this.sendtt },
-            spam1: {}, spam2: {}, spam3: {},
+            send: { class: 'form disabled', click: 'submit', tip: this.spamtt }
         }
-        this.spam = Math.floor(Math.random() * 3)
-        /*
-        let to = this._to = (name.charAt(0) === '_' ? name.substring(1) : null)
-        if (!to && name === 'list' && typeof this.parent('list') === 'function') to = this.parent('list')
-        if (to) this.data = 'vs'
-        */
-    }
-    //debug = (m) => debug({ Contact: m, o: this.o(), div: this })
-    html = (name, param) => {
-        debug({ html: name, param })
-        const user = false
-        if (name === 'form') return `<div id="form"><form>
-        ${user ? '' : '{input.name}<br />{input.email}<br />'}
-        {input.subject}<br />
-        {textarea.message}<br />
-        ${user ? '' : '{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} '} {button.send}
-        </form></div>`
-        else return this.message ?? `<div id=${this.id}>${html}</div>`
-    }
-    var = (name, param) => {
-        if (name === 'id') return this.id
-        const v = this.page.vs && this.page.vs[this._to]
-        if (v) {
-            if (v) return `{link._${v.id}.${_s(v.name)}}`
-            else this._toName = o
-            return ''
+        if (!nav._user) {
+            const extra = {
+                name: { placeholder: 'name', required: !nav._user },
+                email: { placeholder: 'email', type: 'email', required: !nav._user },
+                spam1: {}, spam2: {}, spam3: {}
+            }
+            form = { ...form, ...extra }
         }
-        else return 'Hatch End Triathlon'
+        return form
     }
-    link = (name) => {
-        debug({ link: name })
-        if (name.startsWith('_') && page._page === 'volunteer') {
-            const vol = page.vs[id], _id = name, vp = page.firstChild
-            if (vol) return nav.admin() ? { tip: 'update', theme: 'light', class: vp.color(id), popup: `{vol.${_id}}`, placement: 'bottom' }
-                : { tip: 'close', theme: 'light', class: vp.color(id), click: this.popup.close }
+    html = () => {
+        return html
+    }
+    var = (name) => {
+        const user = nav._user
+        if (name === 'name_email') return `${user ? '' : '{input.name}<br />{input.email}<br />'}`
+        if (name === 'spam') return `${user ? '' : '{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} '}`
+        return 'Hatch End Triathlon'
+    }
+    spamtt = () => {
+        const complete = this.checkForm(), m = this.form.message
+        if (complete) {
+            const b = ['left', 'middle', 'right'], s = b[this.spam]
+            const spam = this.checkSpam()
+            if (spam) return `please tick the ${s} box`
+            else return m ? 'send message' : 'login by email'
         }
+        else return m ? 'complete the form' : 'enter your email'
+    }
+    confirm = (r) => {
+        this.popup.close('<div class="success">Message sent.</div>')
     }
     close = () => {
         this.popup.close()
     }
-    confirm = (r) => {
-        this.message = `<div class="message">Message sent</div>`
-        this.reload()
-        setTimeout(this.close, 3000)
-    }
-    error = (e) => {
-        debug({ e })
-        this.message = `<div class="message error">Error sending</div>`
-        this.reload()
-        setTimeout(this.close, 3000)
-    }
     input = (e, o) => {
         const complete = this.checkForm(),
             spam = this.checkSpam(),
-            sendButton = this.form.send.o.el()
-        if (complete && !spam) sendButton.classList.remove('disabled')
-        else sendButton.classList.add('disabled')
+            sendButton = this.fe('send')
+        if (complete && !spam) {
+            sendButton.classList.remove('disabled')
+            sendButton.classList.add('primary')
+        }
+        else {
+            sendButton.classList.remove('primary')
+            sendButton.classList.add('disabled')
+        }
         if (o.name === 'send' && complete && !spam) {
-            const data = this.form_data
-            if (this._to) data.to = this._to
-            ajax({ req: 'send', data })
-                .then(r => this.confirm(r))
-                .catch(e => this.error(e))
+            this.send()
         }
     }
+    send = () => {
+        const data = this._form
+        if (this._to) data.to = this._to
+        ajax({ req: 'send', data })
+            .then(r => this.confirm(r))
+            .catch(e => this.error(e))
+    }
     checkForm = () => {
-        const form = this.form, data = this.form_data = this.getForm(),
+        const form = this.form(), data = this._form = this.getForm(),
             nav = {}, user = nav._user && (nav._user.vol || nav._user.comp)
         let complete = true
         if (user) return data.message && data.subject
@@ -91,7 +85,7 @@ class Contact extends Html {
         return complete
     }
     checkSpam = () => {
-        const data = this.form_data, user = nav._user && (nav._user.vol || nav._user.comp)
+        const data = this._form, user = nav._user
         let spam = false
         if (!user) ['spam1', 'spam2', 'spam3'].forEach((k, i) => {
             spam = spam || data[k] !== (i === this.spam)
@@ -114,5 +108,8 @@ class Contact extends Html {
             else return 'complete the form'
         }
     }
+
+
+
 }
 export default Contact

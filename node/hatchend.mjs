@@ -120,7 +120,7 @@ app.post(config.url, (m, r) => {
                 to_email = to && to.email,
                 to_name = to && to.name.split(' ')[0],
                 from = email ? get_name(email, false) || get_cname(email) : from_name
-            log.info('req->', req, id, to_email, from)
+            log.info('req->', req, id || '', from)
             saveM(json)
             if (subject && message && (email || !to)) send({ to: to_name, email: to_email, from_email: email || from_email, from, subject, message })
                 .then(s => resp(req, r, { sent: s }))

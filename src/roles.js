@@ -652,27 +652,31 @@ function roles(sec) {
     else return Object.keys(section[sec].role)
 }
 
-function selectSection(e, o, form, p, c = '') {
-    const v = typeof e === 'string' ? e : e.target.value,
-        r = p.querySelector(`ed-form[name=${c + 'role'}]`),
-        s = p.querySelector(`ed-form[name=${c + 'section'}]`)
-    form[c + 'section'].value = v
-    form[c + 'role'].options = ['Role'].concat(roles(v))
-    if (v === 'Section') form[c + 'role'].value = 'Role'
-    s.setAttribute('param', 'update')
-    r.setAttribute('param', 'update')
+function options(el, opts) {
+    el.innerHTML = ''
+    opts.forEach(t => {
+        let o = document.createElement('option');
+        o.text = t
+        el.add(o)
+    })
 }
-function selectRole(e, o, form, p, c = '') {
-    const sn = c + 'section',
-        s = p.querySelector(`select[name=${sn}]`),
-        v = s.value,
-        i = e.target.selectedIndex
-    if (v === 'Section') {
-        const so = roleMap[i - 1]
-        selectSection(so.section, null, form, p, c)
-        form[c + 'role'].options = ['Role'].concat(roles(so.section))
-        form[c + 'role'].value = e.target.value
-        o.setAttribute('param', 'update')
+
+function selectSection(p, sn, rn) {
+    const r = p.fe(rn),
+        s = p.fe(sn)
+    options(r, ['Role'].concat(roles(s.value)))
+    r.value = 'Role'
+}
+function selectRole(p, sn, rn) {
+    const s = p.fe(sn)
+    if (s.value === 'Section') {
+        const r = p.fe(rn),
+            v = r.value,
+            i = r.selectedIndex,
+            so = roleMap[i - 1]
+        s.value = so.section
+        options(r, ['Role'].concat(roles(so.section)))
+        r.value = v
     }
 }
 function firstLast(name) {

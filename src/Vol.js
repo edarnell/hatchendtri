@@ -1,6 +1,5 @@
-import Html, { debug, page, _s, set_nav } from './Html'
+import Html, { debug, nav, _s } from './Html'
 import { sections, roles, selectSection, selectRole } from './roles'
-import { req } from './data'
 import volR from './html/Vol.html'
 import volD from './html/volD.html'
 

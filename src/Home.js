@@ -8,9 +8,8 @@ class Home extends Html {
     constructor() {
         super()
         this.id = 'home'
-        this.page = this
     }
-    html = (name) => {
+    html = (name, param) => {
         if (name === 'home_main') return home_main
         else if (name === 'news') return news
         else return html

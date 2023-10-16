@@ -7,15 +7,54 @@ class Data {
         this.data = {}
         this.nav = nav
     }
-    get = (req) => {
+    user = () => {
         return new Promise((s, f) => {
+            const token = localStorage.getItem('token')
+            if (token) ajax({ req: 'user' }).then(r => {
+                const user = (r.vol || r.comp) ? {} : null
+                if (r.vol) user.vol = r.vol.reduce((a, u) => {
+                    a[u.id] = u
+                    return a
+                }, {})
+                if (r.comp) user.comp = r.comp.reduce((a, u) => {
+                    a[u.id] = u
+                    return a
+                }, {})
+                s(user) // user or null (no vol or comp)
+            })
+            else s(false) // undefined (no token)
+        })
+    }
+    admin = (ed) => {
+        const u = this.nav._user, vs = u && u.vol
+        let ret
+        if (vs) ret = Object.values(vs).some(u => u.admin === true)
+        if (ret && ed) ret = Object.values(vs).some(u => u.email === 'ed@darnell.org.uk')
+        return ret
+    }
+    name = () => {
+        const u = this.nav._user
+        if (u && (u.vol || u.comp)) {
+            if (this.nav.page.id === 'competitor' && u.comp) return Object.values(u.comp).map(c => `${c.first} ${c.last}`).join(', ')
+            else if (u.vol) return Object.values(u.vol).map(v => `${v.name}`).join(', ')
+            else if (u.comp) return Object.values(u.comp).map(c => `${c.first} ${c.last}`).join(', ')
+        }
+        else return null
+    }
+    check = (req) => {
+        if (Array.isArray(req)) return req.every(r => this.data[r])
+        else return this.data[req]
+    }
+    get = (req) => {
+        if (Array.isArray(req)) return Promise.all(req.map(r => r && this.get(r)))
+        else return new Promise((s, f) => {
             if (this.data[req]) s(this)
             else if (localStorage.getItem(req)) {
                 const { date, data: d } = JSON.parse(localStorage.getItem(req))
                 this.data[req] = unzip(d)
                 this.data[req + '_date'] = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
                     .format(new Date(date)).replace(",", " at ")
-                //debug({ req, date: this.data[req + '_date'], data: this.data[req] })
+                debug({ req, date: this.data[req + '_date'], data: this.data[req] })
                 ajax({ req: 'dates', files: [req] }).then(r => {
                     if (r.date[req] === date) {
                         debug({ storage: req, date: r.date[req] })
@@ -119,5 +158,68 @@ function cleanse(swim) {
     const s = swim && swim.match(/^(?:00:)?((?:0)?[4-9]|[1][0-9]):[0-5][0-9]$/)
     const r = s ? s[0].replace(/^00:/, '').replace(/^0/, '') : ''
     return r
+}
+*/
+/*listen = () => {
+    const hash = window.location.hash, token = hash && hash.substring(1)
+    if (token && token.length > 10) {
+        localStorage.setItem('token', token)
+        window.location.hash = ''
+    }
+    const p = window.location.pathname.replace('/', '')
+    this.user()
+    if (token && p === 'yes' || p === 'no') {
+        this.reply = p
+        this.nav('volunteer')
+    }
+    else this.nav(p)
+}
+
+name = (c_v) => {
+let r
+c_v = c_v || 'vol'
+if (this._user && this._user[c_v]) r = Object.values(this._user[c_v]).map(u =>
+    `{link.u_${u.id}.${c_v === 'vol' ? _s(u.name) : _s(u.first + ' ' + u.last)}}`).join(', ')
+else r = 'Volunteer'
+return r
+}
+uid = (id, c_v) => {
+c_v = c_v || 'comp'
+const cs = this._user && this._user[c_v]
+let ret = false
+if (id && cs) Object.values(cs).forEach(u => { if (u.id * 1 === id * 1) ret = true })
+return ret
+}
+users = (c_v) => {
+c_v = c_v || 'vol'
+if (this._user && this._user[c_v]) return Object.values(this._user[c_v])
+}
+admin = (ed) => {
+const u = this._user, vs = u && u.vol
+let ret
+if (vs) ret = Object.values(vs).some(u => u.admin === true)
+if (ret && ed) ret = Object.values(vs).some(u => u.email === 'ed@darnell.org.uk')
+return ret
+}
+user = (p) => {
+const token = localStorage.getItem('token')
+if (this._token !== token) {
+    this._token = token
+    this._user = { vol: null, comp: null }
+    if (token) req({ req: 'user' }).then(r => {
+        if (r.vol) this._user.vol = r.vol.reduce((a, u) => {
+            a[u.id] = u
+            return a
+        }, {})
+        if (r.comp) this._user.comp = r.comp.reduce((a, u) => {
+            a[u.id] = u
+            return a
+        }, {})
+    })
+    const l = this.querySelector(`.nav li img[name="user"]`)
+    l.src = (token) ? icons['user'].active : l.src = icons['user'].default
+}
+const ui = this.querySelector(`ed-tt[name="user"]`)
+if (p) ui.close()
 }
 */

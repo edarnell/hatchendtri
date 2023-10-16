@@ -1,5 +1,4 @@
-import Html, { debug, page, _s } from './Html'
-import { req, cleanse } from './data'
+import Html, { debug, nav, _s } from './Html'
 import { lists, merge } from './lists'
 import { csv, csvE } from './csv'
 import html from './html/Admin.html'
@@ -49,16 +48,33 @@ const mfmap = {
 class Admin extends Html {
     constructor() {
         super()
-        if (!nav.admin(true)) nav.nav('home')
-        this.f={results:()=>new AdminResults(this)}
+        this.id = 'admin'
+        if (!nav.d.admin(true)) nav.load('home')
+        //this.f = { results: () => new AdminResults(this) }
     }
-    listen = () => {
-        if (this._table) this._table._upd()
+    form = () => { // section and options populated on load
+        return { list: { options: ['select', 'results', 'cs', 'csE', 'vs', 'labels', 'alabels', 'jlabels', 'v2023', 'm2023', 'c2023', 'prev', 'bounce', 'unsub'] } }
     }
-    update = (e, o) => {
-        const { name, param } = o.attr()
-        const fm = this.getForm(form)
-        if (fm.list && this.f[fm.list]) this.f[fm.list]()
+    input = (e, o) => {
+        const { name, param } = o
+        this._form = this.getForm()
+        this.reload('selected')
+    }
+    var = (name) => {
+        const f = this._form, s = f && f.list
+        if (s && s !== 'select') return '<div id="selected">{div.selected}</div>'
+        else return '{select.list}<div id="selected">{div.selected}</div>'
+    }
+    html = (n, p) => {
+        if (n === 'selected') {
+            const f = this._form, s = f && f.list
+            if (s === 'results') return new AdminResults(this, 'results')
+            else return ''
+        }
+        else return html
+    }
+    loaded() {
+        debug({ loaded: this, data: nav.d.data })
     }
     tip = () => `${this._rows ? this._rows.length : 0} emails`
     lists = () => {
@@ -102,20 +118,6 @@ class Admin extends Html {
     }
     error = (e, o) => {
         debug({ e })
-    }
-    html = (o) => {
-        const p = o && o.attr(), name = p && p.name, f = this.getForm(form), l = f && f.list
-        if (!o) return html
-        else if (name === 'labels') {
-            this._labels = o
-            if (l === 'labels') return labels()
-            else return ''
-        }
-        else if (name === 'bulkEmail') {
-            this._labels = o
-            if (l === 'cs') return bulk
-            else return ''
-        }
     }
     ths = (o) => {
         const { name, param } = o.attr()
@@ -373,11 +375,6 @@ class Admin extends Html {
             else b++;
         }
         return brief[b]
-    }
-    form = (o) => {
-        const { name, param } = o.attr()
-        if (form[name]) return form[name]
-        else if (fmail[name]) return fmail[name]
     }
     link = (o) => {
         const { name } = o.attr()

@@ -496,24 +496,12 @@ label {
     padding: 10px;
 }
 
-.message {
-    background-color: #fff;
-    border: 1px solid #080;
-    box-shadow: 1px 1px 3px rgba(0, 0, 0, .7);
-    border-radius: 5px;
-    padding: 10px;
-    line-height: 1.5;
-    margin-left: 5rem;
-    font-weight: bold;
-}
-
-.warn {
-    border: 1px solid #008;
+.success {
+    color: #0D0;
 }
 
 .error {
-    border: 1px solid #800;
-    color: #800;
+    color: #D00;
 }
 
 .labels {

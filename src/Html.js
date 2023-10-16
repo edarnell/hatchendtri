@@ -1,8 +1,10 @@
 const debug = console.log.bind(console)
 const error = console.error.bind(console)
-import TT from './TT.js'
-import IN from './IN.js'
-import Table from './Table.js'
+import TT from './TT'
+import IN from './IN'
+import Table from './Table'
+import { nav } from './Nav'
+//import O from './Objects'
 
 function _s(s, p) {
     if (p === undefined) return s && s.replace(/\s/g, "&nbsp;")
@@ -13,26 +15,51 @@ function _s(s, p) {
 }
 
 class Html {
-    static nav
     constructor(p, name, param) {
         if (p) {
+            Object.assign(this, { p, name, param })
             const id = this.id = name + (param ? '_' + param : '')
-            this.page = p.page
-            this.html = () => p.page.html(name, param)
             if (!p.div) p.div = {}
             p.div[id] = this
         }
     }
+    _p = (f) => {
+        if (this[f]) return this[f]
+        else if (this.p) return this.p._p(f)
+        // else return undefined
+    }
+    _c = (d) => {
+        let ret
+        if (Array.isArray(this[d])) ret = [...this[d]]
+        else if (this[d]) ret = [this[d]]
+        if (this.div) {
+            Object.keys(this.div).forEach(k => {
+                const div = this.div[k], r = div._c(d)
+                if (Array.isArray(r)) ret = ret ? [...ret, ...r] : [...r]
+                else if (r) ret ? ret.push(r) : ret = [r]
+            })
+        }
+        if (ret) return ret
+    }
+    plink = (name, param) => {
+        const p = this.p, l = p && p._p('link')
+        if (l === undefined) error({ plink: { name, param } })
+        else return l(name, param)
+    }
+    pinput = (name, param) => {
+        const p = this.p, i = p && p._p('input')
+        if (i === undefined) error({ pinput: { name, param } })
+        else return i(name, param)
+    }
     q = (q) => document.querySelector(q)
     fe = (n) => {
-        const f = this.form, d = f && f[n], o = d && d.o, l = o && this.q(`#${o.id}`)
-        if (!l) error({ fe: { f, n, d, o, l } })
+        const l = this.q(`[id*="IN_${n}_"]`)
+        if (!l) error({ fe: this, n })
         return l
     }
     render(o, id = o.id) {
         debug({ render: { o, id } })
-        if (!o.d && o.data) this.nav.d.get(o.data).then(r => {
-            o.d = r
+        if (o.data && !nav.d.check(o.data)) nav.d.get(o.data).then(r => {
             this.render(o, id)
         })
         else {
@@ -56,16 +83,17 @@ class Html {
         }
     }
     replace = (o, html) => {
-        const _html = (html || o.html()).replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, l, c) => {
-            return this.links(o, t, l, c)
+        const _html = (html || o._p('html')(o.name, o.param))
+        if (typeof _html !== 'string') error({ replace: { o, html, _html } })
+        else return _html && _html.replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, n, p) => {
+            return this.links(o, t, n, p)
         })
-        return _html
     }
     listen = (p) => {
-        debug({ listen: p.id, p })
+        //debug({ listen: p.id, p })
         if (p.div) Object.keys(p.div).forEach(d => this.listen(p.div[d]))
         if (p.tt) Object.keys(p.tt).forEach(id => p.tt[id].listen())
-        if (p.form) Object.keys(p.form).forEach(id => p.form[id].o && p.form[id].o.listen())
+        if (p.frm) Object.keys(p.frm).forEach(id => p.frm[id].listen())
     }
     unload = (p) => {
         //debug({ unload: p.id })
@@ -77,37 +105,56 @@ class Html {
             Object.keys(p.tt).forEach(id => p.tt[id].remove(null, true))
             p.tt = {}
         }
-        if (p.form) {
-            Object.keys(p.form).forEach(id => {
-                const f = p.form[id]
-                if (f.o) f.o.remove(null, true)
-                f.o = null
-            })
+        if (p.frm) {
+            Object.keys(p.frm).forEach(id => p.frm[id].remove(null, true))
+            p.frm = {}
         }
+    }
+    pdiv = (n) => {
+        const d = this.div && this.div[n]
+        if (d) return d
+        else if (this.p) return this.p.pdiv(n)
+        else return null
     }
     reload = (n) => {
         if (!n) this.render(this)
-        else if (this.div[n]) this.render(this.div[n])
+        else {
+            const div = this.pdiv(n)
+            if (div) this.render(div)
+            else error({ reload: n })
+        }
     }
-    links = (o, t, l, c) => {
+    links = (o, t, n, p) => {
         if (t === 'div') {
-            const div = new Html(o, l, c)
-            return this.replace(div)
+            const h = o._p('html')(n, p)
+            if (typeof h === 'string') {
+                const div = new Html(o, n, p)
+                return h && this.replace(div, h)
+            }
+            else if (typeof h === 'object') return this.replace(h)
+            else error({ links: { o, t, n, p, h } })
         }
         else if (t === 'var') {
-            return this.var(l, c)
+            const vf = o._p('var'), v = vf && vf(n, p)
+            if (v === undefined) error({ var: o, n, p })
+            return v && this.replace(o, v)
         }
         else if (t === 'table') {
-            const tbl = new Table(o, l, c)
-            return this.replace(o, tbl.html())
+            const tbl = new Table(o, n, p), h = tbl.html()
+            return h && this.replace(o, h)
         }
         else if (['input', 'button', 'select', 'textarea', 'checkbox'].includes(t)) {
-            const ipt = new IN(o, t, l, c)
+            const ipt = new IN(o, t, n, p)
             return ipt.html()
         }
-        else {
-            const tt = new TT(o, t, l, c)
+        else if (['svg', 'nav', 'link'].includes(t)) {
+            const tt = new TT(o, t, n, p)
             return tt.html()
+        }
+        else {
+            const h = nav.O(t, this, n, p)
+            if (h) return this.replace(h)
+            else error({ Object: this, t, n, p })
         }
     }
     init(css, favicon) {
@@ -127,7 +174,8 @@ class Html {
         this.path = window.location.pathname.replace('/', '')
     }
     setForm = (vs) => {
-        if (vs && this.form) Object.keys(vs).forEach(k => {
+        const f = this._p('form'), fm = f && f()
+        if (vs && fm) Object.keys(vs).forEach(k => {
             const l = this.fe(k)
             if (l) {
                 if (l.type === 'checkbox' || l.type === 'radio') l.checked = vs[k]
@@ -140,7 +188,8 @@ class Html {
     }
     getForm = () => {
         let ret = {}
-        if (this.form) Object.keys(this.form).forEach(name => {
+        const f = this._p('form'), fm = f && f()
+        if (fm) Object.keys(fm).forEach(name => {
             const l = this.fe(name)
             if (l) ret[name] = l.type === 'checkbox' || l.type === 'radio' ? l.checked : l.value
         })
@@ -150,4 +199,4 @@ class Html {
 
 }
 export default Html
-export { debug, error, _s }
+export { debug, error, _s, nav }

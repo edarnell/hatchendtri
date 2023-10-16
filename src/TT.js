@@ -2,15 +2,16 @@ const debug = console.log.bind(console)
 const error = console.error.bind(console)
 import { links } from './links'
 import { icons } from './icons'
-import { pages } from './Nav'
 import { createPopper } from '@popperjs/core'
+import { nav } from './Nav'
 
 class TT {
     constructor(p, type, name, param, fm) {
         Object.assign(this, { p, type, name, param, fm })
         if (!fm) {
             if (!p.tt) p.tt = {}
-            this.id = p.id + '_' + this.name.toLowerCase() + '_TT_' + Object.keys(this.p.tt).length
+            if (!name) error({ TT: this })
+            else this.id = 'TT_' + name.toLowerCase() + '_' + p.id + '_' + Object.keys(this.p.tt).length
             p.tt[this.id] = this
         }
     }
@@ -55,14 +56,14 @@ class TT {
     }
     el = () => document.querySelector(`#${this.id}`)
     html = () => {
-        const { type, name, param } = this,
-            k = name.toLowerCase(), p = this.p.page, l = p && p.link,
-            link = l && l(name, param) || pages[k] || links[k] || icons[k] || (k === 'close' && { class: 'close', tip: 'close', click: this.p.close })
+        const { p, type, name, param } = this,
+            k = name.toLowerCase(), l = p._p('link'),
+            link = l && l(name, param) || nav.pages[k] || links[k] || icons[k] || (k === 'close' && { class: 'close', tip: 'close', click: this.p.close })
         if (!link) debug({ TT: { type, name, param } })
         else {
             this.lk = link
             const icon = (link.icon_ && icons[link.icon_]) || (link.icon && icons[link.icon]) || (type === 'svg' && icons[k]),
-                img = icon ? `<img id="${this.id}" src="${icon.default}" class="${link.class || 'icon'}" />` : '',
+                img = icon ? `<img id="${'icon_' + this.id}" src="${icon.default}" class="${link.class || 'icon'}" />` : '',
                 w = link.icon || type === 'svg' ? img
                     : param ? param.replace(/_/g, "&nbsp;") + img : name.replace(/_/g, "&nbsp;") + img
             if (link.nav) {
@@ -77,7 +78,6 @@ class TT {
     }
     click = (e) => {
         const lk = this.lk
-        debug({ TTclick: this, e, lk })
         if (lk) {
             e.preventDefault()
             if (this.tt) this.timer = setTimeout(this.ttremove, 1000)
@@ -89,31 +89,26 @@ class TT {
                 }
             }
             else if (lk.nav) {
-                const nav = this.p.nav.load
-                nav(lk.href)
-                //const p = this.parent('close')
-                //if (p) p()
+                nav.load(lk.href)
             }
             else if (typeof lk.click === 'function') lk.click(e, this)
             else if (lk.click) {
-                if (this.p.click) this.p.click(e, this)
+                if (lk.click === 'submit') this.p.input(e, this)
+                else if (this.p.click) this.p.click(e, this)
                 else debug({ TTclick: this, e })
             }
             else debug({ TTclick: this, e })
         }
         else debug({ TTclick: this, e })
     }
-    tooltip = (e) => {
+    tooltip = (e, m) => {
         const tt = this.tt = document.createElement('div'),
             arrow = this.arrow = document.createElement('div'),
             link = this.lk,
             id = this.id
         tt.classList.add('tooltip')
         arrow.classList.add('arrow')
-        tt.setAttribute("name", id)
-        arrow.setAttribute("name", id)
-        const html = link.tip ? (typeof link.tip === 'function' ? link.tip(e, this) : link.tip)
-            : (typeof link.hover === 'function' ? link.hover(this) : link.hover)
+        const html = m ?? (typeof link.tip === 'function' ? link.tip(e, this) : link.tip)
         tt.innerHTML = html
         tt.setAttribute('data-theme', link.theme || (link.tip ? 'dark' : 'light'))
         arrow.setAttribute('data-popper-arrow', true)
@@ -133,8 +128,8 @@ class TT {
         popup.id = id
         document.body.appendChild(popup)
         const l = this.el(), link = this.lk
-        l.addEventListener("click", this.close)
-        const p=link.popup()
+        l.addEventListener("click", () => this.close())
+        const p = nav.O(link.popup)
         p.id = id
         p.page = p
         p.popup = this
@@ -145,13 +140,23 @@ class TT {
             modifiers: [{ name: 'offset', options: { offset: [0, 8], }, },],
         })
     }
-    close = () => {
+    close = (m) => {
         if (this.pdiv) {
             if (this.pop) this.pop.destroy()
             else debug({ TT: "close", o: this.o() })
             this.pdiv.remove()
             this.el().removeEventListener("click", this.close)
-            this.listen(true) // add back listeners
+            if (m) {
+                this.tooltip(null, m)
+                this.timer = setTimeout(() => {
+                    this.ttremove
+                    this.listen(true)
+                }, 2000)
+            }
+            else this.listen(true) // add back listeners
+        }
+        if (m) {
+            if (this.tt) this.timer = setTimeout(this.ttremove, 1000)
         }
     }
 }

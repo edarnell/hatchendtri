@@ -1,4 +1,4 @@
-import Html, { debug, error, _s } from './Html.js'
+import Html, { debug, error, _s, nav } from './Html.js'
 import html from './html/Results.html'
 import photo from './icon/photo.svg'
 
@@ -6,9 +6,10 @@ class Results extends Html {
   constructor() {
     super()
     this.id = 'results'
-    this.page = this
     this.data = 'results'
-    this.form = {
+  }
+  form = () => {
+    const form = {
       filter: { tip: 'filter by name or club', placeholder: 'name,name,...', width: '50rem' },
       mf: { tip: 'select Male/Open or Female', options: ['M/F', 'M', 'F'] },
       cat: { tip: 'select category', options: ['Cat', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Y', 'Adult', 'S*', 'SY', 'S1', 'S2', 'S3', 'S4', 'V*', 'V1', 'V2', 'V3', 'V4'] },
@@ -19,6 +20,7 @@ class Results extends Html {
       n: { tip: 'show first N results', options: ['N', '1', '3', '5', '10', '20'] },
       C: { tip: 'clear all filters', class: 'form red bold hidden', click: this.C },
     }
+    return form
   }
   C = () => {
     this.form_data = this.setForm({ filter: '', mf: 'M/F', cat: 'Cat', year: 'Year', n: 'N' })
@@ -122,7 +124,7 @@ class Results extends Html {
     return ret
   }
   filter = (yr) => {
-    const results = this.d.data['results'], c = this.cols(yr),
+    const results = nav.d.data['results'], c = this.cols(yr),
       { year, cat, mf, filter, n } = this.form_vals()
     let ret = []
     for (var i = 1; i < results[yr].length; i++) {
@@ -180,7 +182,7 @@ class Results extends Html {
     return (this.np && year === '2022' && this.np[num]) ? `<image class="icon" name="${num}" src="${photo}">` : null
   }
   cols(year) {
-    const r = this.d.data['results'], c = {}
+    const r = nav.d.data['results'], c = {}
     r[year][0].forEach((n, i) => { c[n] = i })
     return c
   }
@@ -188,7 +190,7 @@ class Results extends Html {
     return `<h5>{link.year.${year}}</h5>{table.results_year.${year}}`
   }
   results_all = () => {
-    const r = this.d.data['results'], years = Object.keys(r).reverse()
+    const r = nav.d.data['results'], years = Object.keys(r).reverse()
     let n = 0
     //debug({ years, r })
     return years.map(year => {

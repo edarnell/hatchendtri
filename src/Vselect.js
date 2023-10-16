@@ -1,19 +1,21 @@
-import Html, { debug, page, _s } from './Html'
+import Html, { debug, nav, _s } from './Html'
 import select from './html/select.html'
 import selectV from './html/selectV.html'
 import { roles, sections, firstLast } from './roles'
-import { req } from './data'
-
-const form = {
-    name: { placeholder: 'name', width: '50rem' },
-    volunteer: { class: "form", options: ['Select'] },
-    new: { class: "form green hidden", popup: '{vol.new}' }
-}
+import Vol from './Vol'
 
 class Vselect extends Html {
     constructor() {
         super()
         this.data = 'vs'
+        this.id = 'vselect'
+    }
+    form = () => {
+        return {
+            name: { placeholder: 'name', width: '50rem' },
+            volunteer: { class: "form", options: ['Select'] },
+            new: { class: "form green hidden", popup: new Vol() }
+        }
     }
     link = (o) => {
         const { name, param } = o.attr()

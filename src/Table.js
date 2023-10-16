@@ -14,8 +14,8 @@ class Table {
         return html
     }
     rows = () => {
-        const { page, name, param } = this
-        return { ths: page.ths(name, param), trs: page.trs(name, param) }
+        const { page, name, param } = this, ths = this.p._p('ths'), trs = this.p._p('trs')
+        return { ths: ths(name, param), trs: trs(name, param) }
     }
     render_table = (table) => {
         const { ths, trs } = table
