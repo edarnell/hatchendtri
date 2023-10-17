@@ -60,16 +60,12 @@ class Admin extends Html {
         this._form = this.getForm()
         this.reload('selected')
     }
-    var = (name) => {
+    html = (n,p) => {
+        if (n==='selected')
+        {
         const f = this._form, s = f && f.list
-        if (s && s !== 'select') return '<div id="selected">{div.selected}</div>'
-        else return '{select.list}<div id="selected">{div.selected}</div>'
-    }
-    html = (n, p) => {
-        if (n === 'selected') {
-            const f = this._form, s = f && f.list
-            if (s === 'results') return new AdminResults(this, 'results')
-            else return ''
+        if (s === 'results') return new AdminResults(this, 'selected')
+        else return ''
         }
         else return html
     }

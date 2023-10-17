@@ -63,13 +63,10 @@ class Html {
             this.render(o, id)
         })
         else {
-            if (o === this) {
-                this.unload(this)
-            }
-            else {
-                if (!this.div) this.div = {}
-                if (this.div[id]) this.unload(this.div[id])
-                this.div[id] = o
+            if (o === this) this.unload(this)
+            else if (o.p && o.p.div[id]) {
+                this.unload(o.p.div[id])
+                o.p.div[id] = o
             }
             const _html = this.replace(o)
             const e = this.q(`#${id}`)
@@ -83,9 +80,9 @@ class Html {
         }
     }
     replace = (o, html) => {
-        const _html = (html || o._p('html')(o.name, o.param))
-        if (typeof _html !== 'string') error({ replace: { o, html, _html } })
-        else return _html && _html.replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, n, p) => {
+        const c = (html || o._p('html')(o.name, o.param)),
+        _html =(typeof c === 'object') ?this.replace(c):c
+        return _html && _html.replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, n, p) => {
             return this.links(o, t, n, p)
         })
     }
