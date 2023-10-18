@@ -8,6 +8,8 @@ class AdminResults extends Html {
         })
     }
     html = () => {
+        const r=nav.d.data['results'],c23=nav.d.data['2023C.csv'],r23=nav.d.data['2023R.csv']
+        debug({r,c23,r23})
         return '<h3>Admin Results</h3>'
     }
 }
