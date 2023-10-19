@@ -4,7 +4,6 @@ import TT from './TT'
 import IN from './IN'
 import Table from './Table'
 import { nav } from './Nav'
-//import O from './Objects'
 
 function _s(s, p) {
     if (p === undefined) return s && s.replace(/\s/g, "&nbsp;")
@@ -81,7 +80,7 @@ class Html {
     }
     replace = (o, html) => {
         const c = (html || o._p('html')(o.name, o.param)),
-        _html =(typeof c === 'object') ?this.replace(c):c
+            _html = (typeof c === 'object') ? this.replace(c) : c
         return _html && _html.replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, n, p) => {
             return this.links(o, t, n, p)
         })
@@ -193,7 +192,6 @@ class Html {
         else error({ getForm: this })
         return ret
     }
-
 }
 export default Html
 export { debug, error, _s, nav }

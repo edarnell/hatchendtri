@@ -1,9 +1,7 @@
-const debug = console.log.bind(console)
-const error = console.error.bind(console)
 import { links } from './links'
 import { icons } from './icons'
 import { createPopper } from '@popperjs/core'
-import { nav } from './Nav'
+import Html, { nav, error, debug } from './Html'
 
 class TT {
     constructor(p, type, name, param, fm) {
@@ -129,16 +127,19 @@ class TT {
         document.body.appendChild(popup)
         const l = this.el(), link = this.lk
         l.addEventListener("click", () => this.close())
-        const p = nav.O(link.popup)
-        p.id = id
-        p.page = p
-        p.popup = this
-        p.render(p)
-        this.pop = createPopper(l, popup, {
-            placement: link.placement || 'top',
-            strategy: link.strategy || 'absolute',
-            modifiers: [{ name: 'offset', options: { offset: [0, 8], }, },],
-        })
+        const p = nav.O(link.popup, this)
+        if (!p) error({ Popup: this, Objects: link.popup })
+        else {
+            p.id = id
+            p.page = p
+            p.popup = this
+            p.render(p)
+            this.pop = createPopper(l, popup, {
+                placement: link.placement || 'top',
+                strategy: link.strategy || 'absolute',
+                modifiers: [{ name: 'offset', options: { offset: [0, 8], }, },],
+            })
+        }
     }
     close = (m) => {
         if (this.pdiv) {

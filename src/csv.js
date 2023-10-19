@@ -1,12 +1,45 @@
-import { debug } from './Html'
+import Html, { debug, nav } from './Html'
 
 function str2csv(ent) { // could add code to map first line.
     const rows = ent.split('\n')
-    const rs = rows.map(r=>r.split(',').map(s => s.replace(/[\n\r]/g, '')))
+    const rs = rows.map(r => r.split(',').map(s => s.replace(/[\n\r]/g, '')))
     return rs
 }
 
-function csv(ent, map) {
+class CSV extends Html {
+    constructor(p) {
+        super(p.p, p.name, p.param)
+        this.csv = {}
+        const n = this.name
+        this.close = () => p.close()
+        nav.d.get(n + '.csv').then(r => {
+            this.csv[n] = str2csv(nav.d.data[n + '.csv'])
+            this.reload()
+        })
+    }
+    html = (p, n) => {
+        debug({ csv: this, p, n })
+        return `<div class="card fit">
+            <div class="card-header">
+            {link.close.×}
+                <span class="title">${this.name}</span>
+            </div>
+            <div class="card-body">
+            <div class='scroll wide'>{table.${this.name}}</div>
+            </div>
+            </div>`
+    }
+    ths = (n) => {
+        debug({ ths: n })
+        if (this.csv[n]) return this.csv[n][0]
+    }
+    trs = (n) => {
+        debug({ trs: n })
+        if (this.csv[n]) return this.csv[n].slice(1)
+    }
+}
+/*
+csv = (ent, map) => {
     //const map = { first: '"First Name"', last: '"Last Name"', email: '"Email Address"' }
     const cmap = {
         first: 'Forename', last: 'Surname', gender: 'Gender',
@@ -20,9 +53,9 @@ function csv(ent, map) {
     const rows = ent.split('\n')
     const cs = {}
     const head = rows[0].split(',').map(s => s.replace(/[\n\r]/g, ''))
-    , c = {}
+        , c = {}
     head.forEach(k => c[k] = head.indexOf(k))
-    if (map===0) {
+    if (map === 0) {
         debug({ head, c })
         return c
     }
@@ -38,8 +71,7 @@ function csv(ent, map) {
     //debug({ cs })
     return cs
 }
-
-function csvE(ent) {
+csvE = (ent) => {
     //const map = { first: '"First Name"', last: '"Last Name"', email: '"Email Address"' }
     const rows = ent.split('\n')
     const cs = {}
@@ -54,6 +86,7 @@ function csvE(ent) {
     }
     //debug({ cs })
     return cs
-}
+}*/
 
-export { csv, csvE, str2csv }
+
+export default CSV 

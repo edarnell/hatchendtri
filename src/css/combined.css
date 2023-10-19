@@ -27,6 +27,12 @@ body {
     filter: brightness(0.5);
 }
 
+.scroll {
+    overflow: scroll;
+    width: 600px;
+    height: 400px;
+}
+
 .header {
     position: relative;
     height: 300px;
@@ -461,7 +467,7 @@ label {
 }
 
 .wide {
-    width: 600px;
+    width: 800px;
 }
 
 .card-header {

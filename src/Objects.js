@@ -11,6 +11,8 @@ import Results from './Results'
 import Contact from './Contact'
 import User from './User'
 import Home from './Home'
+import CSV from './CSV'
+
 const cs = {
     Home,
     Volunteer,
@@ -19,7 +21,8 @@ const cs = {
     Results,
     Contact,
     User,
-    Admin
+    Admin,
+    CSV
 }
 class H {
     O = (n, ...args) => {

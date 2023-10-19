@@ -1,6 +1,5 @@
 import Html, { debug, nav, _s } from './Html'
 import { lists, merge } from './lists'
-import { csv, csvE } from './csv'
 import html from './html/Admin.html'
 import bulk from './html/bulkEmail.html'
 import { firstLast } from './roles'
@@ -60,12 +59,11 @@ class Admin extends Html {
         this._form = this.getForm()
         this.reload('selected')
     }
-    html = (n,p) => {
-        if (n==='selected')
-        {
-        const f = this._form, s = f && f.list
-        if (s === 'results') return new AdminResults(this, 'selected')
-        else return ''
+    html = (n, p) => {
+        if (n === 'selected') {
+            const f = this._form, s = f && f.list
+            if (s === 'results') return new AdminResults(this, 'selected')
+            else return ''
         }
         else return html
     }
