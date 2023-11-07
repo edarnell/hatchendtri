@@ -17,7 +17,7 @@ class Nav extends Html {
             volunteer: { nav: 'Volunteer', hide: true, href: 'volunteer', tip: 'volunteer system' },
             admin: { nav: 'Admin', hide: true, href: 'admin', tip: 'data admin' },
             competitor: { nav: 'Competitor', hide: true, href: 'competitor', tip: 'entry system' },
-            contact: { popup: 'Contact', icon: 'email', tip: this.ctt, placement: 'bottom-end', strategy: 'fixed' },
+            contact: { popup: 'Contact', icon: 'email', tip: this.ctt, placement: 'bottom-end' },
             user: { popup: 'User', icon: 'user', tip: this.tt, placement: 'bottom-end' },
         }
         this.d = new Data(this)
@@ -28,20 +28,21 @@ class Nav extends Html {
             const H = new m.default()
             this.O = H.O
             nav = this
-            this.render(this, 'root')
+            this.d.user().then(r => {
+                this._user = r
+                this.render(this, 'root')
+            })
         })
     }
-    contact = () => new Contact()
-    user = () => new User()
     html = () => html
-    loaded = () => {
-        debug({ loaded: this.O })
-        this.login()
-    }
     image = () => {
         const bg = this.q('#background')
         bg.style.backgroundImage = images[this.i]
         this.i = (this.i + 1) % 3
+    }
+    rendered = () => {
+        this.userIcon(this._user)
+        this.load()
     }
     wrap = () => {
         // not sure this is needed now
@@ -96,15 +97,6 @@ class Nav extends Html {
                 s()
             }
             else if (token && this._user === false) this.login().then(() => s())
-        })
-    }
-    login = () => {
-        return new Promise((s, f) => {
-            this.d.user().then(r => {
-                this.userIcon(r)
-                this.load()
-                s()
-            })
         })
     }
     logout = (e, o) => {

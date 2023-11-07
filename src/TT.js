@@ -1,21 +1,25 @@
 import { links } from './links'
 import { icons } from './icons'
 import { createPopper } from '@popperjs/core'
-import Html, { nav, error, debug } from './Html'
+import { nav, error, debug } from './Html'
 
 class TT {
     constructor(p, type, name, param, fm) {
         Object.assign(this, { p, type, name, param, fm })
-        if (!fm) {
-            if (!p.tt) p.tt = {}
+        if (!fm && type !== 'img') {
             if (!name) error({ TT: this })
-            else this.id = 'TT_' + name.toLowerCase() + '_' + p.id + '_' + Object.keys(this.p.tt).length
-            p.tt[this.id] = this
+            else {
+                if (!p.tt) p.tt = {}
+                this.id = 'TT_' + name.toLowerCase() + '_' + p.id + '_' + Object.keys(this.p.tt).length
+                p.tt[this.id] = this
+            }
         }
     }
     listen = (set = true) => {
+        //debug({ listen: this, set })
         const lk = this.lk, l = this.el()
-        if (lk && set) {
+        if (!l) error({ TT: this })
+        else if (lk && set) {
             if (lk.popup || lk.click || lk.nav || lk.submit || lk.close) {
                 l.addEventListener("click", this.click)
             }
@@ -37,18 +41,21 @@ class TT {
         if (this.timer) clearTimeout(this.timer)
         this.timer = this.tt = this.tip = this.arrow = null
     }
-    remove = (e, listeners) => {
+    remove = (e, listeners, click = true) => {
+        //debug({ remove: this, e, listeners })
         this.ttremove()
+        if (this.pO) this.pO.unload(this.pO)
         if (this.pop) this.pop.destroy()
         if (this.pdiv) this.pdiv.remove()
-        this.pop = this.pdiv = null
+        this.pop = this.pdiv = this.pO = null
         if (listeners) {
             const lk = this.lk, l = this.el()
-            if (lk.hover || lk.tip) {
+            if (!l) error({ TT: this })
+            else if (lk.hover || lk.tip) {
                 l.removeEventListener("mouseenter", this.tooltip)
                 l.removeEventListener("mouseleave", this.remove)
             }
-            if (lk.click || lk.popup || lk.nav || lk.submit || this.name === 'close') l.removeEventListener("click", this.click)
+            if (click && (lk.click || lk.popup || lk.nav || lk.submit || this.name === 'close')) l.removeEventListener("click", this.click)
             else if (this.fm) l.removeEventListener("input", this.input)
         }
     }
@@ -76,13 +83,15 @@ class TT {
     }
     click = (e) => {
         const lk = this.lk
+        //debug({ TTclick: this, lk })
         if (lk) {
             e.preventDefault()
-            if (this.tt) this.timer = setTimeout(this.ttremove, 1000)
+            if (this.tt) this.timer = setTimeout(this.ttremove, lk.tip === 'close' ? 100 : 1000)
             if (lk.popup) {
-                this.popdiv(e)
+                if (this.pdiv) this.close()
+                else this.popdiv(e)
                 if (typeof lk.click === 'function') {
-                    debug({ TT: "click", o: this.o(), e, lk })
+                    debug({ TT: this, e, lk })
                     lk.click(e, this)
                 }
             }
@@ -119,21 +128,20 @@ class TT {
         tt.setAttribute('data-show', '')
     }
     popdiv = (e) => {
-        this.remove(null, true)
+        this.remove(null, true, false)
         const popup = this.pdiv = document.createElement('div'),
             id = 'popup_' + this.id
         popup.classList.add('popup')
         popup.id = id
         document.body.appendChild(popup)
-        const l = this.el(), link = this.lk
-        l.addEventListener("click", () => this.close())
-        const p = nav.O(link.popup, this)
+        const l = this.el(), link = this.lk,
+            p = this.pO = nav.O(link.popup, this)
         if (!p) error({ Popup: this, Objects: link.popup })
         else {
             p.id = id
-            p.page = p
             p.popup = this
             p.render(p)
+            //debug({ popdiv: this, popup, p, l, link })
             this.pop = createPopper(l, popup, {
                 placement: link.placement || 'top',
                 strategy: link.strategy || 'absolute',
@@ -142,11 +150,15 @@ class TT {
         }
     }
     close = (m) => {
+        //debug({ close: this, m })
         if (this.pdiv) {
-            if (this.pop) this.pop.destroy()
-            else debug({ TT: "close", o: this.o() })
-            this.pdiv.remove()
-            this.el().removeEventListener("click", this.close)
+            if (this.pop && this.pO) {
+                this.pO.unload(this.pO)
+                this.pdiv.remove()
+                this.pop.destroy()
+                this.pO = this.pop = this.pdiv = null
+            }
+            else error({ TT: this })
             if (m) {
                 this.tooltip(null, m)
                 this.timer = setTimeout(() => {

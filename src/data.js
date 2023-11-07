@@ -41,9 +41,9 @@ class Data {
         }
         else return null
     }
-    check = (req) => {
-        if (Array.isArray(req)) return req.every(r => this.data[r])
-        else return this.data[req]
+    check = async (req) => {
+        if (Array.isArray(req.data)) return req.every(r => this.data[r])
+        else return this.data[req && req.data]
     }
     get = (req) => {
         if (Array.isArray(req)) return Promise.all(req.map(r => r && this.get(r)))
@@ -51,8 +51,8 @@ class Data {
             if (this.data[req]) s(this)
             else if (localStorage.getItem(req) && !req.endsWith('.csv')) {
                 const { date, data: d } = JSON.parse(localStorage.getItem(req))
-                debug({ storage:req})
-                this.data[req] = req.endsWith('.csv')?d:unzip(d)
+                debug({ storage: req })
+                this.data[req] = unzip(d)
                 this.data[req + '_date'] = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
                     .format(new Date(date)).replace(",", " at ")
                 debug({ req, date: this.data[req + '_date'], data: this.data[req] })
@@ -70,13 +70,13 @@ class Data {
             }
             else ajax({ req: 'files', files: [req] }).then(r => {
                 if (r.zips && r.zips[req]) {
-                    debug({ req:r })
-                    if (req.endsWith('.csv')) this.data[req] = r.zips[req]
+                    debug({ req: r })
+                    if (req.endsWith('.csv') || req === 'photos') this.data[req] = r.zips[req]
                     else {
                         localStorage.setItem(req, JSON.stringify(r.zips[req]))
                         this.data[req] = unzip(r.zips[req].data)
                         this.data[req + '_date'] = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
-                        .format(new Date(r.zips[req].date)).replace(",", " at ")
+                            .format(new Date(r.zips[req].date)).replace(",", " at ")
                     }
                     s(this)
                 }

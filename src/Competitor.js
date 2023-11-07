@@ -103,7 +103,7 @@ class Competitor extends Html {
   }
   comp2023 = () => {
     const user = nav._user && nav._user.comp,
-      cs = this.d.data['cs'], ret = cs && Object.values(cs).filter(this.filter)
+      cs = nav.d.data['cs'], ret = cs && Object.values(cs).filter(this.filter)
         .map(c => [c.n, c.brief, c.start, c.first, c.last,
         c.ageGroup,
         `{link.mf.${mfmap[c.gender]}}`, c.club || ''])

@@ -7,7 +7,9 @@ import email_active from './icon/email_active.svg'
 import jetstream from './icon/jetstream.svg'
 import save from './icon/save.svg'
 import save_red from './icon/save_red.svg'
+import photo from './icon/photo.svg'
 const icons = {
+    photo: { default: photo, active: photo },
     edit: { default: edit, active: edit },
     user: { default: user, active: user_active },
     menu: { default: menu, active: menu },

@@ -4,8 +4,9 @@ import { ajax } from './ajax'
 import { nav } from './Nav'
 
 class Contact extends Html {
-    constructor() {
+    constructor(p, uid) {
         super()
+        if (uid && nav.d.data.vs[uid]) this._to = uid
         this.spam = Math.floor(Math.random() * 3)
     }
     form = () => {
@@ -28,10 +29,10 @@ class Contact extends Html {
         return html
     }
     var = (name) => {
-        const user = nav._user
+        const user = nav._user, to = this._to && nav.d.data.vs[this._to]
         if (name === 'name_email') return `${user ? '' : '{input.name}<br />{input.email}<br />'}`
         if (name === 'spam') return `${user ? '' : '{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} '}`
-        return 'Hatch End Triathlon'
+        return to ? to.name : 'Hatch End Triathlon'
     }
     spamtt = () => {
         const complete = this.checkForm(), m = this.form.message

@@ -10,10 +10,7 @@ class IN extends TT {
         const f = this.p._p('form'), form = f && f()
         this.lk = form && form[name]
         if (!this.lk) error({ IN: this, f, form, name })
-        else {
-            if (!p.frm) p.frm = {}
-            p.frm[name] = this
-        }
+        else (p.frm || (p.frm = {}))[name] = this
     }
     html = () => {
         const { lk, name, type, param } = this

@@ -5,9 +5,10 @@ import { roles, sections, firstLast } from './roles'
 import Vol from './Vol'
 
 class Vselect extends Html {
-    constructor() {
+    constructor(p, name) {
         super()
         this.data = 'vs'
+        this.name = name
         this.id = 'vselect'
     }
     form = () => {
@@ -17,15 +18,14 @@ class Vselect extends Html {
             new: { class: "form green hidden", popup: new Vol() }
         }
     }
-    link = (o) => {
-        const { name, param } = o.attr()
+    link = (name, param) => {
         if (name === 'close') return { class: 'close', tip: 'close', click: this.popup.close }
         else if (name === 'new') return { tip: 'check existing first' }
         else if (name === 'request') return { tip: 'click to request', click: this.request }
         else if (name.charAt(0) === '_') return { theme: 'light', tip: this.tip, click: this.setid }
     }
     request = () => {
-        const { name, param } = this.attr(),
+        const { name } = this,
             [, aj, s, r] = name.match(/([sajf])_(\d{1,2})r_(\d{1,2})/),
             sec = sections[s], rs = roles(sec), role = rs[r],
             t = { a: 'Adult', j: 'Junior', s: '', f: '' }
@@ -43,8 +43,7 @@ class Vselect extends Html {
         this.innerHTML = `<div class="message error">Request Error</div>`
         setTimeout(this.popup.close, 3000)
     }
-    var = (o) => {
-        const { name, param } = o.attr()
+    var = (name) => {
         if (name === 'title') {
             const { name, param } = this.attr()
             debug({ title: { name, param } })
@@ -61,16 +60,14 @@ class Vselect extends Html {
             }
         }
     }
-    html = (o) => {
-        if (!o) {
-            if (nav.admin()) return select
+    html = (n, p) => {
+        debug({ html: this, n, p })
+
+        if (!p) {
+            if (nav.d.admin()) return select
             else return selectV
         }
-        else return this.vol_names(o)
-    }
-    form = (o) => {
-        const { name, param } = o.attr()
-        return form[name]
+        //else return this.vol_names(p)
     }
     nameSort = (a, b) => {
         const { last: al, first: af } = firstLast(a.name), { last: bl, first: bf } = firstLast(b.name)
@@ -81,7 +78,7 @@ class Vselect extends Html {
         return 0
     }
     filter = () => {
-        const f = this.getForm(form), filter = this._name = f.name
+        const f = this.getForm(), filter = this._name = f.name
         if (filter) {
             const vs = page.vs
             return Object.keys(vs).filter(id => vs[id].name.toLowerCase().indexOf(filter.toLowerCase()) > -1)

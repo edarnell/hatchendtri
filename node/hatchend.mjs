@@ -8,14 +8,19 @@ import jwt from 'jsonwebtoken'
 import fs from 'fs'
 
 const config = f('config.json', true)
-const ps = fs.readFileSync('./photos/2023.txt').toString().split('\n')
-function photos(cn) {
-    return ps.filter(n => n.startsWith(`${cn} `));
-}
-
 log4js.configure(config.log4js)
 const log = log4js.getLogger()
 log.info("Started")
+const photos = {},
+    ps = fs.readFileSync('./photos/2023.txt').toString().split('\r\n')
+ps.forEach(p => {
+    const ids = p.split(' ')
+    let id = ids.shift()
+    while (id.match(/^\d+$/)) {
+        photos[id] = [...(photos[id] || []), p]
+        id = ids.shift()
+    }
+})
 log.info("Loaded data")
 
 const app = express()
@@ -83,6 +88,7 @@ app.post(config.url, (m, r) => {
             let ok = true
             files.forEach(fn => {
                 if (aed && fn.endsWith('.csv')) zips[fn] = f(`lists/${fn}`, true)
+                else if (fn === 'photos') zips[fn] = (aed ? photos : Object.keys(photos))
                 else if (aed && fn === 'vs_') zips[fn] = f(`gz/${fn}.gz`)
                 else if (aed && fn === 'cs_') zips[fn] = f(`gz/${fn}.gz`)
                 else if (sec(fn) && !auth) ok = false

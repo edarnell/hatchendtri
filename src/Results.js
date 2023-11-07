@@ -3,8 +3,8 @@ import html from './html/Results.html'
 import photo from './icon/photo.svg'
 
 class Results extends Html {
-  constructor() {
-    super()
+  constructor(p, name) {
+    super(p, name)
     this.id = 'results'
     this.data = 'results'
   }
@@ -15,7 +15,7 @@ class Results extends Html {
       cat: { tip: 'select category', options: ['Cat', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Y', 'Adult', 'S*', 'SY', 'S1', 'S2', 'S3', 'S4', 'V*', 'V1', 'V2', 'V3', 'V4'] },
       year: {
         tip: 'select year',
-        options: ['Year', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2017', '2018', '2019', '2022', '2023']
+        options: ['Year', '2023', '2022', '2019', '2018', '2017', '2014', '2013', '2012', '2011', '2010', '2009', '2008', '2007', '2006', '2005', '2004', '2003', '2002', '2001', '2000']
       },
       n: { tip: 'show first N results', options: ['N', '1', '3', '5', '10', '20'] },
       C: { tip: 'clear all filters', class: 'form red bold hidden', click: this.C },
@@ -27,10 +27,11 @@ class Results extends Html {
     this.refresh()
   }
   input = (e, o) => {
+    debug({ input: this, e, o })
     this.form_data = this.getForm()
     this.refresh()
   }
-  loaded = () => {
+  rendered = () => {
     this.form_data = this.getForm()
   }
   html = (name, param) => {
@@ -78,7 +79,7 @@ class Results extends Html {
   }
   refresh = () => {
     const f = this.form_vals(),
-      blank = Object.keys(f).filter(k => f[k] === '').length,
+      blank = Object.keys(f).filter(k => f[k] !== '').length,
       c = this.fe('C')
     c && c.classList[blank ? 'remove' : 'add']('hidden')
     this.reload('results_all')
@@ -164,7 +165,7 @@ class Results extends Html {
       else if (n) rr = r[c.Pos] * 1 <= n ? r : null
       else rr = r
       if (rr) {
-        const photo = this.photos(year, r[c['#']])
+        const photo = this.photos(yr, r[c['#']])
         if (photo) r[c.Pos] = `${_n} ${photo}`
         filtered.push(rr)
       }

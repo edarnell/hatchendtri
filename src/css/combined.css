@@ -466,6 +466,10 @@ label {
     overflow: hidden;
 }
 
+.resize {
+    resize: both;
+}
+
 .wide {
     width: 800px;
 }
@@ -537,6 +541,18 @@ label {
     border: none;
     outline: none;
     /* outline doesn't occupy space like border does */
+}
+
+.thumb {
+    width: 150px;
+    height: 100px;
+    object-fit: contain;
+}
+
+.photo {
+    width: 600px;
+    height: 400px;
+    object-fit: contain;
 }
 
 @media print {

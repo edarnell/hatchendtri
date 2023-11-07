@@ -2,6 +2,7 @@ import Html, { debug, nav } from './Html'
 
 function str2csv(ent) { // could add code to map first line.
     const rows = ent.split('\n')
+    if (/^\s*$/.test(rows[rows.length - 1])) rows.pop() // remove last line if blank
     const rs = rows.map(r => r.split(',').map(s => s.replace(/[\n\r]/g, '')))
     return rs
 }
@@ -10,12 +11,12 @@ class CSV extends Html {
     constructor(p) {
         super(p.p, p.name, p.param)
         this.csv = {}
-        const n = this.name
         this.close = () => p.close()
-        nav.d.get(n + '.csv').then(r => {
-            this.csv[n] = str2csv(nav.d.data[n + '.csv'])
-            this.reload()
-        })
+        this.data = this.name + '.csv'
+    }
+    loaded = () => {
+        this.csv[this.name] = str2csv(nav.d.data[this.name + '.csv'])
+        //debug({ csv: this, csv: this.csv[this.name] })
     }
     html = (p, n) => {
         debug({ csv: this, p, n })
@@ -25,16 +26,16 @@ class CSV extends Html {
                 <span class="title">${this.name}</span>
             </div>
             <div class="card-body">
-            <div class='scroll wide'>{table.${this.name}}</div>
+            <div class='scroll wide resize'>{table.${this.name}}</div>
             </div>
             </div>`
     }
     ths = (n) => {
-        debug({ ths: n })
+        //debug({ ths: n })
         if (this.csv[n]) return this.csv[n][0]
     }
     trs = (n) => {
-        debug({ trs: n })
+        //debug({ trs: n })
         if (this.csv[n]) return this.csv[n].slice(1)
     }
 }
@@ -88,5 +89,5 @@ csvE = (ent) => {
     return cs
 }*/
 
-
+export { str2csv }
 export default CSV 

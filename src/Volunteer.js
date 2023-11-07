@@ -14,19 +14,13 @@ class Volunteer extends Html {
   vol = (id) => {
     return new Vol(id)
   }
-  vsel = (id) => {
-    return new Vselect(id)
-  }
-  contact = (id) => {
-    return new Contact(id)
-  }
   var = (n, p) => {
     if (n === 'name') return nav.d.name()
   }
-  loaded = () => {
+  rendered = () => {
     if (nav.d.admin()) {
       const n = this.fe('New')
-      if (n) n.classList.remove('active')
+      if (n) n.classList.remove('hidden')
     }
   }
   form = () => {
@@ -34,13 +28,13 @@ class Volunteer extends Html {
       filter: { placeholder: 'name filter', width: '50rem' },
       nr: { class: "form", options: ['Roles', 'Names'], tip: 'Display by role or name' },
       C: { class: 'hidden form red bold', tip: 'clear name', click: 'submit' },
-      New: { class: 'form green hidden', tip: 'add new volunteer', popup: this.vsel, placement: 'bottom' }
+      New: { class: 'form green hidden', tip: 'add new volunteer', popup: 'Vselect', placement: 'bottom' }
     }
   }
   link = (name, param) => {
     const id = name.substring(1), vol = nav.d.data.vs[id]
     if (vol) {
-      return { tip: this.tip, theme: 'light', class: this.color(id), popup: () => this.contact(id) }
+      return { tip: this.tip, theme: 'light', class: this.color(id), popup: `{Contact.${id}}` }
     }
   }
   html = (name, param) => {
@@ -209,7 +203,7 @@ class Vroles extends Html {
     }
     else if (name.charAt(1) === '_') {
       const f = { a: 'adult', j: 'junior', s: 'both', f: 'both' }, ajs = f[name.charAt(0)]
-      return { tip: `fill ${ajs}`, popup: () => this.vsel(name) }
+      return { tip: `fill ${ajs}`, popup: `{Vselect.${name}}` }
     }
     else return this.plink(name, param)
   }

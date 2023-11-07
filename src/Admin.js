@@ -52,7 +52,10 @@ class Admin extends Html {
         //this.f = { results: () => new AdminResults(this) }
     }
     form = () => { // section and options populated on load
-        return { list: { options: ['select', 'results', 'cs', 'csE', 'vs', 'labels', 'alabels', 'jlabels', 'v2023', 'm2023', 'c2023', 'prev', 'bounce', 'unsub'] } }
+        return {
+            list: { options: ['select', 'results', 'cs', 'csE', 'vs', 'labels', 'alabels', 'jlabels', 'v2023', 'm2023', 'c2023', 'prev', 'bounce', 'unsub'] },
+            save: { class: 'form red', click: this.save, tip: 'disabled' },
+        }
     }
     input = (e, o) => {
         const { name, param } = o
@@ -62,7 +65,7 @@ class Admin extends Html {
     html = (n, p) => {
         if (n === 'selected') {
             const f = this._form, s = f && f.list
-            if (s === 'results') return new AdminResults(this, 'selected')
+            if (s === 'results') return new AdminResults(this.div.selected, 'admin_results')
             else return ''
         }
         else return html
@@ -104,11 +107,8 @@ class Admin extends Html {
         }).catch(e => this.error(e, o))
     }
     save = (e, o) => {
-        /* comment to prevent accidental save
-        if (page.cs_) req({ req: 'save', files: { cs: page.cs_ } }).then(r => {
-            debug({ r })
-        }).catch(e => this.error(e, o))
-        */
+        debug({ save: this, e, o })
+        if (this.div.selected && this.div.selected.save) this.div.selected.save(e, o)
     }
     error = (e, o) => {
         debug({ e })

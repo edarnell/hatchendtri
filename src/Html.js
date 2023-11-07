@@ -2,6 +2,7 @@ const debug = console.log.bind(console)
 const error = console.error.bind(console)
 import TT from './TT'
 import IN from './IN'
+import Img from './Img'
 import Table from './Table'
 import { nav } from './Nav'
 
@@ -17,28 +18,14 @@ class Html {
     constructor(p, name, param) {
         if (p) {
             Object.assign(this, { p, name, param })
-            const id = this.id = name + (param ? '_' + param : '')
-            if (!p.div) p.div = {}
-            p.div[id] = this
+            const id = this.id = name + (param ? '_' + param : '');
+            (p.div || (p.div = {}))[id] = this
         }
     }
     _p = (f) => {
         if (this[f]) return this[f]
         else if (this.p) return this.p._p(f)
         // else return undefined
-    }
-    _c = (d) => {
-        let ret
-        if (Array.isArray(this[d])) ret = [...this[d]]
-        else if (this[d]) ret = [this[d]]
-        if (this.div) {
-            Object.keys(this.div).forEach(k => {
-                const div = this.div[k], r = div._c(d)
-                if (Array.isArray(r)) ret = ret ? [...ret, ...r] : [...r]
-                else if (r) ret ? ret.push(r) : ret = [r]
-            })
-        }
-        if (ret) return ret
     }
     plink = (name, param) => {
         const p = this.p, l = p && p._p('link')
@@ -57,39 +44,45 @@ class Html {
         return l
     }
     render(o, id = o.id) {
-        debug({ render: { o, id } })
-        if (o.data && !nav.d.check(o.data)) nav.d.get(o.data).then(r => {
-            this.render(o, id)
-        })
-        else {
-            if (o === this) this.unload(this)
-            else if (o.p && o.p.div[id]) {
-                this.unload(o.p.div[id])
-                o.p.div[id] = o
-            }
-            const _html = this.replace(o)
+        //debug({ render: { o, id } })
+        if (o === this) this.unload(this)
+        else if (o.p && o.p.div[id]) {
+            this.unload(o.p.div[id])
+            o.p.div[id] = o
+        }
+        this.replace(o).then(_html => {
             const e = this.q(`#${id}`)
             if (e) e.innerHTML = _html
             else error({ render: this, id })
             requestAnimationFrame(() => {
-                //debug({ render: done })
+                debug({ render: this, o, id, _html })
                 this.listen(o)
-                if (o.loaded) o.loaded()
+                if (o.rendered) o.rendered()
             })
-        }
+        }).catch(e => error({ render: { o, id, e } }))
     }
-    replace = (o, html) => {
+    replace = async (o, html) => {
+        if (!html && o && o.data) {
+            await nav.d.get(o.data)
+            if (o.loaded) o.loaded()
+        }
         const c = (html || o._p('html')(o.name, o.param)),
-            _html = (typeof c === 'object') ? this.replace(c) : c
-        return _html && _html.replace(/\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?}/g, (match, t, n, p) => {
-            return this.links(o, t, n, p)
-        })
+            _html = (typeof c === 'object') ? await this.replace(c) : c
+        //debug({ replace: { o, html, _html } })
+        return _html && this.rep(o, _html)
+    }
+    rep = async (o, h) => {
+        let r = /\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?\}/g
+        let ms = Array.from(h.matchAll(r))
+        let rs = await Promise.all(ms.map(m => this.links(o, m[1], m[2], m[3])))
+        return ms.reduce((res, m, i) => res.replace(m[0], rs[i]), h)
     }
     listen = (p) => {
-        //debug({ listen: p.id, p })
+        //debug({ listen: this, p })
         if (p.div) Object.keys(p.div).forEach(d => this.listen(p.div[d]))
         if (p.tt) Object.keys(p.tt).forEach(id => p.tt[id].listen())
         if (p.frm) Object.keys(p.frm).forEach(id => p.frm[id].listen())
+        if (p.img) Object.keys(p.img).forEach(id => p.img[id].listen())
     }
     unload = (p) => {
         //debug({ unload: p.id })
@@ -105,6 +98,10 @@ class Html {
             Object.keys(p.frm).forEach(id => p.frm[id].remove(null, true))
             p.frm = {}
         }
+        if (p.img) {
+            Object.keys(p.img).forEach(id => p.img[id].remove(null, true))
+            p.img = {}
+        }
     }
     pdiv = (n) => {
         const d = this.div && this.div[n]
@@ -117,10 +114,10 @@ class Html {
         else {
             const div = this.pdiv(n)
             if (div) this.render(div)
-            else error({ reload: n })
+            else error({ reload: this, n })
         }
     }
-    links = (o, t, n, p) => {
+    links = async (o, t, n, p) => {
         if (t === 'div') {
             const h = o._p('html')(n, p)
             if (typeof h === 'string') {
@@ -146,6 +143,10 @@ class Html {
         else if (['svg', 'nav', 'link'].includes(t)) {
             const tt = new TT(o, t, n, p)
             return tt.html()
+        }
+        else if (t === 'img') {
+            const img = new Img(o, t, n, p)
+            return img.html()
         }
         else {
             const h = nav.O(t, this, n, p)

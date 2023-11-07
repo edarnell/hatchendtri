@@ -12,6 +12,8 @@ import Contact from './Contact'
 import User from './User'
 import Home from './Home'
 import CSV from './CSV'
+import Photos from './Photos'
+import Vselect from './Vselect'
 
 const cs = {
     Home,
@@ -22,13 +24,22 @@ const cs = {
     Contact,
     User,
     Admin,
-    CSV
+    CSV,
+    Photos,
+    Vselect
 }
 class H {
     O = (n, ...args) => {
-        const C = cs[n]
-        if (!C) error({ O: { n, args } })
-        return C ? new C(...args) : null
+        let m = n.match(/^\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?\}$/)
+        if (m) return this.O(m[1], ...args, m[2], m[3])
+        else {
+            const C = cs[n]
+            if (!C) error({ O: { n, args } })
+            return C ? new C(...args) : null
+        }
+    }
+    OP = (n, ...args) => {
+        m = n.match(/\{(.*)\}/)
     }
 }
 
