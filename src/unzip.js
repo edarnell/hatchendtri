@@ -9,4 +9,11 @@ function unzip(z) {
     return j
 }
 
-export { unzip }
+function zip(j) {
+    const s = JSON.stringify(j), b = Buffer.from(s),
+        z = deflate(b)
+    debug({ zip: s, in: s.length, out: z.length })
+    return z
+}
+
+export { zip, unzip }

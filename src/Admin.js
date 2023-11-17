@@ -108,7 +108,8 @@ class Admin extends Html {
     }
     save = (e, o) => {
         debug({ save: this, e, o })
-        if (this.div.selected && this.div.selected.save) this.div.selected.save(e, o)
+        const div = this.div.selected, d2 = div && div.div, ar = d2 && d2.admin_results
+        if (ar) ar.save(e, o)
     }
     error = (e, o) => {
         debug({ e })

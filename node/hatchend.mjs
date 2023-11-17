@@ -24,7 +24,18 @@ ps.forEach(p => {
 log.info("Loaded data")
 
 const app = express()
-app.use(express.json())
+app.use((req, res, next) => {
+    req.rawBody = ''
+    req.on('data', function (chunk) {
+        req.rawBody += chunk
+    })
+    req.on('end', function () {
+        console.log(`Size of request body: ${Buffer.byteLength(req.rawBody)} bytes`);
+        req.body = JSON.parse(req.rawBody)
+        next()
+    })
+})
+//app.use(express.json())
 
 function resp(req, r, json, status) {
     if (status) {

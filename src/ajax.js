@@ -24,6 +24,7 @@ function params(data) {
     cache: 'no-cache',
     body: JSON.stringify(data)
   }
+  debug({ ajax: JSON.stringify(data).length })
   const token = localStorage.getItem('token')
   if (token) ret.headers.Authorization = 'Bearer ' + token
   return ret

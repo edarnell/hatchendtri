@@ -1,6 +1,9 @@
 import Results from './Results'
 import { debug, error, nav } from './Html'
 import { str2csv } from './CSV'
+import { ajax } from './ajax'
+import { zip } from './unzip'
+import { Buffer } from 'buffer'
 
 class AdminResults extends Results {
     constructor(p, name) {
@@ -70,6 +73,13 @@ class AdminResults extends Results {
     }
     save = (e, o) => {
         debug({ AdminResults: this, e, o })
+        const r = zip(nav.d.data.results[2023]),
+            base64 = Buffer.from(r).toString('base64'),
+            results = JSON.stringify(base64)
+        debug({ save: r.length, json: results.length })
+        ajax({ req: 'save', zips: { results } }).then(r => {
+            debug({ r })
+        }).catch(e => error(e))
     }
     /*
     html = () => {
