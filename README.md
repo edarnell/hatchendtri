@@ -1,22 +1,24 @@
-# Friendlink
+# Hatch End Triathlon
 
-Friendlink is a website designed to keep real friendship alive. It is not (anti)social media.
-The software works directly with the DOM using HTMLElements.
-It makes extensive use of webpack to ensure highly modular design with code, styling & html. 
+Software to run the Hatch End Triathlon website and  volunteers system.
+
+## Using
+You may pull the software but it will not be fully functional until the server side is configured. Contact Ed for help with this.
 
 ## Installation
-
-Use the npm package manager to install friendlink.
-
 ```bash
-git clone git@github.com:edarnell/friendlink.git
-cd friendlink
-npm install
+git clone git@github.com:edarnell/hatchendtri.git
 ```
-
-## Usage
-
+### Client Startup Instructions
 ```bash
+cd hatchendtri
+npm install
+npm start
+```
+### Server Startup Instructions
+```bash
+cd hatchendtri/node
+npm install
 npm start
 ```
 

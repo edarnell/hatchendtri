@@ -3,3 +3,5 @@ hatchendtri.code-workspace
 package-lock.json
 dist
 src/tidy
+xx*
+public/Identified
