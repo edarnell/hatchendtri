@@ -55,7 +55,7 @@ class Html {
             if (e) e.innerHTML = _html
             else error({ render: this, id })
             requestAnimationFrame(() => {
-                debug({ render: this, o, id, _html })
+                //debug({ render: this, o, id, _html })
                 this.listen(o)
                 if (o.rendered) o.rendered()
             })
