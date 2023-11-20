@@ -185,6 +185,15 @@ app.post(config.url, (m, r) => {
                     })
                     resp(req, r, { comp: c })
                 }
+                else if (json.zips) {
+                    const { zips } = json, fs = Object.keys(zips)
+                    log.info('req->', req, fs)
+                    fs.forEach(fn => {
+                        saveZ(fn, zips[fn], true)
+                        zips[fn] = f(`gz/${fn}.gz`)
+                    })
+                    resp(req, r, { zips })
+                }
                 else if (json.files) {
                     const { files } = json, zips = {}, fs = Object.keys(files)
                     log.info('req->', req, fs)
