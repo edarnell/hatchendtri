@@ -6,7 +6,11 @@ function ajax(req) // token used when state not yet set
     fetch('/ajax', params(req))
       .then(res => {
         if (!res.ok) f({ res })
-        else return req.gz ? res.text() : res.json()
+        else {
+          const size = new Blob([res]).size
+          debug({ res: size })
+          return req.gz ? res.text() : res.json()
+        }
       }).then(r => s(r))
       .catch(e => f(e))
   })

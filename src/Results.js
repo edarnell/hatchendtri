@@ -1,12 +1,15 @@
 import Html, { debug, error, _s, nav } from './Html.js'
 import html from './html/Results.html'
-import photo from './icon/photo.svg'
 
 class Results extends Html {
   constructor(p, name) {
     super(p, name)
     this.id = 'results'
-    this.data = 'results'
+    this.data = ['results', 'photos']
+  }
+  loaded = () => {
+    debug({ loaded: nav.d.data })
+    //this.refresh()
   }
   form = () => {
     const form = {
@@ -32,6 +35,7 @@ class Results extends Html {
     this.refresh()
   }
   rendered = () => {
+    debug({ rendered: nav.d.data })
     this.form_data = this.getForm()
   }
   html = (name, param) => {
@@ -39,9 +43,17 @@ class Results extends Html {
     else if (name === 'results_year') return this.results_year(param)
     else return html
   }
+  photos = (year, num) => {
+    const photos = nav.d.data.photos
+    return (photos && year === '2023' && photos[num]) ? `{link.photos.${num}}` : null
+  }
   link = (name, param) => {
     if (name === 'year') return { tip: `${param.replace(/_/g, " ")} all results`, click: this.year }
     else if (name === 'name') return { tip: `${param.replace(/_/g, " ")} all results`, click: this.name }
+    else if (name === 'photos') {
+      const photos = nav.d.data.photos[param]
+      return { popup: 'Photos', placement: 'auto', icon: 'photo', tip: `${photos.length} photos` }
+    }
     else debug({ link: { name, param } })
   }
   ths = (name, param) => {
@@ -179,11 +191,11 @@ class Results extends Html {
           ${years.map(y => `<option ${y === year ? 'selected' : ''}>${y}</option>`).join('')}
         </select></div>`
   }
-  photos = (year, num) => {
+  /*photos = (year, num) => {
     return (this.np && year === '2022' && this.np[num]) ? `<image class="icon" name="${num}" src="${photo}">` : null
-  }
+  }*/
   cols(year) {
-    const r = nav.d.data['results'], c = {}
+    const r = nav.d.data.results, c = {}
     r[year][0].forEach((n, i) => { c[n] = i })
     return c
   }
@@ -191,7 +203,7 @@ class Results extends Html {
     return `<h5>{link.year.${year}}</h5>{table.results_year.${year}}`
   }
   results_all = () => {
-    const r = nav.d.data['results'], years = Object.keys(r).reverse()
+    const r = nav.d.data.results, years = Object.keys(r).reverse()
     let n = 0
     //debug({ years, r })
     return years.map(year => {

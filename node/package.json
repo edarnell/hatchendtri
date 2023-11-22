@@ -17,7 +17,8 @@
     "googleapis": "^125.0.0",
     "jsonwebtoken": "^9.0.0",
     "log4js": "^6.6.1",
-    "pako": "^2.0.4"
+    "pako": "^2.0.4",
+    "sharp": "^0.32.6"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

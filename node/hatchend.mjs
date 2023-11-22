@@ -1,7 +1,7 @@
 // npm install @aws-sdk/client-ses
 const debug = console.log.bind(console)
 import express from 'express'
-import { f, fz, save, sec, saveM } from './zip.mjs'
+import { f, fz, save, sec, saveM, unzip } from './zip.mjs'
 import { send, send_list } from './mail.mjs'
 import log4js from "log4js"
 import jwt from 'jsonwebtoken'
@@ -83,6 +83,14 @@ function get_comp(id, email) {
         self = id && us.some(u => u.id === id)
     if (id && (self || admin)) return cs[id]
     else if (!id) return us.length ? us : null
+}
+
+function saveRZ(rz) {
+    const r = fz('gz/results.gz'),
+        r23 = unzip(rz, true)
+    r[2023] = r23
+    save('results', r)
+    console.log('saveRZ', Object.keys(r), Object.keys(r23))
 }
 
 app.post(config.url, (m, r) => {
@@ -186,13 +194,14 @@ app.post(config.url, (m, r) => {
                     resp(req, r, { comp: c })
                 }
                 else if (json.zips) {
-                    const { zips } = json, fs = Object.keys(zips)
+                    const { zips } = json, fs = Object.keys(zips),
+                        saved = {}
                     log.info('req->', req, fs)
                     fs.forEach(fn => {
-                        saveZ(fn, zips[fn], true)
-                        zips[fn] = f(`gz/${fn}.gz`)
+                        saveRZ(zips[fn])
+                        saved[fn] = fn
                     })
-                    resp(req, r, { zips })
+                    resp(req, r, saved)
                 }
                 else if (json.files) {
                     const { files } = json, zips = {}, fs = Object.keys(files)

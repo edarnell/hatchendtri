@@ -20,8 +20,8 @@ class Photos extends Html {
     }
     image = (n, p) => {
         //debug({ image: this, n, p })
-        const photos = nav.d.data.photos[n]
-        return { tip: `enlarge`, class: this.pn ? 'photo' : 'thumb', click: this.photo, src: `Identified/${photos[p]}` }
+        const photos = nav.d.data.photos[n], pn = this.pn
+        return { tip: `enlarge`, class: pn ? 'photo' : 'thumb', click: this.photo, src: `Identified/${pn ? '' : 'thumbs/'}${photos[p]}` }
     }
     photo = (e, o) => {
         const { name, param } = o
