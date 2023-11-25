@@ -7,8 +7,6 @@ function ajax(req) // token used when state not yet set
       .then(res => {
         if (!res.ok) f({ res })
         else {
-          const size = new Blob([res]).size
-          debug({ res: size })
           return req.gz ? res.text() : res.json()
         }
       }).then(r => s(r))
@@ -28,7 +26,6 @@ function params(data) {
     cache: 'no-cache',
     body: JSON.stringify(data)
   }
-  debug({ ajax: JSON.stringify(data).length })
   const token = localStorage.getItem('token')
   if (token) ret.headers.Authorization = 'Bearer ' + token
   return ret

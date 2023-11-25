@@ -9,7 +9,7 @@ import Competitor from './Competitor'
 import Details from './Details'
 import Results from './Results'
 import Contact from './Contact'
-import User from './User'
+import User, { Login } from './User'
 import Home from './Home'
 import CSV from './CSV'
 import Photos from './Photos'
@@ -26,7 +26,8 @@ const cs = {
     Admin,
     CSV,
     Photos,
-    Vselect
+    Vselect,
+    Login
 }
 class H {
     O = (n, ...args) => {

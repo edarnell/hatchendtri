@@ -8,8 +8,9 @@ import jetstream from './icon/jetstream.svg'
 import save from './icon/save.svg'
 import save_red from './icon/save_red.svg'
 import photo from './icon/photo.svg'
+import photo_grey from './icon/photo_grey.svg'
 const icons = {
-    photo: { default: photo, active: photo },
+    photo: { default: photo_grey, active: photo },
     edit: { default: edit, active: edit },
     user: { default: user, active: user_active },
     menu: { default: menu, active: menu },

@@ -50,31 +50,27 @@ class Html {
             this.unload(o.p.div[id])
             o.p.div[id] = o
         }
-        this.replace(o).then(_html => {
-            const e = this.q(`#${id}`)
-            if (e) e.innerHTML = _html
-            else error({ render: this, id })
-            requestAnimationFrame(() => {
-                //debug({ render: this, o, id, _html })
-                this.listen(o)
-                if (o.rendered) o.rendered()
-            })
-        }).catch(e => error({ render: { o, id, e } }))
+        const _html = this.replace(o)
+        const e = this.q(`#${id}`)
+        if (e) e.innerHTML = _html
+        else error({ render: this, id })
+        requestAnimationFrame(() => {
+            //debug({ render: this, o, id, _html })
+            this.listen(o)
+            if (o.rendered) o.rendered()
+        })
     }
-    replace = async (o, html) => {
-        if (!html && o && o.data) {
-            await nav.d.get(o.data)
-            if (o.loaded) o.loaded()
-        }
+    replace = (o, html) => {
+        if (!html && o && o.data) nav.d.get(o.data).then(o.loaded)
         const c = (html || o._p('html')(o.name, o.param)),
-            _html = (typeof c === 'object') ? await this.replace(c) : c
+            _html = (typeof c === 'object') ? this.replace(c) : c
         //debug({ replace: { o, html, _html } })
         return _html && this.rep(o, _html)
     }
-    rep = async (o, h) => {
+    rep = (o, h) => {
         let r = /\{([\w_]+)(?:\.([^\s}.]+))?(?:\.([^\s}]+))?\}/g
         let ms = Array.from(h.matchAll(r))
-        let rs = await Promise.all(ms.map(m => this.links(o, m[1], m[2], m[3])))
+        let rs = ms.map(m => this.links(o, m[1], m[2], m[3]))
         return ms.reduce((res, m, i) => res.replace(m[0], rs[i]), h)
     }
     listen = (p) => {
@@ -117,7 +113,7 @@ class Html {
             else error({ reload: this, n })
         }
     }
-    links = async (o, t, n, p) => {
+    links = (o, t, n, p) => {
         if (t === 'div') {
             const h = o._p('html')(n, p)
             if (typeof h === 'string') {

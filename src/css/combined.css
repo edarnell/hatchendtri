@@ -8,20 +8,26 @@ body {
     font-size: 1rem;
     line-height: 1.5;
     font-family: Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    overflow: auto !important;
 }
 
 /* margin: [top] [right] [bottom] [left]; */
+.header {
+    position: relative;
+    height: 300px;
+}
+
 .background-image {
+    content: "";
     position: absolute;
+    z-index: -1;
     top: 0;
     left: 0;
-    height: 300px;
-    width: 100%;
-    overflow: hidden;
-    vertical-align: center;
+    right: 0;
+    bottom: 0;
     background-repeat: no-repeat;
     background-size: cover;
-    background-attachment: fixed;
+    background-attachment: scroll;
     background-position: center;
     background-color: #2D2D2D;
     filter: brightness(0.5);
@@ -31,11 +37,6 @@ body {
     overflow: scroll;
     width: 600px;
     height: 400px;
-}
-
-.header {
-    position: relative;
-    height: 300px;
 }
 
 .navbar {
@@ -78,6 +79,15 @@ body {
     bottom: 30px;
     margin-left: 5rem;
 }
+
+.dragdiv {
+    position: absolute;
+    width: 636px;
+    z-index: 10;
+    padding: 10px;
+    background-color: transparent;
+}
+
 
 @media screen and (max-width: 600px) {
     .navbar {
@@ -373,6 +383,7 @@ label {
     overflow-wrap: break-word;
     font-size: 0.9rem;
     border-radius: 4px;
+    z-index: 20;
     display: none;
 }
 

@@ -8,14 +8,18 @@ import { ajax } from './ajax'
 class User extends Contact {
     constructor() {
         super()
-
         this.spam = Math.floor(Math.random() * 3)
     }
     form = (name) => {
-        const form = nav._user ? null : {
+        let form = {
             email: { placeholder: 'email', type: 'email', required: true },
             send: { class: 'form disabled', click: 'submit', tip: this.spamtt },
-            spam1: {}, spam2: {}, spam3: {},
+        }
+        if (!nav._user) {
+            const extra = {
+                spam1: {}, spam2: {}, spam3: {}
+            }
+            form = { ...form, ...extra }
         }
         return form
     }
@@ -33,7 +37,9 @@ class User extends Contact {
         this.popup.close('<div class="success">Login link emailed.</div>')
     }
     var = (name) => {
-        if (name === 'admin' && nav.d.admin(true)) return "{link.admin}"
+        if (name === 'title') return nav._user ? 'Switch User' : 'Login'
+        else if (name === 'admin' && nav.d.admin(true)) return "{link.admin}"
+        else if (name === 'spam') return nav._user ? '' : '{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} '
         else return ''
     }
     link = (name, param) => {
@@ -41,4 +47,15 @@ class User extends Contact {
         if (name === 'logout') return { tip: 'logout', click: nav.logout }
     }
 }
+
+class Login extends User {
+    constructor() {
+        super()
+    }
+    html = (n, p) => {
+        return login
+    }
+}
+
+export { Login }
 export default User

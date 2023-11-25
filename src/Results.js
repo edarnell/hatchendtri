@@ -7,9 +7,9 @@ class Results extends Html {
     this.id = 'results'
     this.data = ['results', 'photos']
   }
-  loaded = () => {
-    debug({ loaded: nav.d.data })
-    //this.refresh()
+  loaded = (r) => {
+    debug({ loaded: nav.d.data, r })
+    if (r.some(f => f === true)) this.refresh()
   }
   form = () => {
     const form = {
@@ -35,7 +35,6 @@ class Results extends Html {
     this.refresh()
   }
   rendered = () => {
-    debug({ rendered: nav.d.data })
     this.form_data = this.getForm()
   }
   html = (name, param) => {
@@ -44,17 +43,21 @@ class Results extends Html {
     else return html
   }
   photos = (year, num) => {
-    const photos = nav.d.data.photos
-    return (photos && year === '2023' && photos[num]) ? `{link.photos.${num}}` : null
+    const ps = nav.d.data.photos, y = ps && ps[year], p = y && y[num]
+    return p ? `{link.photos.${year}_${num}}` : null
   }
   link = (name, param) => {
     if (name === 'year') return { tip: `${param.replace(/_/g, " ")} all results`, click: this.year }
     else if (name === 'name') return { tip: `${param.replace(/_/g, " ")} all results`, click: this.name }
     else if (name === 'photos') {
-      const photos = nav.d.data.photos[param]
-      return { popup: 'Photos', placement: 'auto', icon: 'photo', tip: `${photos.length} photos` }
+      const [y, n] = param.split('_'), ps = nav.d.data.photos, yr = ps && ps[y], p = yr && yr[n],
+        u = nav._user, ns = u && u.comp, ny = ns && ns[y], active = ny && ny.includes(n),
+        r = { active, placement: 'auto', icon: 'photo', tip: `${p.length} photos` }
+      if (active) r.drag = 'Photos'
+      else r.popup = 'Login'
+      return r
     }
-    else debug({ link: { name, param } })
+    else if (['close', 'Pinner_Camera_Club'].indexOf(name) === -1) debug({ link: { name, param } })
   }
   ths = (name, param) => {
     if (name === 'results_year') {

@@ -5,7 +5,7 @@ function f(f, s) {
     const stat = fs.statSync(f)
     if (!stat.isFile()) return null
     const d = s ? fs.readFileSync(f).toString() : fs.readFileSync(f)
-    const data = s === undefined ? Buffer.from(d).toJSON() :
+    const data = s === undefined ? Buffer.from(d).toString('base64') :
         f.toLowerCase().endsWith('.json') ? JSON.parse(d) : d
     return s === undefined ? { data, date: stat.mtime } : data
 }

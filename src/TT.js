@@ -20,7 +20,7 @@ class TT {
         const lk = this.lk, l = this.el()
         if (!l) error({ TT: this })
         else if (lk && set) {
-            if (lk.popup || lk.click || lk.nav || lk.submit || lk.close) {
+            if (lk.popup || lk.drag || lk.click || lk.nav || lk.submit || lk.close) {
                 l.addEventListener("click", this.click)
             }
             else if (this.fm) l.addEventListener("input", this.input)
@@ -68,7 +68,7 @@ class TT {
         else {
             this.lk = link
             const icon = (link.icon_ && icons[link.icon_]) || (link.icon && icons[link.icon]) || (type === 'svg' && icons[k]),
-                img = icon ? `<img id="${'icon_' + this.id}" src="${icon.default}" class="${link.class || 'icon'}" />` : '',
+                img = icon ? `<img id="${'icon_' + this.id}" src="${link.active ? icon.active : icon.default}" class="${link.class || 'icon'}" />` : '',
                 w = link.icon || type === 'svg' ? img
                     : param ? param.replace(/_/g, "&nbsp;") + img : name.replace(/_/g, "&nbsp;") + img
             if (link.nav) {
@@ -87,7 +87,7 @@ class TT {
         if (lk) {
             e.preventDefault()
             if (this.tt) this.timer = setTimeout(this.ttremove, lk.tip === 'close' ? 100 : 1000)
-            if (lk.popup) {
+            if (lk.popup || lk.drag) {
                 if (this.pdiv) this.close()
                 else this.popdiv(e)
                 if (typeof lk.click === 'function') {
@@ -129,20 +129,24 @@ class TT {
     }
     popdiv = (e) => {
         this.remove(null, true, false)
-        const popup = this.pdiv = document.createElement('div'),
-            id = 'popup_' + this.id
-        popup.classList.add('popup')
-        popup.id = id
-        document.body.appendChild(popup)
         const l = this.el(), link = this.lk,
-            p = this.pO = nav.O(link.popup, this)
+            p = this.pO = nav.O(link.popup || link.drag, this)
+        const popup = this.pdiv = document.createElement('div'),
+            id = (link.popup ? 'popup_' : 'drag_') + this.id
+        popup.classList.add(link.popup ? 'popup' : 'dragdiv')
+        popup.id = id
+        if (link.drag) {
+            // debug({ document, window })
+            popup.style.top = window.scrollY
+        }
+        document.body.appendChild(popup)
         if (!p) error({ Popup: this, Objects: link.popup })
         else {
             p.id = id
             p.popup = this
             p.render(p)
             //debug({ popdiv: this, popup, p, l, link })
-            this.pop = createPopper(l, popup, {
+            if (link.popup) this.pop = createPopper(l, popup, {
                 placement: link.placement || 'top',
                 strategy: link.strategy || 'absolute',
                 modifiers: [{ name: 'offset', options: { offset: [0, 8], }, },],
@@ -152,10 +156,10 @@ class TT {
     close = (m) => {
         //debug({ close: this, m })
         if (this.pdiv) {
-            if (this.pop && this.pO) {
+            if (this.pO) {
                 this.pO.unload(this.pO)
                 this.pdiv.remove()
-                this.pop.destroy()
+                if (this.pop) this.pop.destroy()
                 this.pO = this.pop = this.pdiv = null
             }
             else error({ TT: this })

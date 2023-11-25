@@ -3,6 +3,7 @@ const links = {
     fields: { tip: 'Google maps link', href: 'https://www.google.com/maps/place/Uxbridge+Rd,+Pinner+HA5+4EA' },
     jetstream: { tip: 'Jetstream triathlon club', href: 'https://jetstreamtri.com' },
     british_triathlon: { tip: 'British Triathlon website', href: 'https://www.britishtriathlon.org' },
+    pinner_camera_club: { tip: 'Pinner Camera Club', href: 'https://www.pinnercameraclub.co.uk/' },
     rules: { tip: 'British Triathlon rules', href: 'https://www.britishtriathlon.org/competitionrules' },
     age8_16: { tip: 'age on 31 December 2023 not now or race date' },
     enter_now: { tip: 'Entry Central - hatchend', href: 'https://www.entrycentral.com/hatchend', class: 'enter-button' },
