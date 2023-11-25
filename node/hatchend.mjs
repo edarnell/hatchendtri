@@ -6,7 +6,6 @@ import { send, send_list } from './mail.mjs'
 import log4js from "log4js"
 import jwt from 'jsonwebtoken'
 import fs from 'fs'
-import { SetActiveReceiptRuleSetRequestFilterSensitiveLog } from '@aws-sdk/client-ses'
 
 const config = f('config.json', true)
 log4js.configure(config.log4js)
@@ -15,7 +14,7 @@ log.info("Started")
 const ns = fz('gz/ns_.gz')
 let ps = fz('gz/ps.gz') || {}
 const app = express()
-app.use((req, res, next) => {
+/*app.use((req, res, next) => {
     req.rawBody = ''
     req.on('data', function (chunk) {
         req.rawBody += chunk
@@ -25,8 +24,8 @@ app.use((req, res, next) => {
         req.body = JSON.parse(req.rawBody)
         next()
     })
-})
-//app.use(express.json())
+})*/
+app.use(express.json())
 
 function resp(req, r, json, status) {
     if (status) {
@@ -83,7 +82,7 @@ function saveRZ(rz) {
     console.log('saveRZ', Object.keys(r), Object.keys(r23))
 }
 
-function filesR(req, json, r) {
+function filesReq(req, json, r, email, aed) {
     if (json.files) {
         const { files } = json, zips = {}
         //log.info('req->', req, files)
@@ -93,7 +92,7 @@ function filesR(req, json, r) {
             //else if (fn === 'photos') zips[fn] = (aed ? photos : Object.keys(photos))
             else if (aed && fn === 'vs_') zips[fn] = f(`gz/${fn}.gz`)
             else if (aed && fn === 'cs_') zips[fn] = f(`gz/${fn}.gz`)
-            else if (sec(fn) && !auth) ok = false
+            else if (sec(fn) && !email) ok = false
             else zips[fn] = f(`gz/${fn}.gz`)
         })
         if (ok) resp(req, r, { zips })
@@ -101,7 +100,7 @@ function filesR(req, json, r) {
     } else resp(req, r, { message: 'no files' }, 400)
 }
 
-function datesR(req, json, r) {
+function datesReq(req, json, r) {
     if (json.files) {
         const { files } = json, date = {}
         //log.info('req->', req, files)
@@ -113,7 +112,7 @@ function datesR(req, json, r) {
     } else resp(req, r, { message: 'no files' }, 400)
 }
 
-function loginR(req, json, r) {
+function loginReq(req, json, r) {
     if (json.email) {
         const email = json.email, name = typeof email === 'string' && get_name(email)
         //log.info('req->', req, email)
@@ -129,7 +128,7 @@ function loginR(req, json, r) {
     } else resp(req, r, { message: 'no email' }, 400)
 }
 
-function sendR(req, json, r) {
+function sendReq(req, json, r,email) {
     if (json.data) {
         const vs = fz('gz/vs_.gz'),
             { to: id, name: from_name, email: from_email, subject, message } = json.data,
@@ -145,7 +144,7 @@ function sendR(req, json, r) {
     }
 }
 
-function saveR(req, json, r) {
+function saveReq(req, json, r) {
     if (json.vol) saveVol(req, json, r)
     else if (json.comp) saveComp(req, json, r)
     else if (json.zips) saveZips(req, json, r)
@@ -224,15 +223,15 @@ function saveFiles(req, json, r) {
     } else resp(req, r, { message: 'no files' }, 400)
 }
 
-function userR(req, json, r) {
+function userReq(req, json, r, email) {
     const vol = get_vol(null, email), comp = ns[email]
     //log.info('req->', req, { email, vol, comp })
     resp(req, r, { vol, comp })
 }
 
-function volR(req, json, r) {
+function volReq(req, json, r, email) {
     if (json.vol) {
-        const vs = fz('gz/vs_.gz'), vol = get_vol(json.vol, email)
+        const vol = get_vol(json.vol, email)
         if (vol) {
             //log.info('req->', req, { id: json.vol, name: vol.name })
             resp(req, r, { vol })
@@ -240,7 +239,7 @@ function volR(req, json, r) {
     } else resp(req, r, { message: 'no vol' }, 400)
 }
 
-function bulksendR(req, json, r) {
+function bulksendReq(req, json, r, email, aed) {
     if (!config.live && json.subject && json.message && json.list && aed) {
         const { subject, message, list, live } = json
         saveM(json)
@@ -254,7 +253,7 @@ function bulksendR(req, json, r) {
     } else resp(req, r, { error: 'Unauthorized' }, 401)
 }
 
-function compR(req, json, r) {
+function compReq(req, json, r) {
     if (json.cid && aed) {
         const cs = fz('gz/cs_.gz'), c = cs[json.cid]
         if (c) {
@@ -264,9 +263,9 @@ function compR(req, json, r) {
     } else resp(req, r, { error: 'Unauthorized' }, 401)
 }
 
-function photoR(req, json, r) {
-    if (json.photo) {
-        const p = json.photo
+function photoReq(req, json, r) {
+    if (json.public) {
+        const p = json.public
         //log.info('req->', req, { photo })
         if (ps[p.y]) {
             if (ps[p.y][p.n]) ps[p.y][p.n].push(p.pn)
@@ -287,14 +286,14 @@ app.post(config.url, (m, r) => {
         email = auth ? auth.email : null,
         aed = email && email === 'ed@darnell.org.uk',
         reqF = {
-            anon: { filesR, datesR, loginR, sendR },
-            auth: { userR, volR, compR, saveR, photoR, bulksendR }
+            anon: { filesReq, datesReq, loginReq, sendReq },
+            auth: { userReq ,volReq, compReq, saveReq, photoReq, bulksendReq }
         }
     if (req) {
         log.info('req->', req)
-        if (reqF.anon[req]) reqF.anon[req](json, r)
-        else if (reqF.auth[req]) {
-            if (auth) reqF.auth[req](json, r)
+        if (reqF.anon[req+'Req']) reqF.anon[req+'Req'](req, json, r, email, aed)
+        else if (reqF.auth[req+'Req']) {
+            if (auth) reqF.auth[req+'Req'](req, json, r, email, aed)
             else resp(req, r, { error: 'Unauthorized' }, 401)
         }
         else resp(req, r, { message: 'Invalid request' }, 404)
