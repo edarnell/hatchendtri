@@ -12,9 +12,9 @@ class Img extends TT {
         else (p.img || (p.img = {}))[this.id] = this
     }
     html = () => {
-        const { lk, name, param, id } = this
-        //debug({ lk, name, param })
-        return `<img id="${id}" class="${lk.class}" src="${lk.src}" />`
+        const { lk, name, param, id } = this,
+            img = `<img id="${id}" class="${lk.class}" src="${lk.src}" />`
+        return lk.pub ? `<div class="pub">${img}</div>` : img
     }
 }
 export default Img

@@ -53,7 +53,7 @@ class IN extends TT {
             >${lk.value || ''}</textarea>`
             case 'checkbox':
                 return `<input type="checkbox" class="${lk.class ? 'checkbox ' + form.class : 'checkbox'}"
-            ${lk.value === true ? 'checked' : ''}
+            ${lk.value === true || lk.checked ? 'checked' : ''}
             name="${name}"
             id="${this.id}"
             ${lk.required ? 'required' : ''}

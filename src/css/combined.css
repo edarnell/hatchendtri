@@ -178,6 +178,15 @@ a,
     text-decoration: none;
 }
 
+.photolink {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.link.top {
+    vertical-align: top;
+}
+
 a:hover {
     text-decoration: underline;
 }
@@ -558,6 +567,25 @@ label {
     width: 150px;
     height: 100px;
     object-fit: contain;
+}
+
+.pub {
+    position: relative;
+    display: inline-block;
+}
+
+.pub::after {
+    content: "";
+    display: block;
+    width: 20px;
+    height: 20px;
+    background-image: url('../icon/tick.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    z-index: 1000;
 }
 
 .photo {

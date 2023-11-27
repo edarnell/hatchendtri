@@ -26,7 +26,7 @@ function params(data) {
     cache: 'no-cache',
     body: JSON.stringify(data)
   }
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('HEtoken')
   if (token) ret.headers.Authorization = 'Bearer ' + token
   return ret
 }

@@ -12,7 +12,7 @@ import Contact from './Contact'
 import User, { Login } from './User'
 import Home from './Home'
 import CSV from './CSV'
-import Photos from './Photos'
+import Photos, { PhotosP } from './Photos'
 import Vselect from './Vselect'
 
 const cs = {
@@ -26,6 +26,7 @@ const cs = {
     Admin,
     CSV,
     Photos,
+    PhotosP,
     Vselect,
     Login
 }

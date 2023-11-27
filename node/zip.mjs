@@ -46,13 +46,17 @@ function fz(f) {
 }
 
 function save(f, j, secure) {
+    const z = zip(j), ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
     if (secure) {
-        const ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
         if (fs.existsSync(`gz/${f}_.gz`)) fs.renameSync(`gz/${f}_.gz`, `gz/backups/${f}_${ts}.gz`);
-        fs.writeFileSync(`gz/${f}_.gz`, zip(j))
+        fs.writeFileSync(`gz/${f}_.gz`, z)
         fs.writeFileSync(`gz/${f}.gz`, zip(anon(j)))
     }
-    else fs.writeFileSync(f, zip(j))
+    else {
+        if (fs.existsSync(`gz/${f}.gz`)) fs.renameSync(`gz/${f}.gz`, `gz/backups/${f}_${ts}.gz`);
+        fs.writeFileSync(`gz/${f}.gz`, z)
+    }
+    return z
 }
 
 function saveM(j) {

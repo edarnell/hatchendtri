@@ -128,7 +128,7 @@ function loginReq(req, json, r) {
     } else resp(req, r, { message: 'no email' }, 400)
 }
 
-function sendReq(req, json, r,email) {
+function sendReq(req, json, r, email) {
     if (json.data) {
         const vs = fz('gz/vs_.gz'),
             { to: id, name: from_name, email: from_email, subject, message } = json.data,
@@ -266,15 +266,17 @@ function compReq(req, json, r) {
 function photoReq(req, json, r) {
     if (json.public) {
         const p = json.public
-        //log.info('req->', req, { photo })
         if (ps[p.y]) {
-            if (ps[p.y][p.n]) ps[p.y][p.n].push(p.pn)
+            if (ps[p.y][p.n]) {
+                const i = ps[p.y][p.n].indexOf(p.pn)
+                if (i === -1) ps[p.y][p.n].push(p.pn)
+                else ps[p.y][p.n].splice(i, 1)
+            }
             else ps[p.y][p.n] = [p.pn]
         }
         else ps[p.y] = { [p.n]: [p.pn] }
-        save('gz/ps.gz', ps)
-        ps = fz('gz/ps.gz')
-        resp(req, r, { zp: f(`gz/ps.gz`) })
+        save('ps', ps)
+        resp(req, r, { ps: f('gz/ps.gz') })
     } else resp(req, r, { message: 'no photo' }, 400)
 }
 
@@ -287,13 +289,13 @@ app.post(config.url, (m, r) => {
         aed = email && email === 'ed@darnell.org.uk',
         reqF = {
             anon: { filesReq, datesReq, loginReq, sendReq },
-            auth: { userReq ,volReq, compReq, saveReq, photoReq, bulksendReq }
+            auth: { userReq, volReq, compReq, saveReq, photoReq, bulksendReq }
         }
     if (req) {
         log.info('req->', req)
-        if (reqF.anon[req+'Req']) reqF.anon[req+'Req'](req, json, r, email, aed)
-        else if (reqF.auth[req+'Req']) {
-            if (auth) reqF.auth[req+'Req'](req, json, r, email, aed)
+        if (reqF.anon[req + 'Req']) reqF.anon[req + 'Req'](req, json, r, email, aed)
+        else if (reqF.auth[req + 'Req']) {
+            if (auth) reqF.auth[req + 'Req'](req, json, r, email, aed)
             else resp(req, r, { error: 'Unauthorized' }, 401)
         }
         else resp(req, r, { message: 'Invalid request' }, 404)

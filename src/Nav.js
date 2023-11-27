@@ -72,7 +72,6 @@ class Nav extends Html {
         }
         const p = this.pages[this.path], pe = this.q('#nav_page')
         this.page = this.O(p.nav)
-        debug({ page: this.page })
         this.toggle(true, this.path)
         this.render(this.page, 'page')
         pe.innerHTML = p.nav
@@ -87,11 +86,11 @@ class Nav extends Html {
             l.src = (this._user) ? icons['user'].active : l.src = icons['user'].default
         }
         const lo = this.q(`[id*="TT_user_nav"]`), o = lo && this.tt[lo.id]
-        if (o) o.close()
+        if (o && o.pdiv) o.close()
     }
     checkUser() { // check for logout/login elsewhere
         return new Promise((s, f) => {
-            const token = localStorage.getItem('token')
+            const token = localStorage.getItem('HEtoken')
             if (this._user !== false && !token) {
                 this.logout() // logout elsewhere
                 s()
@@ -100,7 +99,7 @@ class Nav extends Html {
         })
     }
     logout = (e, o) => {
-        localStorage.removeItem('token')
+        localStorage.removeItem('HEtoken')
         this.userIcon(false)
         this.load()
     }

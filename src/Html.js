@@ -161,7 +161,7 @@ class Html {
         document.head.appendChild(style)
         const hash = window.location.hash, token = hash && hash.substring(1)
         if (token && token.length > 10) {
-            localStorage.setItem('token', token)
+            localStorage.setItem('HEtoken', token)
             window.location.hash = ''
         }
         this.path = window.location.pathname.replace('/', '')

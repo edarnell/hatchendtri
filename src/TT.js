@@ -67,10 +67,12 @@ class TT {
         if (!link) debug({ TT: { type, name, param } })
         else {
             this.lk = link
+            if (link.id) this.id = link.id
             const icon = (link.icon_ && icons[link.icon_]) || (link.icon && icons[link.icon]) || (type === 'svg' && icons[k]),
-                img = icon ? `<img id="${'icon_' + this.id}" src="${link.active ? icon.active : icon.default}" class="${link.class || 'icon'}" />` : '',
-                w = link.icon || type === 'svg' ? img
-                    : param ? param.replace(/_/g, "&nbsp;") + img : name.replace(/_/g, "&nbsp;") + img
+                img = icon ? `<img id="${'icon_' + this.id}" src="${link.active ? icon.active : icon.default}" class="${link.class || 'icon'}"` : '',
+                w = link.body ? link.body(this) :
+                    link.icon || type === 'svg' ? img
+                        : param ? param.replace(/_/g, "&nbsp;") + img : name.replace(/_/g, "&nbsp;") + img
             if (link.nav) {
                 return `<a id="${this.id}" href="${link.href}">${w}</a>`
             }
@@ -153,8 +155,8 @@ class TT {
             })
         }
     }
-    close = (m) => {
-        //debug({ close: this, m })
+    close = (m, r) => {
+        debug({ close: this, m })
         if (this.pdiv) {
             if (this.pO) {
                 this.pO.unload(this.pO)
@@ -163,6 +165,10 @@ class TT {
                 this.pO = this.pop = this.pdiv = null
             }
             else error({ TT: this })
+            if (r) {
+                const l = this.el()
+                l.innerHTML = this.html() // reload link
+            }
             if (m) {
                 this.tooltip(null, m)
                 this.timer = setTimeout(() => {

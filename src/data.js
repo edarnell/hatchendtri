@@ -5,11 +5,12 @@ import { unzip } from './unzip'
 class Data {
     constructor(nav) {
         this.data = {}
+        this.dates = {}
         this.nav = nav
     }
     user = () => {
         return new Promise((s, f) => {
-            const token = localStorage.getItem('token')
+            const token = localStorage.getItem('HEtoken')
             if (token) ajax({ req: 'user' }).then(r => {
                 const user = (r.vol || r.comp) ? {} : null
                 if (r.vol) user.vol = r.vol.reduce((a, u) => {
@@ -45,20 +46,14 @@ class Data {
     get = (req) => {
         if (Array.isArray(req)) return Promise.all(req.map(r => r && this.get(r)))
         else return new Promise((s, f) => {
+            let date
             if (this.data[req]) s(false)
-            else if (localStorage.getItem(req) && !req.endsWith('.csv')) {
-                const { date, data: d } = JSON.parse(localStorage.getItem(req))
-                this.data[req] = unzip(d)
-                this.data[req + '_date'] = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
-                    .format(new Date(date)).replace(",", " at ")
-                //debug({ req, date: this.data[req + '_date'], data: this.data[req] })
+            else if (!req.endsWith('.csv') && (date = this.loadZip(req))) {
                 ajax({ req: 'dates', files: [req] }).then(r => {
-                    if (r.date[req] === date) {
-                        s(false)
-                    }
+                    if (r.date[req] === date) s(false)
                     else {
-                        debug({ stale: req, odate: r.date[req], date })
-                        localStorage.removeItem(req)
+                        debug({ stale: req, ndate: r.date[req], date })
+                        localStorage.removeItem('HE' + req)
                         this.get(req).then(r => s(r)).catch(e => f(e))
                     }
                 }).catch(e => f(e))
@@ -66,17 +61,29 @@ class Data {
             else ajax({ req: 'files', files: [req] }).then(r => {
                 if (r.zips && r.zips[req]) {
                     if (req.endsWith('.csv')) this.data[req] = r.zips[req]
-                    else {
-                        localStorage.setItem(req, JSON.stringify(r.zips[req]))
-                        this.data[req] = unzip(r.zips[req].data)
-                        this.data[req + '_date'] = new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' })
-                            .format(new Date(r.zips[req].date)).replace(",", " at ")
-                    }
+                    else this.saveZip(r.zips)
                     s(true)
                 }
                 else f(r)
             }).catch(e => f(e))
         })
+    }
+    saveZip = (zips) => {
+        const names = Object.keys(zips), n = names[0], z = n && zips[n]
+        if (z) {
+            localStorage.setItem('HE' + n, JSON.stringify(z))
+            this.data[n] = unzip(z.data)
+            this.dates[n] = z.date
+        }
+    }
+    loadZip = (n) => {
+        const z = n && localStorage.getItem('HE' + n)
+        if (z) {
+            const { date, data: d } = JSON.parse(z)
+            this.data[n] = unzip(d)
+            this.dates[n] = date
+        }
+        return z ? this.dates[n] : false
     }
 }
 export default Data
