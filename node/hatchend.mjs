@@ -152,18 +152,17 @@ function saveReq(req, json, r) {
     else resp(req, r, { message: 'no data' }, 400)
 }
 
-function saveVol(req, json, r) {
+function saveVol(req, json, r, email) {
     if (json.roles || json.details) {
-        const { vol, roles, details } = json, vf = fz('gz/vs_.gz'), vs = vf || {},
-            v = details ? details : vs[vol], name = v.name || 0
-        //log.info('req->', req, name)
-        if (vs['NaN']) delete vs['NaN']
+        const { vol, roles, year, details } = json, vf = fz('gz/vs_.gz'), vs = vf || {},
+            v = vs[vol]
         if (v.id * 1 === 0) {
             v.id = Math.max(...Object.keys(vs).filter(x => isNaN(x) === false)) + 1
             const bad_ids = Object.keys(vs).filter(x => isNaN(x) === true)
             debug({ new_id: v.id, v, bad_ids })
         }
-        if (roles) v.year[2023] = roles
+        if (details) Object.keys(details).forEach(k => v[k] = details[k])
+        if (roles && year) (v.year = v.year || {})[year] = roles
         send({
             from_email: email, uEmail: email, subject: `vol ${v.unsub ? 'unsub' : 'update'} ${v.name}`,
             message: `{volunteer} \n` +

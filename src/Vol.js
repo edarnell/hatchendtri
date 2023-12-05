@@ -1,44 +1,61 @@
 import Html, { debug, nav, _s } from './Html'
 import { sections, roles, selectSection, selectRole } from './roles'
-import volR from './html/Vol.html'
+import html from './html/Vol.html'
 import volD from './html/volD.html'
+import volE from './html/volE.html'
+import { ajax } from './ajax'
 
-const form = { // section and options populated on load
+const year = 2024
+
+const roleForm = { // section and options populated on load
     adult: { class: 'bold', label: 'Adult', tip: 'available for adult race' },
     junior: { class: 'bold', label: 'Junior', tip: 'available for junior race' },
-    none: { class: 'bold', label: 'None', tip: 'not available in 2023' },
+    none: { class: 'bold', label: 'None', tip: `not available in ${year}` },
     asection: { class: "form hidden", options: ['Section'].concat(sections) },
     arole: { class: "form hidden", options: ['Role'].concat(roles()) },
     jsection: { class: "form hidden", options: ['Section'].concat(sections) },
     jrole: { class: "form hidden", options: ['Role'].concat(roles()) },
-    edit: { icon: 'edit', tip: 'update details', submit: true }
+    notes: { placeholder: 'notes', rows: 1, cols: 20 }
 }
 
-const contact = { // section and options populated on load
+const volForm = { // section and options populated on load
     name: { placeholder: 'name', width: '50rem' },
     email: { placeholder: 'email', type: 'email', width: '50rem' },
     mobile: { placeholder: 'mobile', type: 'tel', width: '50rem' },
     notes: { placeholder: 'notes', rows: 1, cols: 20 },
-    unsub: { class: 'bold red', label: 'Unsubscribe', tip: 'Warning - remove completely' },
+    unsub: { class: 'bold red', label: 'Unsub', tip: 'Warning - remove completely. Consider role "none" instead.' },
     admin: { class: 'bold red hidden', label: 'Admin', tip: 'Warning - admin rights' }
 }
 
+
 class Vol extends Html {
-    constructor() {
-        super()
-        this.data = 'vs'
+    constructor(p, name) {
+        super(p, name)
+        const vs = nav.d.data.vs
+        this.v = (vs && vs[this.name]) || { id: 0 }
     }
-    //debug = (m) => debug({ Vol: m, o: this.o(), popup: this.popup })
-    html = (o) => {
-        if (!o) return volR
-        else {
-            const { name, param } = o.attr()
-            if (name === 'volD') {
-                this._volD = o
-                if (this.show_volD) return volD
-                else return ''
-            }
-        }
+    form = () => {
+        if (this.edit) return volForm
+        else return roleForm
+    }
+    html = (n) => {
+        if (n === 'volD') return this.edit ? volD : ''
+        else if (n === 'volE') return this.edit ? '' : volE
+        else return html
+    }
+    var = (n) => {
+        const v = this.v
+        if (n === 'name') return v.id ? `{link.details.${_s(v.name)}_}` : 'New'
+        else if (n === 'admin') return nav.d.admin() ? '{checkbox.admin}' : ''
+    }
+    link = (name) => {
+        if (name === 'details') return { tip: this.edit ? 'save' : 'edit contact details', icon_: this.edit ? 'save' : 'edit', click: this.details }
+        else if (name === 'close') return { class: 'close', tip: 'save and close', click: this.edit ? this.details : this.save }
+    }
+    rendered = () => {
+        debug({ vol: this.v })
+        if (this.edit) this.setForm(this.v)
+        else this.updateV()
     }
     send = () => {
         const f = this.getForm(email)
@@ -48,75 +65,73 @@ class Vol extends Html {
         })
     }
     details = (o) => {
-        if (!this.show_volD) req({ req: 'vol', vol: this.v.id }).then(r => {
+        if (!this.edit) ajax({ req: 'vol', vol: this.v.id }).then(r => {
             debug({ r })
-            const id = this.v.id, v = this.v = r.vol
-            this.v.id = id // restore id if missing
-            Object.keys(contact).forEach(k => {
-                contact[k].value = v[k] === undefined ? '' : v[k]
-            })
-            this.show_volD = true
-            if (nav.admin(true)) contact.admin.class = 'bold red'
-            this._volD._upd()
+            const id = this.v.id, v = r.vol
+            v.id = id // restore id if missing
+            this.edit = true
+            this.reload()
         })
-    }
-    form = (o) => {
-        const { name, param } = o.attr()
-        if (name === 'save') this._save = o
-        if (form[name]) return form[name]
-        else if (contact[name]) return contact[name]
-    }
-    var = (o) => {
-        const { name, param } = o.attr(), v = this.v
-        this._name = o
-        return v ? v.id ? `{link.details.${_s(v.name)}_}` : 'New' : ''
-    }
-    listen = () => {
-        const { name, param } = this.attr(),
-            id = name === 'new' ? 0 : name.substring(1),
-            v = this.v = id === 0 ? { id: 0, year: {}, name: param } : page.vs[id],
-            vy = v.year[2023] || {}, f = { ...vy }
-        this._name.setAttribute('param', 'update')
-        if (f.asection === '') f.asection = 'Section'
-        if (f.jsection === '') f.jsection = 'Section'
-        if (f.arole === '') f.arole = 'Role'
-        if (f.jrole === '') f.jrole = 'Role'
-        if (f.asection) form['arole'].options = ['Role'].concat(roles(f.asection))
-        if (f.jsection) form['jrole'].options = ['Role'].concat(roles(f.jsection))
-        const ar = this.querySelector(`ed-form[name=arole]`),
-            jr = this.querySelector(`ed-form[name=jrole]`)
-        ar.setAttribute('param', 'update')
-        jr.setAttribute('param', 'update')
-        this.setForm(f)
-        this.hidden('adult')
-        this.hidden('junior')
-        if (v.id === 0) {
-            this.show_volD = true
-            contact.name.value = v.name
-            this._volD.setAttribute('param', 'update')
+        else {
+            const v = this.v, f = this.getForm()
+            let upd = false
+            Object.keys(roleForm).forEach(k => {
+                if (v[k] !== f[k]) {
+                    upd = true
+                    v[k] = f[k]
+                }
+            })
+            if (upd) ajax({ req: 'save', vol: this.v.id, details: f }).then(r => {
+                this.edit = false
+                nav.d.saveZip({ vs: r.vs })
+                this.p.reload()
+                this.reload()
+            })
+            else {
+                this.edit = false
+                this.reload()
+            }
         }
     }
-    link = (o) => {
-        const { name, param } = o.attr()
-        if (name === 'details') return { tip: 'edit contact details', icon_: 'edit', click: this.details }
-        else if (name === 'close') return { class: 'close', tip: 'save and close', click: this.save }
-    }
-    getF = () => {
-        const r = this.getForm(form)
-        if (r.asection === 'Section') r.asection = ''
-        if (r.jsection === 'Section') r.jsection = ''
-        if (r.arole === 'Role') r.arole = ''
-        if (r.jrole === 'Role') r.jrole = ''
-        return r
+    updateV = () => {
+        const v = this.v
+        if (v.id === 0) {
+            this.edit = true
+        }
+        else {
+            const y = this.v.year, vy = (y && y[year])
+            if (vy) {
+                if (vy.none) this.fe('none').checked = true
+                else {
+                    if (vy.adult) {
+                        this.fe('adult').checked = true
+                        this.fe('asection').value = vy.asection
+                        this.fe('arole').value = vy.arole
+                    }
+                    if (vy.junior) {
+                        this.fe('junior').checked = true
+                        this.fe('jsection').value = vy.jsection
+                        this.fe('jrole').value = vy.jrole
+                    }
+                }
+                this.hidden()
+            }
+        }
     }
     hidden = (race) => {
-        const a = this.querySelector(`input[name=adult]`),
-            j = this.querySelector(`input[name=junior]`),
-            n = this.querySelector(`input[name=none]`),
-            as = this.querySelector(`select[name=asection]`),
-            ar = this.querySelector(`select[name=arole]`),
-            js = this.querySelector(`select[name=jsection]`),
-            jr = this.querySelector(`select[name=jrole]`)
+        if (!race) {
+            this.hidden('adult')
+            this.hidden('junior')
+            this.hidden('none')
+            return
+        }
+        const a = this.fe('adult'),
+            j = this.fe('junior'),
+            n = this.fe('none'),
+            as = this.fe('asection'),
+            ar = this.fe('arole'),
+            js = this.fe('jsection'),
+            jr = this.fe('jrole')
         if (race === 'none' && n.checked) {
             a.checked = false
             j.checked = false
@@ -124,12 +139,8 @@ class Vol extends Html {
             js.classList.add('hidden')
             ar.classList.add('hidden')
             jr.classList.add('hidden')
-            form[`asection`].class = 'form hidden'
-            form[`arole`].class = 'form hidden'
-            form[`jsection`].class = 'form hidden'
-            form[`jrole`].class = 'form hidden'
-            selectSection('Section', null, form, this, 'a')
-            selectSection('Section', null, form, this, 'j')
+            selectSection(this, 'asection', 'arole')
+            selectSection(this, 'jsection', 'jrole')
         }
         else if (race === 'adult' || race === 'junior') {
             const x = race === 'adult' ? a : j,
@@ -138,36 +149,40 @@ class Vol extends Html {
                 c = race.charAt(0)
             if (x.checked) {
                 n.checked = false
-                if (nav.admin()) {
+                if (nav.d.admin()) {
                     s.classList.remove('hidden')
                     r.classList.remove('hidden')
-                    form[`${c}section`].class = 'form'
-                    form[`${c}role`].class = 'form'
                 }
             }
             else {
                 s.classList.add('hidden')
                 r.classList.add('hidden')
-                form[`${c}section`].class = 'form hidden'
-                form[`${c}role`].class = 'form hidden'
-                selectSection('Section', null, form, this, c)
+                selectSection(this, c + 'section', c + 'role')
             }
         }
     }
-    save = () => {
-        const r = this.getF(),
-            v = { ...this.v, ...this.getForm(contact) },
-            roles = (JSON.stringify(r) !== JSON.stringify(this.v.year[2023])) && r,
-            details = (this.show_volD && JSON.stringify(v) !== JSON.stringify(this.v)) && v
-        if (roles || details) req({ req: 'save', vol: this.v.id, roles, details }).then(r => {
-            this.popup.close()
-        }).catch(e => debug({ e }))
-        else this.popup.close()
+    roleRem = (r) => {
+        ['asection', 'arole', 'jsection', 'jrole'].forEach(k => {
+            if (r[k] === 'Section' || r[k] === 'Role') r[k] = '' // remove default values
+        })
+        return r
     }
-    update = (e, o) => {
-        const { name, param, type } = o.attr()
-        if (name === 'asection' || name === 'jsection') selectSection(e, o, form, this, name.charAt(0))
-        else if (name === 'arole' || name === 'jrole') selectRole(e, o, form, this, name.charAt(0))
+    save = () => {
+        const r24 = this.roleRem(this.getForm()), v = this.v,
+            roles = (JSON.stringify(r24) !== JSON.stringify(v.year && v.year[year])) && r24
+        if (roles) ajax({ req: 'save', vol: this.v.id, year, roles }).then(r => {
+            nav.d.saveZip({ vs: r.vs })
+            debug({ save: this, v })
+            this.p.reload()
+            this.popup.close('updated')
+        }).catch(e => debug({ e }))
+        else this.popup.close('unchanged')
+    }
+    input = (e, o) => {
+        debug({ input: e, o })
+        const name = o.name
+        if (name === 'asection' || name === 'jsection') selectSection(this, name, name.charAt(0) + 'role')
+        else if (name === 'arole' || name === 'jrole') selectRole(this, name.charAt(0) + 'section', name)
         else if (name === 'adult' || name === 'junior' || name === 'none') this.hidden(name)
     }
 }

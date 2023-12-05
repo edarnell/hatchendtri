@@ -6,9 +6,11 @@ import { firstLast } from './roles'
 import { unzip } from './unzip'
 import { labels } from './labels'
 import AdminResults from './AdminResults'
+import AdminEmail from './AdminEmail'
 
+// ['select', 'results', 'cs', 'csE', 'vs', 'labels', 'alabels', 'jlabels', 'v2023', 'm2023', 'c2023', 'prev', 'bounce', 'unsub']
 const form = { // section and options populated on load
-    list: { options: ['select', 'results', 'cs', 'csE', 'vs', 'labels', 'alabels', 'jlabels', 'v2023', 'm2023', 'c2023', 'prev', 'bounce', 'unsub'] },
+    list: { options: ['email'] },
     filter: { placeholder: 'name filter', width: '50rem' },
     cat: { options: ['Cat', 'Adult', 'An', 'Ae', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Youth'] },
     mf: { options: ['M/F', 'M', 'F'] },
@@ -53,7 +55,7 @@ class Admin extends Html {
     }
     form = () => { // section and options populated on load
         return {
-            list: { options: ['select', 'results', 'cs', 'csE', 'vs', 'labels', 'alabels', 'jlabels', 'v2023', 'm2023', 'c2023', 'prev', 'bounce', 'unsub'] },
+            list: { options: ['select', 'email'] },
             save: { class: 'form red', click: this.save, tip: 'disabled' },
         }
     }
@@ -66,6 +68,7 @@ class Admin extends Html {
         if (n === 'selected') {
             const f = this._form, s = f && f.list
             if (s === 'results') return new AdminResults(this.div.selected, 'admin_results')
+            else if (s === 'email') return new AdminEmail(this.div.selected, 'admin_email')
             else return ''
         }
         else return html

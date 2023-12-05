@@ -14,6 +14,7 @@ import Home from './Home'
 import CSV from './CSV'
 import Photos, { PhotosP } from './Photos'
 import Vselect from './Vselect'
+import Vol from './Vol'
 
 const cs = {
     Home,
@@ -28,6 +29,7 @@ const cs = {
     Photos,
     PhotosP,
     Vselect,
+    Vol,
     Login
 }
 class H {

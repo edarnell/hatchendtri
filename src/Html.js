@@ -169,12 +169,14 @@ class Html {
     setForm = (vs) => {
         const f = this._p('form'), fm = f && f()
         if (vs && fm) Object.keys(vs).forEach(k => {
-            const l = this.fe(k)
-            if (l) {
-                if (l.type === 'checkbox' || l.type === 'radio') l.checked = vs[k]
-                else l.value = vs[k]
+            if (fm[k]) {
+                const l = this.fe(k)
+                if (l) {
+                    if (l.type === 'checkbox' || l.type === 'radio') l.checked = vs[k]
+                    else l.value = vs[k]
+                }
+                else error({ setForm: k, vs })
             }
-            else error({ setForm: k, vs })
         })
         else error({ setForm: vs })
         return this.getForm()

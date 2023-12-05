@@ -55,8 +55,8 @@ class Results extends Html {
       const [y, n] = param.split('_'), p = this.ps('photos', y, n), ps = this.ps('ps', y, n),
         u = nav._user, ns = u && u.comp, ny = ns && ns[y], own = ny && ny.includes(n), active = ps || own,
         r = { id: `TT_photos_${param}`, active, placement: 'auto', icon: 'photo', tip: `${ps ? ps.length : 0} of ${p.length} photos` }
-      if (own) r.drag = 'Photos'
-      else if (u && ps) r.drag = 'PhotosP'
+      if (own) r.drag = `{Photos.${y}.${n}}`
+      else if (u && ps) r.drag = `{PhotosP.${y}.${n}}`
       else r.popup = 'Login'
       return r
     }

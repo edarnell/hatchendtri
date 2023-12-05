@@ -5,6 +5,7 @@ import greetY from './html/greetY.html'
 import greetN from './html/greetN.html'
 import { sections, section, roles, selectSection, selectRole, firstLast } from './roles'
 
+const year = 2024
 class Volunteer extends Html {
   constructor() {
     super()
@@ -15,7 +16,20 @@ class Volunteer extends Html {
     return new Vol(id)
   }
   var = (n, p) => {
-    if (n === 'name') return nav.d.name()
+    if (n === 'name') return this.names()
+    else if (n === 'year') return '' + year
+  }
+  names = () => {
+    const u = nav._user
+    if (u && u.vol) {
+      return Object.values(u.vol).map(v => `{link.v${v.id}.${_s(v.name)}}`).join(', ')
+    }
+    else if (u.comp) return Object.values(u.comp).map(c => `link.v_0.${c.first}_${c.last}`).join(', ')
+    else return null
+  }
+  loaded = () => {
+    const vs = nav.d.data.vs
+    debug({ vs })
   }
   rendered = () => {
     if (nav.d.admin()) {
@@ -31,14 +45,16 @@ class Volunteer extends Html {
       New: { class: 'form green hidden', tip: 'add new volunteer', popup: 'Vselect', placement: 'bottom' }
     }
   }
-  link = (name, param) => {
-    const id = name.substring(1), vol = nav.d.data.vs[id]
+  link = (n) => {
+    const id = n.substring(1), vol = nav.d.data.vs[id]
     if (vol) {
-      return { tip: this.tip, theme: 'light', class: this.color(id), popup: `{Contact.${id}}` }
+      if (n.charAt(0) === 'v') return { tip: () => this.tip(id, 2024), theme: 'light', class: 'span ' + this.color(id), popup: `{Vol.${id}}` }
+      else return nav.d.admin() ? { tip: () => this.tip(id), theme: 'light', class: this.color(id), popup: `{Vol.${id}}` }
+        : { tip: `contact ${vol.name}`, class: this.color(id), theme: 'light', popup: `{Contact.${id}}` }
     }
+    else error({ link: n, id, vol })
   }
   html = (name, param) => {
-    const form = this.form()
     if (!name) return html
     else if (name === 'greet') return new Greet(this, name)
     else if (name === 'nr') {
@@ -48,26 +64,39 @@ class Volunteer extends Html {
     else if (name === 'vRoles') return new Vroles(this.div['nr'], name)
     else if (name === 'vNames') return new Vnames(this.div['nr'], name)
   }
-  color = (id) => {
-    const v = nav.d.data.vs[id], vy = v.year[2023],
-      rl = (vy && !vy.n && (!vy.adult || vy.arole) && (!vy.junior || vy.jrole))
-    return (vy) ? rl ? 'green' : 'blue' : (v.unsub || vy && vy.n) ? 'red' : 'grey'
+  color = (id, y = year) => {
+    const v = nav.d.data.vs[id], vy = v.year && v.year[y],
+      n = v.unsub || (vy && vy.none),
+      r = vy && (vy.adult || vy.junior),
+      rb = r && ((vy.adult && !vy.arole) || (vy.junior && !vy.jrole))
+    return r ? rb ? 'blue' : 'green' : n ? 'red' : 'grey'
   }
-  vtip = (v) => {
-    const c = v.competitor, ar = v.adult ? v.arole ? (v.asection + ' ' + v.arole) : '?' : c ? 'competitor' : '✗',
-      jr = v.junior ? v.jrole ? (v.jsection + ' ' + v.jrole) : '?' : c ? 'competitor' : '✗'
-    return ar && jr ? `<div class='green'>2023 ${ar}, ${jr}</div>` : '?'
+  vtip = (id, y = 2024) => {
+    const vs = nav.d.data.vs, v = vs && vs[id], cl = this.color(v.id, y), vy = v && v.year && v.year[y]
+    if (vy) {
+      const c = vy.competitor, r = (vy.adult || vy.junior || vy.none),
+        ar = vy.adult ? vy.arole ? (vy.asection + ' ' + vy.arole) : '?' : c ? 'competitor' : r ? '✗' : '?',
+        jr = vy.junior ? vy.jrole ? (vy.jsection + ' ' + vy.jrole) : '?' : c ? 'competitor' : r ? '✗' : '?'
+      return `<div class=${cl}>${y} ${ar}, ${jr}</div>`
+    }
+    else return `<div class=${cl}>${y} ?</div>`
   }
   roles(id) {
     const v = nav.d.data.vs[id],
-      ys = ['2022', '2019', '2018', '2017'].map(y => v.year[y] ? `<div>${y} ${v.year[y].adult}, ${v.year[y].junior}</div>` : '')
+      ys = ['2023', '2022', '2019', '2018', '2017'].map(y => this.yroles(v, y))
     return ys
   }
-  tip = (e, o) => {
-    const { name, param } = o, id = name.substring(1), vol = nav.d.data.vs[id],
-      v = vol.year[2023]
+  yroles = (v, y = year) => {
+    if (v && v.year && v.year[y]) {
+      if (y === year) return this.vtip(v.year[y], y)
+      else return `<div>${y} ${v.year[y].adult}, ${v.year[y].junior}</div>`
+    }
+    else return ''
+  }
+  tip = (id, y) => {
+    if (y) return this.vtip(id, y)
     let ret = this.roles(id)
-    if (v) ret.unshift(this.vtip(v))
+    ret.unshift(this.vtip(id))
     return ret.join('')
   }
   vlinks = (years, id) => {
@@ -92,37 +121,37 @@ class Volunteer extends Html {
 class Vnames extends Html {
   constructor(p, name) {
     super(p, name)
-    this._2023 = true // filters names
+    this._year = true // filters names
   }
   html = () => {
-    return '<div id="vnames">{table.vTable}</div>'
+    return '<div id="vNames">{table.vTable}</div>'
   }
   link = (name, param) => {
     if (name === 'id') return {
-      tip: () => (this._2023 ? `${this.rows.length} rows show all` : `${this.rows.length} rows filter 2023`),
+      tip: () => (this._year ? `${this.rows.length} rows show all` : `${this.rows.length} rows filter year`),
       click: () => {
-        this._2023 = !this._2023
+        this._year = !this._year
         this.reload('vNames')
       }
     }
     else if (name.startsWith('v_')) {
       const id = name.substring(2), vol = nav.d.data.vs[id], _id = name.substring(1)
-      if (vol && nav.d.admin()) return { tip: () => this.voltip(id), class: ' ', theme: 'light', popup: `{vol.${_id}}` }
-      else if (vol) return { tip: 'contact', class: ' ', theme: 'light', popup: () => this.contact(id) }
+      if (vol && nav.d.admin()) return { tip: () => this._p('tip')(id), class: ' ', theme: 'light', popup: `{Vol.${_id}}` }
+      else if (vol) return { tip: 'contact', class: ' ', theme: 'light', popup: `{Vol.${id}}` }
     }
     else return this.plink(name, param)
   }
   filter = (id) => {
     const fd = this.p._p('_form'), f = fd && fd.filter,
-      v = nav.d.data.vs[id], v2023 = v.year[2023],
-      role = v2023 && ((v2023.asection || '') + ' ' + (v2023.arole || '') + ' ' + (v2023.jsection || '') + ' ' + (v2023.jrole || ''))
+      v = nav.d.data.vs[id], vyear = v.year && v.year[year],
+      role = vyear && ((vyear.asection || '') + ' ' + (vyear.arole || '') + ' ' + (vyear.jsection || '') + ' ' + (vyear.jrole || ''))
     let r = false
     if (!v || id * 1 === 0) r = false
     else if (!f) r = true
     else if (v.name && v.name.toLowerCase().includes(f)) r = true
     else if (v.email && v.email.toLowerCase().includes(f)) r = true
     else if (role && role.toLowerCase().includes(f)) r = true
-    if (this._2023) r = r && v.year[2023]
+    if (this._year) r = r && v.year && v.year[year]
     return r
   }
   trs = (name, param) => {
@@ -133,7 +162,7 @@ class Vnames extends Html {
     }
   }
   ths = (name, param) => {
-    if (name === 'vTable') return ['{link.id._2023}', 'First', 'Last', 'Adult', 'Junior']
+    if (name === 'vTable') return ['{link.id._year}', 'First', 'Last', 'Adult', 'Junior']
   }
   ticks = (l, id) => {
     if (!l) return `<span class="grey">{link.v_${id}.?}</span>`
@@ -149,10 +178,10 @@ class Vnames extends Html {
     const v = nav.d.data.vs[id], { name, email } = v,
       c = firstLast(name),
       n = Object.keys(v.year).length,
-      l = v.year[2023],
+      l = v.year[year],
       a = l && l.arole ? l.asection + ' ' + l.arole : '',
       j = l && l.jrole ? l.jsection + ' ' + l.jrole : ''
-    if (!c.first) debug({ id, v, c, l, a, j })
+    if (!c.first) error({ id, v, c, l, a, j })
     return [this.ticks(l, id), `{link._${id}.${_s(c.first) || '?'}}`, c.last, a, j]
   }
 }
@@ -199,7 +228,7 @@ class Vroles extends Html {
   link = (name, param) => {
     if (name.startsWith('u_')) {
       const id = name.substring(2), vol = nav.d.data.vs[id], _id = name.substring(1)
-      if (vol) return { tip: () => this.voltip(id), theme: 'light', class: this.p.color(id) }
+      if (vol) return { tip: () => this.tip(id), theme: 'light', class: this.p.color(id) }
     }
     else if (name.charAt(1) === '_') {
       const f = { a: 'adult', j: 'junior', s: 'both', f: 'both' }, ajs = f[name.charAt(0)]
@@ -222,7 +251,7 @@ class Vroles extends Html {
     }
   }
   voltip = (id) => {
-    const v = nav.d.data.vs[id], l = v.year[2023] || {}
+    const v = nav.d.data.vs[id], l = v.year[year] || {}
     let ret = ''
     if (l.none || !(l.adult || l.junior)) return `unavailable <span class="red">{link.v_${id}.✗✗}</span>`
     if (l.adult) ret += `adult<span class="${l.arole ? 'green' : 'amber'}">{link.v_${id}.✓}</span>`
@@ -232,7 +261,7 @@ class Vroles extends Html {
     return ret
   }
   sr = (id, s, r) => {
-    const v = nav.d.data.vs[id], { asection, arole, jsection, jrole } = (v.year && v.year[2023]) || {}
+    const v = nav.d.data.vs[id], { asection, arole, jsection, jrole } = (v.year && v.year[year]) || {}
     if (!v.year) debug({ id, v })
     let n = 0
     n += (asection === s && arole === r) ? 2 : 0
@@ -240,8 +269,8 @@ class Vroles extends Html {
     return n
   }
   vs = (s, r) => {
-    const vs = nav.d.data.vs, ks = Object.keys(vs).map(id => { if (id * 1 && vs[id]) return { id, n: this.sr(id, s, r) } }),
-      fvs = ks.filter(k => k && k.n).sort((a, b) => b.n - a.n)
+    const vs = nav.d.data.vs, ks = vs && Object.keys(vs).map(id => { if (id * 1 && vs[id]) return { id, n: this.sr(id, s, r) } }),
+      fvs = ks && ks.filter(k => k && k.n).sort((a, b) => b.n - a.n)
     return fvs
   }
   fill = (v, r, s) => {
@@ -314,10 +343,11 @@ class Greet extends Html {
     super(p, name || 'greet')
   }
   html = () => {
+    let ret = ''
     if (nav.reply) {
       const us = nav.users()
       if (us) us.forEach(u => {
-        const uaj = u.year[2023], s = uaj && (uaj.adult || uaj.junior || uaj.none)
+        const uaj = u.year[year], s = uaj && (uaj.adult || uaj.junior || uaj.none)
         if (!s) {
           const roles = nav.reply === 'yes' ? { adult: true, junior: true } : { none: true }
           req({ req: 'save', vol: u.id, roles }).then(r => {
@@ -333,11 +363,12 @@ class Greet extends Html {
           })
         }
       })
-      return nav.reply === 'yes' ? greetY : greetN
+      ret = nav.reply === 'yes' ? greetY : greetN
     }
     else {
-      return greet
+      ret = greet
     }
+    return `<div id=${this.name}>${ret}</div>`
   }
 }
 

@@ -63,13 +63,14 @@ class TT {
     html = () => {
         const { p, type, name, param } = this,
             k = name.toLowerCase(), l = p._p('link'),
-            link = l && l(name, param) || nav.pages[k] || links[k] || icons[k] || (k === 'close' && { class: 'close', tip: 'close', click: this.p.close })
+            link = l && l(name, param) || nav.pages[k] || links[k] || icons[k]
+                || (k === 'close' && { class: 'close', tip: 'close', click: () => this.p.close() })
         if (!link) debug({ TT: { type, name, param } })
         else {
             this.lk = link
             if (link.id) this.id = link.id
             const icon = (link.icon_ && icons[link.icon_]) || (link.icon && icons[link.icon]) || (type === 'svg' && icons[k]),
-                img = icon ? `<img id="${'icon_' + this.id}" src="${link.active ? icon.active : icon.default}" class="${link.class || 'icon'}"` : '',
+                img = icon ? `<img id="${'icon_' + this.id}" src="${link.active ? icon.active : icon.default}" class="${link.class || 'icon'}"/>` : '',
                 w = link.body ? link.body(this) :
                     link.icon || type === 'svg' ? img
                         : param ? param.replace(/_/g, "&nbsp;") + img : name.replace(/_/g, "&nbsp;") + img
@@ -132,7 +133,7 @@ class TT {
     popdiv = (e) => {
         this.remove(null, true, false)
         const l = this.el(), link = this.lk,
-            p = this.pO = nav.O(link.popup || link.drag, this)
+            p = this.pO = nav.O(link.popup || link.drag, this.p)
         const popup = this.pdiv = document.createElement('div'),
             id = (link.popup ? 'popup_' : 'drag_') + this.id
         popup.classList.add(link.popup ? 'popup' : 'dragdiv')
@@ -156,7 +157,7 @@ class TT {
         }
     }
     close = (m, r) => {
-        debug({ close: this, m })
+        //debug({ close: this, m, r })
         if (this.pdiv) {
             if (this.pO) {
                 this.pO.unload(this.pO)

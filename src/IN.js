@@ -52,13 +52,13 @@ class IN extends TT {
             ${lk.required ? 'required' : ''}
             >${lk.value || ''}</textarea>`
             case 'checkbox':
-                return `<input type="checkbox" class="${lk.class ? 'checkbox ' + form.class : 'checkbox'}"
+                return `<input type="checkbox" class="${lk.class ? 'checkbox ' + lk.class : 'checkbox'}"
             ${lk.value === true || lk.checked ? 'checked' : ''}
             name="${name}"
             id="${this.id}"
             ${lk.required ? 'required' : ''}
             />
-            ${lk.label ? `<label for="${this.id}">${lk.label}</label>` : ''}`
+            ${lk.label ? `<label for="${this.id}" class="${lk.class || 'form'}">${lk.label}</label>` : ''}`
             case 'button':
                 const icon = lk.icon && icons[lk.icon], active = lk.class && lk.class.includes('active'),
                     img = icon && `<img name="${name}" data-image="${lk.icon}" src="${active ? icon.active : icon.default}" class="${lk.class || 'icon'}" />`

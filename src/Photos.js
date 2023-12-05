@@ -2,8 +2,8 @@ import Html, { debug, error, nav } from './Html'
 import { ajax } from './ajax'
 
 class PhotosP extends Html {
-    constructor(p) {
-        super(p.p, p.name, p.param)
+    constructor(p, name, param) {
+        super(p, name, param)
         this.pn = null
     }
     html = (p, n) => {
@@ -22,8 +22,7 @@ class PhotosP extends Html {
         else if (n === 'thumb') return { class: "photolink", body: () => this.image(p, 'thumb'), tip: 'enlarge', click: () => this.photo(p) }
     }
     image = (pn, c) => {
-        const [y, n] = this.param.split('_'),
-            ps = this.ps(y, n),
+        const y = this.name, ps = this.ph ? this.ph() : this.ps(),
             tn = c === 'thumb',
             src = tn ? `/photos/${y}/thumbs/${ps[pn]}` : `/photos/${y}/${ps[pn]}`,
             img = `<img class="${c}" src="${src}" />`
@@ -36,10 +35,9 @@ class PhotosP extends Html {
         this.reload(`ps_${this.param}`)
     }
     close = () => this.popup.close(null, this.updated)
-    ps = (y, p) => this.p._p('ps')('ps', y, p)
     instruct = () => ''
     photos = () => {
-        const [y, p] = this.param.split('_'), ps = this.ps(y, p)
+        const ps = this.ph ? this.ph() : this.ps()
         if (ps.length === 1) this.pn = 0
         let ret
         if (this.pn !== null) ret = `{link.photo.${this.pn}}`
@@ -47,11 +45,12 @@ class PhotosP extends Html {
         ${(i + 1) % 4 === 0 ? '<br />' : ''}`).join('')
         return `${this.instruct()}${ret}`
     }
+    ps = (y = this.name, n = this.param) => this.p._p('ps')('ps', y, n)
 }
 
 class Photos extends PhotosP {
-    constructor(p) {
-        super(p)
+    constructor(p, name, param) {
+        super(p, name, param)
     }
     form = () => {
         const form = {
@@ -60,7 +59,7 @@ class Photos extends PhotosP {
         return form
     }
     public = () => {
-        const [y, n] = this.param.split('_'), ps = this.ps(y, n), pn = ps[this.pn]
+        const y = this.name, n = this.param, ph = this.ph(), pn = ph[this.pn]
         ajax({ req: 'photo', public: { y, n, pn } }).then(r => {
             nav.d.saveZip({ ps: r.ps })
             this.reload(`ps_${this.param}`)
@@ -72,11 +71,10 @@ class Photos extends PhotosP {
         this.popup.close(null, this.updated)
     }
     pub = (pn) => {
-        const [y, n] = this.param.split('_'), ps = this.ps(y, n), p = ps[pn],
-            pp = this.p._p('ps')('ps', y, n)
-        return p && pp.includes(p)
+        const ph = this.ph(), p = ph && ph[pn], ps = this.ps()
+        return p && ps.includes(p)
     }
-    ps = (y, n) => this.p._p('ps')('photos', y, n)
+    ph = (y = this.name, n = this.param) => this.p._p('ps')('photos', y, n)
     instruct = () => {
         return this.pn ? 'Click to minimise or right click to download. Tick {checkbox.public} to save and make public.'
             : 'Click on thumbnails to enlarge where you can download or save and make public.'

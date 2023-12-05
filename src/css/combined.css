@@ -71,6 +71,11 @@ body {
     margin: 0 0 0 auto;
 }
 
+.span {
+    display: inline-block;
+    max-width: max-content;
+}
+
 .page {
     font-size: 3rem;
     font-weight: bold;
