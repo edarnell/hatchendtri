@@ -5,16 +5,23 @@ class PhotosP extends Html {
     constructor(p, name, param) {
         super(p, name, param)
         this.pn = null
+        const y = this.name, n = this.param
+        ajax({ req: 'photo', get: { y, n } }).then(r => {
+            this.ps = r.ps
+            this.pp = r.pp
+            this.reload(`ps_${y}_${n}`)
+        }).catch(e => error(e))
     }
-    html = (p, n) => {
-        if (p === 'ps') return this.photos()
+    html = (p) => {
+        const y = this.name, n = this.param
+        if (p === 'ps') return this.ps ? this.photos() : ''
         else return `<div class="card fit">
             <div class="card-header">
             {link.close.×}
                 <span class="title">{link.Pinner_Camera_Club} Photos</span>
             </div>
             <div class="card-body">
-            <div id="ps_${this.param}">{div.ps.${this.param}}</div>
+            <div id="ps_${y}_${n}">{div.ps.${y}_${n}}</div>
             </div>`
     }
     link = (n, p) => {
@@ -22,22 +29,24 @@ class PhotosP extends Html {
         else if (n === 'thumb') return { class: "photolink", body: () => this.image(p, 'thumb'), tip: 'enlarge', click: () => this.photo(p) }
     }
     image = (pn, c) => {
-        const y = this.name, ps = this.ph ? this.ph() : this.ps(),
+        const y = this.name, ps = this.ps,
+            aws = 'https://hatchend.s3.eu-west-1.amazonaws.com',
             tn = c === 'thumb',
-            src = tn ? `/photos/${y}/thumbs/${ps[pn]}` : `/photos/${y}/${ps[pn]}`,
+            src = tn ? `${aws}/${y}/thumbs/${ps[pn]}` : `${aws}/${y}/${ps[pn]}`,
             img = `<img class="${c}" src="${src}" />`
-        return this.pub(pn) ? `<span class="pub">${img}</span>` : img
+        return tn && this.pub(pn) ? `<span class="pub">${img}</span>` : img
     }
     pub = () => false
-    photo = (n) => {
+    photo = (p) => {
+        const y = this.name, n = this.param
         if (this.pn) this.pn = null
-        else this.pn = n
-        this.reload(`ps_${this.param}`)
+        else this.pn = p
+        this.reload(`ps_${y}_${n}`)
     }
     close = () => this.popup.close(null, this.updated)
     instruct = () => ''
     photos = () => {
-        const ps = this.ph ? this.ph() : this.ps()
+        const ps = this.ps
         if (ps.length === 1) this.pn = 0
         let ret
         if (this.pn !== null) ret = `{link.photo.${this.pn}}`
@@ -45,7 +54,6 @@ class PhotosP extends Html {
         ${(i + 1) % 4 === 0 ? '<br />' : ''}`).join('')
         return `${this.instruct()}${ret}`
     }
-    ps = (y = this.name, n = this.param) => this.p._p('ps')('ps', y, n)
 }
 
 class Photos extends PhotosP {
@@ -59,22 +67,23 @@ class Photos extends PhotosP {
         return form
     }
     public = () => {
-        const y = this.name, n = this.param, ph = this.ph(), pn = ph[this.pn]
+        const y = this.name, n = this.param, ps = this.ps, pn = ps[this.pn]
         ajax({ req: 'photo', public: { y, n, pn } }).then(r => {
-            nav.d.saveZip({ ps: r.ps })
-            this.reload(`ps_${this.param}`)
+            nav.d.saveZip('photos', r.photos)
+            this.ps = r.ps
+            this.pp = r.pp
+            this.reload(`ps_${y}_${n}`)
             this.updated = true
         }).catch(e => error(e))
     }
     close = () => {
-        debug({ close: this.updated })
+        //debug({ close: this.updated })
         this.popup.close(null, this.updated)
     }
     pub = (pn) => {
-        const ph = this.ph(), p = ph && ph[pn], ps = this.ps()
-        return p && ps.includes(p)
+        const ps = this.ps, p = ps && ps[pn], pp = this.pp
+        return p && pp && pp.includes(p)
     }
-    ph = (y = this.name, n = this.param) => this.p._p('ps')('photos', y, n)
     instruct = () => {
         return this.pn ? 'Click to minimise or right click to download. Tick {checkbox.public} to save and make public.'
             : 'Click on thumbnails to enlarge where you can download or save and make public.'

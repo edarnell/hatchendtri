@@ -10,7 +10,7 @@ class Volunteer extends Html {
   constructor() {
     super()
     this.id = 'volunteer'
-    this.data = 'vs'
+    this.data = ['vs']
   }
   vol = (id) => {
     return new Vol(id)
@@ -24,12 +24,11 @@ class Volunteer extends Html {
     if (u && u.vol) {
       return Object.values(u.vol).map(v => `{link.v${v.id}.${_s(v.name)}}`).join(', ')
     }
-    else if (u.comp) return Object.values(u.comp).map(c => `link.v_0.${c.first}_${c.last}`).join(', ')
+    else if (u.names) return `{link.n.${u.names.first}_${u.names.lasts ? u.names.lasts[0] : ''}}`
     else return null
   }
-  loaded = () => {
-    const vs = nav.d.data.vs
-    debug({ vs })
+  loaded = (r) => {
+    if (r) this.reload()
   }
   rendered = () => {
     if (nav.d.admin()) {
@@ -47,7 +46,8 @@ class Volunteer extends Html {
   }
   link = (n) => {
     const id = n.substring(1), vol = nav.d.data.vs[id]
-    if (vol) {
+    if (n === 'n') return { tip: 'set volunteer availability', class: 'grey', popup: `{Vol.n}` }
+    else if (vol) {
       if (n.charAt(0) === 'v') return { tip: () => this.tip(id, 2024), theme: 'light', class: 'span ' + this.color(id), popup: `{Vol.${id}}` }
       else return nav.d.admin() ? { tip: () => this.tip(id), theme: 'light', class: this.color(id), popup: `{Vol.${id}}` }
         : { tip: `contact ${vol.name}`, class: this.color(id), theme: 'light', popup: `{Contact.${id}}` }
@@ -55,8 +55,9 @@ class Volunteer extends Html {
     else error({ link: n, id, vol })
   }
   html = (name, param) => {
+    if (!nav.d.data.vs) return '' // wait to load
     if (!name) return html
-    else if (name === 'greet') return new Greet(this, name)
+    else if (name === 'greet') return `<div id="greet"><p>Welcome {var.name}</p></div>`
     else if (name === 'nr') {
       const f = this._form, nr = (f && f.nr) || 'Roles'
       return `<div id="nr">${nr === 'Roles' ? '{div.vRoles}' : '{div.vNames}'}</div>`
@@ -88,8 +89,10 @@ class Volunteer extends Html {
   }
   yroles = (v, y = year) => {
     if (v && v.year && v.year[y]) {
-      if (y === year) return this.vtip(v.year[y], y)
-      else return `<div>${y} ${v.year[y].adult}, ${v.year[y].junior}</div>`
+      const vy = v.year[y]
+      if (y === year) return this.vtip(vy, y)
+      else if (y === '2023') return vy.adult || vy.junior ? `<div>${y} ${vy.adult ? (vy.asection + ' ' + vy.arole) : '✗'}, ${vy.junior ? (vy.jsection + ' ' + vy.jrole) : '✗'}</div>` : ''
+      else return `<div>${y} ${vy.adult}, ${vy.junior}</div>`
     }
     else return ''
   }
@@ -368,7 +371,7 @@ class Greet extends Html {
     else {
       ret = greet
     }
-    return `<div id=${this.name}>${ret}</div>`
+    return `<div id="greet">${ret}</div>`
   }
 }
 

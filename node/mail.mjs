@@ -5,8 +5,8 @@ import { f } from './zip.mjs'
 import jwt from 'jsonwebtoken'
 import { log } from './hatchend.mjs'
 
-const config = f('config.json', true)
-const mail = f('mail.html', true)
+const config = f('config.json', true).data
+const mail = f('mail.html', true).data
 const aws = config.aws
 /* may need something like this to avoid blocking the main thread
 const { fork } = require('child_process')

@@ -1,12 +1,11 @@
-import { debug } from './Html'
+import { debug, nav } from './Html'
 import { ajax } from './ajax'
 import { unzip } from './unzip'
 
 class Data {
-    constructor(nav) {
+    constructor() {
         this.data = {}
         this.dates = {}
-        this.nav = nav
     }
     user = () => {
         return new Promise((s, f) => {
@@ -17,25 +16,32 @@ class Data {
                     a[u.id] = u
                     return a
                 }, {})
-                if (r.comp) user.comp = r.comp
+                if (r.comp) {
+                    user.comp = r.comp
+                }
+                if (r.names) {
+                    user.names = r.names
+                }
                 s(user) // user or null (no vol or comp)
             })
             else s(false) // undefined (no token)
         })
     }
     admin = (ed) => {
-        const u = this.nav._user, vs = u && u.vol
+        const u = nav._user, vs = u && u.vol
         let ret
         if (vs) ret = Object.values(vs).some(u => u.admin === true)
         if (ret && ed) ret = Object.values(vs).some(u => u.email === 'ed@darnell.org.uk')
         return ret
     }
     name = () => {
-        const u = this.nav._user
-        if (u && (u.vol || u.comp)) {
-            if (this.nav.page.id === 'competitor' && u.comp) return Object.values(u.comp).map(c => `${c.first} ${c.last}`).join(', ')
-            else if (u.vol) return Object.values(u.vol).map(v => `${v.name}`).join(', ')
-            else if (u.comp) return Object.values(u.comp).map(c => `${c.first} ${c.last}`).join(', ')
+        const u = nav._user
+        if (u && u.names) {
+            return `${u.names.first} ${(u.names.lasts && u.names.lasts[0]) || ''}`
+            //if (nav.page.id === 'competitor' && u.comp) return Object.values(u.comp).map(c => `${c.first} ${c.last}`).join(', ')
+            //if (u.vol) return Object.values(u.vol).map(v => `${v.name}`).join(', ')
+            //else if (u.comp) return `${u.comp.first} ${u.comp.last}`
+            //Object.values(u.comp).map(c => `${c.first} ${c.last}`).join(', ')
         }
         else return null
     }
@@ -43,40 +49,53 @@ class Data {
         if (Array.isArray(req.data)) return req.every(r => this.data[r])
         else return this.data[req && req.data]
     }
-    get = (req) => {
-        if (Array.isArray(req)) return Promise.all(req.map(r => r && this.get(r)))
-        else return new Promise((s, f) => {
-            let date
-            if (this.data[req]) s(false)
-            else if (!req.endsWith('.csv') && (date = this.loadZip(req))) {
-                ajax({ req: 'dates', files: [req] }).then(r => {
-                    if (r.date[req] === date) s(false)
-                    else {
-                        debug({ stale: req, ndate: r.date[req], date })
-                        localStorage.removeItem('HE' + req)
-                        this.get(req).then(r => s(r)).catch(e => f(e))
+    get = (files) => {
+        files.forEach(n => this.loadZip(n))
+        return new Promise((s, f) => {
+            ajax({ req: 'dates', files }).then(r => {
+                const load = []
+                files.forEach(n => {
+                    const date = this.dates[n]
+                    if (r.date[n] !== date) {
+                        debug({ stale: n, ndate: r.date[n], date })
+                        localStorage.removeItem('HE' + n)
+                        load.push(n)
                     }
-                }).catch(e => f(e))
-            }
-            else ajax({ req: 'files', files: [req] }).then(r => {
-                if (r.zips && r.zips[req]) {
-                    if (req.endsWith('.csv')) this.data[req] = r.zips[req]
-                    else this.saveZip(r.zips)
-                    s(true)
-                }
-                else f(r)
+                })
+                if (load.length) this.load(load).then(r => s(r)).catch(e => f(e))
+                else s(false)
             }).catch(e => f(e))
         })
     }
-    saveZip = (zips) => {
-        const names = Object.keys(zips), n = names[0], z = n && zips[n]
+    load = (files) => {
+        return new Promise((s, f) => {
+            return ajax({ req: 'files', files }).then(r => {
+                const dates = {}
+                files.forEach(n => {
+                    if (r.zips[n]) dates[n] = this.saveZip(n, r.zips[n])
+                    else if (r.csvs[n]) dates[n] = this.saveCsv(n, r.csvs[n])
+                })
+                s(dates)
+            }).catch(e => f(e))
+        })
+    }
+    saveZip = (f, z) => {
         if (z) {
-            localStorage.setItem('HE' + n, JSON.stringify(z))
-            this.data[n] = unzip(z.data)
-            this.dates[n] = z.date
+            localStorage.setItem('HE' + f, JSON.stringify(z))
+            this.data[f] = unzip(z.data)
+            this.dates[f] = z.date
         }
+        return z ? this.dates[f] : false
+    }
+    saveCsv = (f, c) => {
+        if (c) {
+            this.data[f] = c.data
+            this.dates[f] = c.date
+        }
+        return c ? this.dates[f] : false
     }
     loadZip = (n) => {
+        if (this.data[n]) return this.dates[n]
         const z = n && localStorage.getItem('HE' + n)
         if (z) {
             const { date, data: d } = JSON.parse(z)

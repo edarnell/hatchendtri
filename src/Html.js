@@ -14,6 +14,24 @@ function _s(s, p) {
     }
 }
 
+function snakeCase(str) {
+    if (str === str.toLowerCase() || str === str.toUpperCase()) return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+    else return str
+}
+
+function jsonToHtml(json) {
+    let html = '<ul>'
+    for (let key in json) {
+        if (typeof json[key] === 'object' && json[key] !== null) {
+            html += `<li>${key}: ${jsonToHtml(json[key])}</li>`
+        } else {
+            html += `<li>${key}: ${json[key]}</li>`
+        }
+    }
+    html += '</ul>'
+    return html
+}
+
 class Html {
     constructor(p, name, param) {
         if (p) {
@@ -57,7 +75,6 @@ class Html {
         requestAnimationFrame(() => {
             //debug({ render: this, o, id, _html })
             this.listen(o)
-            if (o.rendered) o.rendered()
         })
     }
     replace = (o, html) => {
@@ -79,6 +96,7 @@ class Html {
         if (p.tt) Object.keys(p.tt).forEach(id => p.tt[id].listen())
         if (p.frm) Object.keys(p.frm).forEach(id => p.frm[id].listen())
         if (p.img) Object.keys(p.img).forEach(id => p.img[id].listen())
+        if (p.rendered) p.rendered(p.id)
     }
     unload = (p) => {
         //debug({ unload: p.id })
@@ -193,4 +211,4 @@ class Html {
     }
 }
 export default Html
-export { debug, error, _s, nav }
+export { debug, error, _s, nav, snakeCase, jsonToHtml }

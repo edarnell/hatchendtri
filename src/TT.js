@@ -64,8 +64,14 @@ class TT {
         const { p, type, name, param } = this,
             k = name.toLowerCase(), l = p._p('link'),
             link = l && l(name, param) || nav.pages[k] || links[k] || icons[k]
-                || (k === 'close' && { class: 'close', tip: 'close', click: () => this.p.close() })
-        if (!link) debug({ TT: { type, name, param } })
+                || (k === 'close' && {
+                    class: 'close', tip: 'close', click: () => {
+                        const p = this.p, pu = p && p.popup, close = (p && p.close) || (pu && pu.close)
+                        if (typeof close === 'function') close()
+                        else error({ close: this })
+                    }
+                })
+        if (!link) debug({ TT: this, type, name, param })
         else {
             this.lk = link
             if (link.id) this.id = link.id
@@ -133,7 +139,7 @@ class TT {
     popdiv = (e) => {
         this.remove(null, true, false)
         const l = this.el(), link = this.lk,
-            p = this.pO = nav.O(link.popup || link.drag, this.p)
+            p = this.pO = typeof (link.popup || link.drag) === 'function' ? link.popup ? link.popup() : link.drag() : nav.O(link.popup || link.drag, this.p)
         const popup = this.pdiv = document.createElement('div'),
             id = (link.popup ? 'popup_' : 'drag_') + this.id
         popup.classList.add(link.popup ? 'popup' : 'dragdiv')

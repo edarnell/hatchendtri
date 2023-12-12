@@ -29,7 +29,7 @@ const form = {
 class Competitor extends Html {
   constructor() {
     super()
-    this.data = 'cs'
+    //this.data = ['cs']
     this.id = 'cometitor'
     //       class: 'form primary hidden', tip: this.formtip
   }
@@ -42,7 +42,7 @@ class Competitor extends Html {
     }
   }
   html = (name) => {
-    if (name === 'greet') return 'Entries scheduled to open 1st December 2023'//this.greet()
+    if (name === 'greet') return '<p>Entries open 12 December 2023. See {nav.results} for previous years.</p>'//this.greet()
     else if (name === 'entries') return '<div id="entries"></div>'//`<div id='entries'>{table.entries}</div>`
     else if (!name) return html
     else error({ html: name })
@@ -68,7 +68,7 @@ class Competitor extends Html {
     const { name, param } = o
     if (name === 'mf') return param === 'F' ? "Female" : "Open/Male"
     else if (name === 'cat') return rCat[param]
-    else if (name === 'Entries') return 'opens 1st December 2023'//`${this.rows} rows selected`
+    else if (name === 'Entries') return 'opens 12 December 2023'//`${this.rows} rows selected`
   }
   link = (name) => {
     if (name.startsWith('u_')) {

@@ -5,10 +5,11 @@ class Results extends Html {
   constructor(p, name) {
     super(p, name)
     this.id = 'results'
-    this.data = ['results', 'photos', 'ps']
+    this.data = ['results', 'photos']
   }
   loaded = (r) => {
-    if (r.some(f => f === true)) this.refresh()
+    //debug({ loaded: r, data: nav.d.data })
+    if (r) this.refresh()
   }
   form = () => {
     const form = {
@@ -42,21 +43,18 @@ class Results extends Html {
     else return html
   }
   photos = (year, num) => {
-    return this.ps('photos', year, num) ? `{link.photos.${year}_${num}}` : null
-  }
-  ps = (pn, year, num) => {
-    const ps = nav.d.data[pn], y = ps && ps[year], p = y && y[num]
-    return p
+    const ps = nav.d.data.photos, y = ps && ps[year], p = y && y[num]
+    return p ? `{link.photos.${year}_${num}}` : null
   }
   link = (name, param) => {
     if (name === 'year') return { tip: `${param.replace(/_/g, " ")} all results`, click: this.year }
     else if (name === 'name') return { tip: `${param.replace(/_/g, " ")} all results`, click: this.name }
     else if (name === 'photos') {
-      const [y, n] = param.split('_'), p = this.ps('photos', y, n), ps = this.ps('ps', y, n),
-        u = nav._user, ns = u && u.comp, ny = ns && ns[y], own = ny && ny.includes(n), active = ps || own,
-        r = { id: `TT_photos_${param}`, active, placement: 'auto', icon: 'photo', tip: `${ps ? ps.length : 0} of ${p.length} photos` }
+      const [y, n] = param.split('_'), ps = nav.d.data.photos, yp = ps && ps[y], p = yp && yp[n],
+        u = nav._user, ns = u && u.comp, ny = ns && ns[y], own = ny && (ny.includes(n) || ny.includes(n * 1)), active = p.p || own,
+        r = { id: `TT_photos_${param}`, active, placement: 'auto', icon: 'photo', tip: `${p.p} of ${p.t} photos` }
       if (own) r.drag = `{Photos.${y}.${n}}`
-      else if (u && ps) r.drag = `{PhotosP.${y}.${n}}`
+      else if (p.p) r.drag = `{PhotosP.${y}.${n}}`
       else r.popup = 'Login'
       return r
     }

@@ -5,15 +5,13 @@ const debug = console.log.bind(console)
 function unzip(z) {
     const b = Buffer.from(z, 'base64'), s = inflate(b, { to: 'string' }),
         j = JSON.parse(s)
-    //debug({ b, s, j })
     return j
 }
 
-function zip(j) {
+function zip(j, base64) {
     const s = JSON.stringify(j), b = Buffer.from(s),
         z = deflate(b)
-    debug({ zip: s, in: s.length, out: z.length })
-    return z
+    return base64 ? Buffer.from(z).toString('base64') : z
 }
 
 export { zip, unzip }

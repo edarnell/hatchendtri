@@ -32,15 +32,23 @@ class Vol extends Html {
     constructor(p, name) {
         super(p, name)
         const vs = nav.d.data.vs
-        this.v = (vs && vs[this.name]) || { id: 0 }
+        if (name === 'n') this.v = this.user() // will be updated when ajax returns email
+        else this.v = (vs && vs[this.name]) || { id: 0 }
+    }
+    user = () => {
+        ajax({ req: 'vol', vol: -1 }).then(r => {
+            debug({ r })
+            this.v = r.vol
+        })
+        const u = nav._user, n = u.names
+        return this.v || { id: -1, name: `${n.first} ${n.lasts ? n.lasts[0] : ''}` }
     }
     form = () => {
         if (this.edit) return volForm
         else return roleForm
     }
     html = (n) => {
-        if (n === 'volD') return this.edit ? volD : ''
-        else if (n === 'volE') return this.edit ? '' : volE
+        if (n === 'vol') return `<div id="vol">${this.edit ? volD : volE}</div>`
         else return html
     }
     var = (n) => {
@@ -53,7 +61,7 @@ class Vol extends Html {
         else if (name === 'close') return { class: 'close', tip: 'save and close', click: this.edit ? this.details : this.save }
     }
     rendered = () => {
-        debug({ vol: this.v })
+        //debug({ vol: this.v })
         if (this.edit) this.setForm(this.v)
         else this.updateV()
     }
@@ -66,8 +74,7 @@ class Vol extends Html {
     }
     details = (o) => {
         if (!this.edit) ajax({ req: 'vol', vol: this.v.id }).then(r => {
-            debug({ r })
-            const id = this.v.id, v = r.vol
+            const id = this.v.id, v = this.v = r.vol
             v.id = id // restore id if missing
             this.edit = true
             this.reload()
@@ -84,7 +91,11 @@ class Vol extends Html {
             if (upd) ajax({ req: 'save', vol: this.v.id, details: f }).then(r => {
                 this.edit = false
                 nav.d.saveZip({ vs: r.vs })
-                this.p.reload()
+                if (this.v.id < 0) {
+                    this.v = r.v
+                    this.name = r.v.id
+                    nav._user.vol = { [r.v.id]: r.v }
+                }
                 this.reload()
             })
             else {
@@ -114,6 +125,7 @@ class Vol extends Html {
                         this.fe('jrole').value = vy.jrole
                     }
                 }
+                if (vy.notes) this.fe('notes').value = vy.notes
                 this.hidden()
             }
         }
@@ -172,14 +184,14 @@ class Vol extends Html {
             roles = (JSON.stringify(r24) !== JSON.stringify(v.year && v.year[year])) && r24
         if (roles) ajax({ req: 'save', vol: this.v.id, year, roles }).then(r => {
             nav.d.saveZip({ vs: r.vs })
-            debug({ save: this, v })
-            this.p.reload()
+            //debug({ save: this, v })
+            if (this.v.id < 0) nav._user.vol = { [r.v.id]: r.v }
+            this.p.reload('greet')
             this.popup.close('updated')
         }).catch(e => debug({ e }))
         else this.popup.close('unchanged')
     }
     input = (e, o) => {
-        debug({ input: e, o })
         const name = o.name
         if (name === 'asection' || name === 'jsection') selectSection(this, name, name.charAt(0) + 'role')
         else if (name === 'arole' || name === 'jrole') selectRole(this, name.charAt(0) + 'section', name)

@@ -76,7 +76,6 @@ class Vselect extends Html {
     rendered = () => {
         const vs = nav.d.data.vs
         this._form = this.getForm()
-        debug({ vs })
     }
     filter = () => {
         const f = this._form, filter = f && (this._name = f.name), vs = nav.d.data.vs
