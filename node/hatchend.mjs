@@ -220,6 +220,22 @@ function saveComp(req, json, r) {
     } else resp(req, r, { message: 'no comp' }, 400)
 }
 
+function unsubReq(req, json, r, email) {
+    const u = emails[email], name = `${u.first} ${u.lasts ? u.lasts[0] : ''}`
+    if (json.name === name) {
+        const reason = json.reason || '',
+            unsub = fs.existsSync(`gz/_unsub.gz`) ? fz('gz/_unsub.gz') : {}
+        unsub[email] = { reason, date: new Date().toISOString().slice(0, 10) }
+        save('_unsub', unsub)
+        //log.info('req->', req, { c, co, cn })
+        send({
+            from_email: email, subject: 'Unsubscibe',
+            message: `${name} ${email} unsubscribed\n Reason: ${reason}\n`
+        })
+        resp(req, r, { unsub: true })
+    } else resp(req, r, { message: 'data error' }, 400)
+}
+
 function saveZips(req, json, r) {
     if (json.zips) {
         const { zips } = json, fs = Object.keys(zips),
@@ -262,21 +278,33 @@ function volReq(req, json, r, email) {
 }
 
 function saveMl(j) {
-    const ml = fz('gz/mailLog.gz'), ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
+    const ml = fz('gz/_mailLog.gz'), ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
     ml[ts] = j
-    save('mailLog', ml)
-    return f('gz/mailLog.gz')
+    save('_mailLog', ml)
+    return f('gz/_mailLog.gz')
+}
+
+function delaySend(req) {
+    const t = req.time, [h, m] = t ? t.split(':') : []
+    if (h & m) {
+        const d = new Date(), now = new Date()
+        d.setHours(h)
+        d.setMinutes(m)
+        if (d < now) d.setDate(d.getDate() + 1)
+        const delay = d.getTime() - now.getTime();
+        setTimeout(() => send_list(req), delay)
+    }
+    else log.error({ bulksend: { t } })
 }
 
 function bulksendReq(req, json, r, email, aed) {
-    if (!config.live && json.subject && json.message && json.list && aed) {
-        const { subject, message, list, live } = json, mailLog = saveMl(json)
-        send_list(list, subject, message, live)
-            .then(s => resp(req, r, { sent: s, mailLog }))
-            .catch(e => {
-                log.info({ error: e })
-                resp(req, r, { error: e }, 500)
-            })
+    const { subject, message, list, live, time } = json
+    if (!config.live && subject && message && list && list.length && aed) {
+        const _mailLog = saveMl(json)
+        log.info({ bulksend: { to: live.length, subject, time } })
+        if (time) delaySend(json)
+        else send_list(json)
+        resp(req, r, { bulksend: list.length, time, _mailLog })
     } else resp(req, r, { error: 'Unauthorized' }, 401)
 }
 
@@ -310,6 +338,7 @@ function photoReq(req, json, r, email) {
         u = np[y] && (np[y].includes(n + '') || np[y].includes(n * 1)), p = u && photos[y][n]
     if (json.get) {
         const pp = ps[y][n]
+        log.info({ photo: { y, n } })
         resp(req, r, { ps: p || pp, pp })
     }
     else if (json.public) {
@@ -326,6 +355,7 @@ function photoReq(req, json, r, email) {
         save('_ps', ps)
         pn = photoN()
         const pp = u && ps[y][n]
+        log.info({ ps: { y, n, ph } })
         resp(req, r, { photos: pn, ps: p, pp })
     } else resp(req, r, { message: 'no photo' }, 400)
 }
@@ -339,7 +369,7 @@ app.post(config.url, (m, r) => {
         aed = email && email === 'ed@darnell.org.uk',
         reqF = {
             anon: { filesReq, datesReq, loginReq, sendReq },
-            auth: { userReq, volReq, compReq, saveReq, photoReq, bulksendReq }
+            auth: { userReq, volReq, compReq, saveReq, photoReq, bulksendReq, unsubReq }
         }
     if (req) {
         log.info('req->', req)
@@ -365,5 +395,5 @@ function start() {
         log.info(`listening on ${config.url} port ${config.port}`)
     })
 }
-export { log }
+export { log, saveMl }
 export default start

@@ -54,7 +54,7 @@ class Results extends Html {
         u = nav._user, ns = u && u.comp, ny = ns && ns[y], own = ny && (ny.includes(n) || ny.includes(n * 1)), active = p.p || own,
         r = { id: `TT_photos_${param}`, active, placement: 'auto', icon: 'photo', tip: `${p.p} of ${p.t} photos` }
       if (own) r.drag = `{Photos.${y}.${n}}`
-      else if (p.p) r.drag = `{PhotosP.${y}.${n}}`
+      else if (p.p && nav._user) r.drag = `{PhotosP.${y}.${n}}`
       else r.popup = 'Login'
       return r
     }

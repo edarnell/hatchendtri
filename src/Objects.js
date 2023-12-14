@@ -2,14 +2,13 @@ const debug = console.log.bind(console)
 const error = console.error.bind(console)
 import Volunteer from './Volunteer'
 // import Vol from './Vol'
-import Admin from './Admin'
 import Competitor from './Competitor'
 //import Comp from './Comp'
 //import Vselect from './Vselect'import Home from './Home'
 import Details from './Details'
 import Results from './Results'
 import Contact from './Contact'
-import User, { Login } from './User'
+import User, { Login, Unsub } from './User'
 import Home from './Home'
 import CSV from './CSV'
 import Photos, { PhotosP } from './Photos'
@@ -24,13 +23,13 @@ const cs = {
     Results,
     Contact,
     User,
-    Admin,
     CSV,
     Photos,
     PhotosP,
     Vselect,
     Vol,
-    Login
+    Login,
+    Unsub
 }
 class H {
     O = (n, ...args) => {

@@ -15,7 +15,7 @@ class IN extends TT {
     html = () => {
         const { lk, name, type, param } = this
         //debug({ name, type, param, form })
-        switch (type) {
+        if (lk) switch (type) {
             case 'input':
                 return `${lk.label ? `<label for="${this.id}">${lk.label}</label>` : ''}
             <input
@@ -23,6 +23,7 @@ class IN extends TT {
             name="${name}"
             id="${this.id}"
             ${lk.placeholder ? `placeholder="${lk.placeholder}"` : ''}
+            ${lk.size ? `size="${lk.size}"` : ''}
             ${lk.pattern ? `pattern="${lk.pattern}"` : ''}
             ${lk.required ? 'required' : ''}
             ${lk.value ? `value="${lk.value}"` : ''}
@@ -63,6 +64,7 @@ class IN extends TT {
                 const icon = lk.icon && icons[lk.icon], active = lk.class && lk.class.includes('active'),
                     img = icon && `<img name="${name}" data-image="${lk.icon}" src="${active ? icon.active : icon.default}" class="${lk.class || 'icon'}" />`
                 return img || `<button 
+            type="${lk.type || 'button'}"
             name="${name}" 
             id="${this.id}"
             class="${lk.class || 'form'}">${param || name}</button>`

@@ -47,10 +47,11 @@ function fz(f) {
 }
 
 function save(f, j) {
-    const z = zip(j), ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
+    const _a = ['_vs'], // files to make anaonomised copies of
+        z = zip(j), ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
     if (fs.existsSync(`gz/${f}.gz`)) fs.renameSync(`gz/${f}.gz`, `gz/backups/${f}_${ts}.gz`);
     fs.writeFileSync(`gz/${f}.gz`, z)
-    if (f.charAt(0) === '_') fs.writeFileSync(`gz/${f.substring(1)}.gz`, zip(anon(j)))
+    if (_a.includes(f)) fs.writeFileSync(`gz/${f.substring(1)}.gz`, zip(anon(j)))
     return z
 }
 

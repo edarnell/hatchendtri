@@ -81,7 +81,7 @@ class Data {
     }
     saveZip = (f, z) => {
         if (z) {
-            localStorage.setItem('HE' + f, JSON.stringify(z))
+            if (f.charAt(0) !== '_') localStorage.setItem('HE' + f, JSON.stringify(z))
             this.data[f] = unzip(z.data)
             this.dates[f] = z.date
         }

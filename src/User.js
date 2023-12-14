@@ -1,5 +1,6 @@
 import { debug, _s } from './Html'
 import user from './html/user.html'
+import unsub from './html/unsub.html'
 import login from './html/login.html'
 import Contact from './Contact'
 import { nav } from './Nav'
@@ -12,6 +13,7 @@ class User extends Contact {
     }
     form = (name) => {
         let form = {
+            unsub: { tip: 'Confirm Unsubscribe', class: 'form primary', text: 'Confirm' },
             email: { placeholder: 'email', type: 'email', required: true },
             send: { class: 'form disabled', click: 'submit', tip: this.spamtt },
         }
@@ -57,5 +59,36 @@ class Login extends User {
     }
 }
 
-export { Login }
+class Unsub extends User {
+    constructor(p) {
+        super()
+        this.p = p
+    }
+    form = (name) => {
+        return {
+            reason: { placeholder: 'reason (optional)', type: 'text' },
+            unsub: { tip: 'Confirm Unsubscribe', class: 'form primary', click: this.confirm },
+        }
+    }
+    html = (n, p) => {
+        return unsub
+    }
+    close = (m) => this.p.close(m || 'Cancelled unsubscribe.')
+    confirm = () => {
+        const f = this.getForm()
+        ajax({ req: 'unsub', name: nav.d.name(), reason: f.reason })
+            .then(r => {
+                this.close('Unsubscribed.')
+            })
+            .catch(e => error(e))
+    }
+    input = () => {
+        // do nothing
+    }
+    var = (name) => {
+        if (name === 'user') return `<span class="bold">${nav.d.name()}</span>`
+    }
+}
+
+export { Login, Unsub }
 export default User

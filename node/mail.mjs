@@ -3,7 +3,7 @@ import { STSClient, GetSessionTokenCommand } from '@aws-sdk/client-sts'
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
 import { f } from './zip.mjs'
 import jwt from 'jsonwebtoken'
-import { log } from './hatchend.mjs'
+import { log, saveMl } from './hatchend.mjs'
 
 const config = f('config.json', true).data
 const mail = f('mail.html', true).data
@@ -36,44 +36,50 @@ function send_list(list, subject, message, live) {
 */
 
 
-function send_list(list, subject, message, live) {
-    const length = list.length
+function send_list(m) {
+    const { subject, list } = m, length = list.length
     log.info({ sending: length })
-    return new Promise((s, f) => {
-        aws.clientDefault = { outputFormat: 'json' }
-        const sts = new STSClient(aws)
-        const stsCommand = new GetSessionTokenCommand({ DurationSeconds: 900 })
-        sts.send(stsCommand).then(async r => {
-            const ses = new SESClient({
-                clientDefault: { outputFormat: 'json' },
-                region: aws.region,
-                credentials: {
-                    accessKeyId: r.Credentials.AccessKeyId,
-                    secretAccessKey: r.Credentials.SecretAccessKey,
-                    sessionToken: r.Credentials.SessionToken
-                }
-            })
-            const n = 10
-            let s_ = 0, f_ = 0
-            for (var i = 0; i < length; i += n) {
-                const { sent, failed } = await send_batch(n, list, i, ses, subject, message, live)
-                if (i === n) s({ sending: { sent, failed, length } })
-                s_ += sent, f_ += failed
-                log.info({ sent: s_, failed: f_ })
-                await new Promise(resolve => setTimeout(resolve, 1000))
+    aws.clientDefault = { outputFormat: 'json' }
+    const sts = new STSClient(aws)
+    const stsCommand = new GetSessionTokenCommand({ DurationSeconds: 900 })
+    sts.send(stsCommand).then(async r => {
+        const ses = new SESClient({
+            clientDefault: { outputFormat: 'json' },
+            region: aws.region,
+            credentials: {
+                accessKeyId: r.Credentials.AccessKeyId,
+                secretAccessKey: r.Credentials.SecretAccessKey,
+                sessionToken: r.Credentials.SessionToken
             }
-        }).catch(e => f(e))
-    })
+        })
+        const n = 10
+        let s_ = 0, f_ = 0
+        for (var i = 0; i < length; i += n) {
+            const { sent, failed } = await send_batch(ses, n, m, i)
+            if (i === n) s({ sending: { sent, failed, length } })
+            s_ += sent, f_ += failed
+            log.info({ sent: s_, failed: f_ })
+            await new Promise(resolve => setTimeout(resolve, 1000))
+        }
+        send({
+            subject: 'bulk send',
+            message: `${subject}\nSent to ${s_} of ${length} recipients (${f_} failed)\n`
+        })
+        if (m.time) {
+            m.time = 'sent'
+            saveMl(m)
+        }
+    }).catch(e => f(e))
 }
 
 // should look to modify to bulk send
-async function send_batch(n, list, i, ses, subject, message, live) {
-    const emails = list.slice(i, i + n)
+async function send_batch(ses, n, m, i) {
+    const { subject, message, live, unsub, list } = m, emails = list.slice(i, i + n)
     const promises = emails.map(async r => {
-        return ses.send(new SendEmailCommand(email({ to: r.to.name, email: r.to.email, subject, message, live })))
+        return ses.send(new SendEmailCommand(email({ to: r.to.name, email: r.to.email, subject, message, live, unsub })))
             .then(r => r.MessageId)
             .catch(e => {
-                log.info({ error: e, email: r.to.email })
+                log.error({ error: e, email: r.to.email })
                 return false
             })
     })
@@ -88,16 +94,15 @@ function html_text(html) {
 }
 
 const _footer = '<a href="{host}">Hatch End Triathlon</a> is organised and run by '
-    + '<a href="https://jetstreamtri.com">Jetstream Triathlon Club</a><br/>'
-/*
-+ 'You can <a href="{host}/update{token}">update</a> your details '
-+ 'or <a href="{host}/unsubscribe{token}">unsubscribe</a> at any time.'*/
+    + '<a href="https://jetstreamtri.com">Jetstream Triathlon Club</a><br/><br/>',
+    _unsub = 'You are receiving this email because you previously entered or volunteered at the Hatch End Triathlon.<br/>'
+        + 'You can reply to this email or <a href="{host}/unsubscribe{token}">unsubscribe</a> at any time.'
 function email(p) {
     var html = mail.slice()
     const m = {}
     const token = (p.email || p.uEmail) ? jwt.sign({ email: p.email || p.uEmail, ts: Date.now() }, config.key) : ''
     m.to = p.to || "Race Organiser"
-    m.footer = (p.footer || _footer)
+    m.footer = (p.footer || _footer) + (p.unsub ? _unsub : '')
     m.from = p.from || 'Ed Darnell<br>Race Organiser'
     m.message = p.message && p.message.replace(/\n/g, "<br />\r\n") || ''
         ;['to', 'message', 'from', 'footer'].forEach(k => {

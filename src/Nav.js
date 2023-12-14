@@ -4,6 +4,7 @@ import Html, { debug, error } from './Html'
 import html from './html/Nav.html'
 import { icons } from './icons'
 import Data from './Data.js'
+import { apage } from './Admin'
 
 const images = ['url("swim.jpg")', 'url("bike.jpg")', 'url("run.jpg")']
 var nav
@@ -15,7 +16,7 @@ class Nav extends Html {
             details: { nav: 'Details', href: 'details', tip: 'detailed event information' },
             results: { nav: 'Results', href: 'results', tip: 'results from 2000 onwards' },
             volunteer: { nav: 'Volunteer', hide: true, href: 'volunteer', tip: 'volunteer system' },
-            admin: { nav: 'Admin', hide: true, href: 'admin', tip: 'data admin' },
+            admin: { nav: 'Admin', page: () => apage(this.f ? this.f.admin : 'email'), hide: true, href: 'admin', tip: 'data admin' },
             competitor: { nav: 'Competitor', hide: true, href: 'competitor', tip: 'entry system' },
             contact: { popup: 'Contact', icon: 'email', tip: this.ctt, placement: 'bottom-end' },
             user: { popup: 'User', icon: 'user', tip: this.tt, placement: 'bottom-end' },
@@ -34,7 +35,14 @@ class Nav extends Html {
             })
         })
     }
-    html = () => html
+    form = () => { // section and options populated on load
+        return { admin: { options: ['select', 'email'] } }
+    }
+    html = (n) => {
+        // ${this.path === 'admin' ? '{select.admin}' : ''}
+        if (n === 'nav_admin') return `<span id="nav_admin"></div>`
+        else return html
+    }
     image = () => {
         const bg = this.q('#background')
         bg.style.backgroundImage = images[this.i]
@@ -71,13 +79,14 @@ class Nav extends Html {
             this.path = pg
         }
         const p = this.pages[this.path], pe = this.q('#nav_page')
-        this.page = this.O(p.nav)
+        this.page = p.page ? p.page() : this.O(p.nav)
         this.toggle(true, this.path)
         this.render(this.page, 'page')
         pe.innerHTML = p.nav
         history.pushState(null, null, `/${this.path}`);
         this.image()
         if (pg) this.checkUser()
+        else if (this.unsub) this.unsubscribe()
     }
     userIcon = (set) => {
         if (set !== undefined) {
@@ -102,6 +111,23 @@ class Nav extends Html {
         localStorage.removeItem('HEtoken')
         this.userIcon(false)
         this.load()
+    }
+    unsubscribe = () => {
+        this.unsub = false // reset
+        const l = this.q(`[id*="TT_user_nav"]`)
+        this.popup('Unsub', 'nav_unsub', l, 'bottom-end')
+    }
+    close = (m) => {
+        this.popup('close', 'nav_unsub')
+        if (m) {
+            const tt = this.tt.TT_user_nav_5
+            tt.tooltip(null, m)
+            tt.timer = setTimeout(() => {
+                tt.ttremove()
+                tt.listen(true)
+                if (m === 'Unsubscribed.') this.logout()
+            }, 2000)
+        }
     }
     ctt = () => {
         this.checkUser()

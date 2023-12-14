@@ -388,7 +388,29 @@ label {
     display: none;
 }
 
+.message {
+    border: 1px solid #000;
+    padding: 10px;
+    background-color: #fff;
+    color: #000;
+    position: absolute;
+    z-index: 1;
+}
 
+.message.red {
+    border-color: red;
+    color: red;
+}
+
+.message.amber {
+    border-color: orangered;
+    color: orangered;
+}
+
+.message.green {
+    border-color: green;
+    color: green;
+}
 
 /* AI created with theme dark or light */
 

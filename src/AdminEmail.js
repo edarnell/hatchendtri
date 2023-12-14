@@ -1,16 +1,67 @@
 import Html, { debug, nav, snakeCase, jsonToHtml } from './Html.js'
 import { ajax } from './ajax.js'
 import { zip } from './unzip.js'
+import html from './html/AdminEmail.html'
 class AdminEmail extends Html {
-    constructor(p, name) {
-        super(p, name)
-        this.data = ['_emails', 'mailLog']
+    constructor() {
+        super()
+        this.id = 'AdminEmail'
+        this.data = ['_emails', '_mailLog']
     }
+    //             save: { tip: `save emails_`, class: 'form danger', click: this.save },
     form = () => {
+        const o = this.ml_opt && [{ name: 'since', value: '' }, ...this.ml_opt]
         return {
             filter: { tip: 'filter by name or club or key', placeholder: 'name,name,...', width: '50rem' },
-            save: { tip: `save emails_`, class: 'form', click: this.save }
+            send: { tip: `send to selected`, class: 'form primary', drag: () => new Send(this, 'Send') },
+            since: { tip: 'last send before this', class: 'form', options: o || [] },
+            jetstream: { tip: 'jetstream members' },
+            photos: { tip: 'photos' },
+            vs: { tip: 'volunteers' },
+            unsubs: { tip: 'unsub and bounce' },
+            test3: { tip: 'testing to Darnell' }
         }
+    }
+    ml = () => {
+        const d = nav.d.data, ml = d && d._mailLog, e = d && d._emails, eml = {}
+        if (ml && e) {
+            let last = ''
+            const opt = Object.keys(ml).filter(dt => ml[dt].req === 'bulksend' && ml[dt].live).reverse().map(dt => {
+                const m = ml[dt], dmy = dt.replace(/^(\d{2})(\d{2})(\d{2})(\d{2}).*$/, '$4/$3/$2'), s = m.subject
+                let r = { name: `${dmy} ${s}`, value: dt }
+                if (r.name === last) r = null
+                else {
+                    last = r.name
+                    m.list.forEach(r => {
+                        if (!eml[r.to.email]) eml[r.to.email] = []
+                        eml[r.to.email].push(dt)
+                    })
+                }
+                return r
+            }).filter(r => r)
+            this._ml = eml
+            this.ml_opt = opt
+        }
+    }
+    filter = (r) => {
+        let ret = true
+        const f = this.f
+        if (!f) ret = r[3].includes('ed@darnell')
+        else if (f.test3) ret = r[2].includes('Darnell')
+        else {
+            const last = this._ml[r[3]] ? this._ml[r[3]][0] : ''
+            if (f.jetstream) ret = ret && r[5].includes('jetstream')
+            if (f.photos) ret = ret && r[5].includes('photos')
+            if (f.vs) ret = ret && r[5].includes('vs')
+            if (f.unsubs) ret = ret && (r[5].includes('unsub') || r[5].includes('bounce'))
+            else ret = ret && !r[5].includes('unsub') && !r[5].includes('bounce')
+            if (f.since) ret = ret && (last < f.since)
+            if (f.filter) {
+                const xs = f.filter.split(',').map(s => s.toLowerCase().trim())
+                ret = ret && xs.every(x => (r.some(c => c.toLowerCase().includes(x))))
+            }
+        }
+        return ret
     }
     save = (e, o) => {
         debug({ AdminEmails: this, e, o })
@@ -21,37 +72,19 @@ class AdminEmail extends Html {
         }).catch(e => error(e))
     }
     loaded = (r) => {
-        debug({ loaded: { r, d: nav.d.data } })
+        // debug({ loaded: { r, d: nav.d.data } })
         if (r) this.reload("emails")
     }
     rendered = (id) => {
         const v = this.q('#n')
         if (v && this.rows) v.innerHTML = Object.keys(this.rows).length
     }
-    ml = () => {
-        const d = nav.d.data, ml = d && d.mailLog, e = d && d._emails
-        if (ml && e) {
-            const eml = {}
-            Object.keys(ml).forEach(dt => {
-                const m = ml[dt]
-                if (m.req === 'bulksend') {
-                    m.list.forEach(r => {
-                        if (!eml[r.to.email]) eml[r.to.email] = []
-                        eml[r.to.email].push(dt)
-                    })
-                }
-            })
-            this._ml = eml
-            debug({ ml, eml })
-        }
-
-    }
     html = (n) => {
         if (!this._ml) this.ml()
         if (n === 'emails') {
             return `<div id="emails">${this._ml ? '{table.emails}' : 'no emails'}</div>`
         }
-        else return '{input.filter}{var.n}{button.save}{div.emails}'
+        else return html
     }
     var = (n) => {
         if (n === 'n') return '<span id="n">?</span>'
@@ -74,7 +107,7 @@ class AdminEmail extends Html {
         }
     }
     to = (dt, i) => {
-        const d = nav.d.data, ml = d && d.mailLog, m = ml && ml[dt],
+        const d = nav.d.data, ml = d && d._mailLog, m = ml && ml[dt],
             emails = d && d._emails, ks = emails && Object.keys(emails), e = ks && ks[i],
             to = m.list.filter(r => r.to.email.toLowerCase() === e)[0].to
         //debug({ dt, i, m, to, e })
@@ -92,7 +125,7 @@ class AdminEmail extends Html {
     trs = (n) => {
         const d = nav.d.data, emails = d._emails, ml = this._ml
         let ret = this.rows = []
-        // debug({ trs: { n, emails, ml } })
+        debug({ trs: { n, emails, ml } })
         if (n === 'emails' && ml) {
             const rs = Object.keys(emails).map((e, i) => {
                 const r = emails[e],
@@ -150,17 +183,9 @@ class AdminEmail extends Html {
         debug({ rows: this.rows })
         return r
     }
-    filter = (r) => {
-        const filt = this.f && this.f.filter
-        if (!filt || filt.length < 2) return true
-        else {
-            const f = filt.split(',').map(s => s.toLowerCase().trim())
-            return f.every(fs => r.some(s => s.toLowerCase().includes(fs)))
-        }
-    }
     input = (e, o) => {
         this.f = this.getForm()
-        if (o.name === 'filter') this.reload('emails')
+        this.reload('emails')
     }
     color = (email, e) => {
         if (e.fi.unsub) return `<span class="red">${email}</span>`
@@ -187,7 +212,7 @@ class Email extends Html {
         return { // section and options populated on load
             name: { placeholder: 'name', width: '50rem', value: this.u.first || '' },
             jetstream: {
-                label: 'Jetsream', class: 'bold', tip: 'Jetstream meber', value: this.u.fi.jetstream ? true : false
+                label: 'Jetstream', class: 'bold', tip: 'Jetstream member', value: this.u.fi.jetstream ? true : false
             },
             unsub: { class: 'bold red', label: 'Unsub', tip: 'unsubscribe', value: this.u.unsub ? true : false }
         }
@@ -231,27 +256,33 @@ class Email extends Html {
 class Send extends Html {
     constructor(p, name, param) {
         super(p, name, param)
-        const d = nav.d.data, ml = d && d.mailLog
+        const d = nav.d.data, ml = d && d._mailLog
         this.m = ml && ml[param]
+        this.dt = this.m && param.replace(/^(\d{2})(\d{2})(\d{2})(\d{2}).*$/, '$4/$3/$2')
     }
     form = () => {
+        const m = this.m || {}, o = [{ name: 'load', value: '' }, ...this.p.ml_opt]
         return {
-            subject: { placeholder: 'subject', required: true, value: this.m.subject || '' },
-            message: { placeholder: 'message...', required: true, value: this.m.message || '' },
+            load: { tip: 'load', class: 'form', options: o, value: this.param || '' },
+            unsub: { tip: 'include unsubscribe' },
+            time: { tip: 'send at hh:mm', placeholder: '00:00 Fri', size: 5 },
+            subject: { placeholder: 'subject', size: 40, required: true, value: m.subject || '' },
+            message: { placeholder: 'message...', cols: 80, rows: 15, required: true, value: m.message || '' },
             test: { tip: `test to ${this.p.rows.length}`, class: 'form', click: () => this.send(false) },
             send: { tip: `send to ${this.p.rows.length}`, class: 'form', click: () => this.send(true) }
         }
     }
     html = () => {
-        const dt = this.param.replace(/^(\d{2})(\d{2})(\d{2})(\d{2}).*$/, '$4/$3/$2')
+        const dt = this.dt
         //debug({ param: this.param, dt, m: this.m })
-        return `<div class="card fit">
+        return `<div class="card fit wide">
                 <div class="card-header">
                 {link.close.×}
-                    <span class="title">Send (sent ${dt} to ${this.m.list.length})</span>
-                    {button.test} {button.send}
+                    <span class="title">Send ${dt ? `(sent ${dt} to ${this.m.list.length})` : ''}</span>
+                    {button.test} {checkbox.unsub} {button.send} {input.time} 
                 </div>
                 <div class="card-body">
+                {select.load}<br/>
                 {input.subject}<br/>
                 {textarea.message}
                 </div>`
@@ -262,15 +293,22 @@ class Send extends Html {
         //this.p.reload("emails")
     }
     input = (e, o) => {
-        const f = this.getForm()
+        const f = this.f = this.getForm()
+        if (o.name === 'load') {
+            const d = nav.d.data, ml = d && d._mailLog
+            this.m = ml && ml[f.load]
+            this.fe('subject', this.m.subject)
+            this.fe('message', this.m.message)
+        }
         debug({ input: o, f })
     }
     send = (l) => {
         const fm = this.getForm(), live = l === true, rows = live ? this.p.rows : this.p.rows.slice(0, 20),
             d = nav.d.data, emails = d._emails,
-            list = rows.map(email => (emails[email] && { to: { name: emails[email].first, email } })).filter(r => r)
-        if (list.length) ajax({ req: 'bulksend', subject: fm.subject, message: fm.message, list, live }).then(r => {
-            if (r.mailLog) nav.d.saveZip('mailLog', r.mailLog)
+            list = rows.map(email => (emails[email] && { to: { name: emails[email].first, email } })).filter(r => r),
+            { subject, message, unsub, time } = fm
+        if (list.length) ajax({ req: 'bulksend', subject, message, unsub, time, list, live }).then(r => {
+            if (r._mailLog) nav.d.saveZip('_mailLog', r._mailLog)
             this.p.ml()
             this.p.reload('emails')
             debug({ r })

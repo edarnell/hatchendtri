@@ -5,6 +5,7 @@ import IN from './IN'
 import Img from './Img'
 import Table from './Table'
 import { nav } from './Nav'
+import { createPopper } from '@popperjs/core'
 
 function _s(s, p) {
     if (p === undefined) return s && s.replace(/\s/g, "&nbsp;")
@@ -56,10 +57,42 @@ class Html {
         else return i(name, param)
     }
     q = (q) => document.querySelector(q)
-    fe = (n) => {
+    fe = (n, v) => {
         const l = this.q(`[id*="IN_${n}_"]`)
         if (!l) error({ fe: this, n })
+        else if (v) l.value = v
         return l
+    }
+    popup = (o, id, l, placement) => {
+        if (o === 'close') this.popclose(id, l)
+        else {
+            const popup = document.createElement('div')
+            popup.id = id
+            popup.classList.add(l ? 'popup' : 'dragdiv')
+            if (!l) popup.style.top = window.scrollY
+            this.popups = this.popups || {}
+            this.popups[id] = popup
+            const p = typeof o === 'string' ? nav.O(o, this) : o
+            p.id = id
+            this.popups = this.popups || {}
+            document.body.appendChild(popup)
+            this.render(p)
+            this.popups[id] = popup
+            if (l) p.pop = createPopper(l, popup, {
+                placement: placement || 'top',
+                strategy: 'absolute',
+                modifiers: [{ name: 'offset', options: { offset: [0, 8], }, },],
+            })
+        }
+    }
+    popclose = (id, m) => {
+        //debug({ close: this, m, r })
+        const pop = this.popups[id], l = this.q(`#${id}`)
+        if (pop) {
+            this.unload(pop)
+            l.remove()
+            delete this.popups[id]
+        }
     }
     render(o, id = o.id) {
         //debug({ render: { o, id } })
@@ -183,6 +216,10 @@ class Html {
             window.location.hash = ''
         }
         this.path = window.location.pathname.replace('/', '')
+        if (this.path === 'unsubscribe') {
+            debug({ unsub: this.path })
+            this.unsub = true
+        }
     }
     setForm = (vs) => {
         const f = this._p('form'), fm = f && f()
@@ -204,7 +241,7 @@ class Html {
         const f = this._p('form'), fm = f && f()
         if (fm) Object.keys(fm).forEach(name => {
             const l = this.fe(name)
-            if (l) ret[name] = l.type === 'checkbox' || l.type === 'radio' ? l.checked : l.value
+            if (l && l.type !== 'button') ret[name] = (l.type === 'checkbox' || l.type === 'radio') ? l.checked : l.value
         })
         else error({ getForm: this })
         return ret
