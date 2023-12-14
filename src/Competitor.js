@@ -42,7 +42,7 @@ class Competitor extends Html {
     }
   }
   html = (name) => {
-    if (name === 'greet') return '<p>Entries open 12 December 2023. See {nav.results} for previous years.</p>'//this.greet()
+    if (name === 'greet') return '<p>Entries open 15 December 2023. See {nav.results} for previous years.</p>'//this.greet()
     else if (name === 'entries') return '<div id="entries"></div>'//`<div id='entries'>{table.entries}</div>`
     else if (!name) return html
     else error({ html: name })

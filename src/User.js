@@ -13,7 +13,6 @@ class User extends Contact {
     }
     form = (name) => {
         let form = {
-            unsub: { tip: 'Confirm Unsubscribe', class: 'form primary', text: 'Confirm' },
             email: { placeholder: 'email', type: 'email', required: true },
             send: { class: 'form disabled', click: 'submit', tip: this.spamtt },
         }
