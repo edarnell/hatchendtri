@@ -3,38 +3,11 @@ import { STSClient, GetSessionTokenCommand } from '@aws-sdk/client-sts'
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
 import { f } from './zip.mjs'
 import jwt from 'jsonwebtoken'
-import { log, saveMl } from './hatchend.mjs'
+import { log, saveMl, ei } from './hatchend.mjs'
 
 const config = f('config.json', true).data
 const mail = f('mail.html', true).data
 const aws = config.aws
-/* may need something like this to avoid blocking the main thread
-const { fork } = require('child_process')
-
-function send_list(list, subject, message, live) {
-  const length = list.length
-  log.info({ sending: length })
-
-  return new Promise((resolve, reject) => {
-    const child = fork('./send-emails.js')
-
-    child.on('message', message => {
-      if (message.status === 'sent') {
-        resolve({ sending: { sent: message.sent, failed: message.failed, length } })
-      } else if (message.status === 'error') {
-        reject(message.error)
-      }
-    })
-
-    child.on('error', error => {
-      reject(error)
-    })
-
-    child.send({ list, subject, message, live })
-  })
-}
-*/
-
 
 function send_list(m) {
     const { subject, list } = m, length = list.length
@@ -56,7 +29,6 @@ function send_list(m) {
         let s_ = 0, f_ = 0
         for (var i = 0; i < length; i += n) {
             const { sent, failed } = await send_batch(ses, n, m, i)
-            if (i === n) s({ sending: { sent, failed, length } })
             s_ += sent, f_ += failed
             log.info({ sent: s_, failed: f_ })
             await new Promise(resolve => setTimeout(resolve, 1000))
@@ -65,18 +37,14 @@ function send_list(m) {
             subject: 'bulk send',
             message: `${subject}\nSent to ${s_} of ${length} recipients (${f_} failed)\n`
         })
-        if (m.time) {
-            m.time = 'sent'
-            saveMl(m)
-        }
-    }).catch(e => f(e))
+    }).catch(e => log.error(e))
 }
 
 // should look to modify to bulk send
 async function send_batch(ses, n, m, i) {
     const { subject, message, live, unsub, list } = m, emails = list.slice(i, i + n)
     const promises = emails.map(async r => {
-        return ses.send(new SendEmailCommand(email({ to: r.to.name, email: r.to.email, subject, message, live, unsub })))
+        return ses.send(new SendEmailCommand(email({ to: r.to.name, email: ei[r.to.email], subject, message, live, unsub })))
             .then(r => r.MessageId)
             .catch(e => {
                 log.error({ error: e, email: r.to.email })
@@ -86,6 +54,10 @@ async function send_batch(ses, n, m, i) {
     const results = await Promise.all(promises)
     const sent = results.filter(r => r).length
     const failed = emails.length - sent
+    const log = { ...m }
+    log.list = emails
+    log.results = results
+    saveMl(log)
     return { sent, failed }
 }
 

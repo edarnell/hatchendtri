@@ -1,4 +1,4 @@
-import Html, { debug, _s } from './Html'
+import Html, { debug, _s, error } from './Html'
 import html from './html/Contact.html'
 import { ajax } from './ajax'
 import { nav } from './Nav'
@@ -35,7 +35,7 @@ class Contact extends Html {
         return to ? to.name : 'Hatch End Triathlon'
     }
     spamtt = () => {
-        const complete = this.checkForm(), m = this.form.message
+        const complete = this.checkForm(), m = this.form().message
         if (complete) {
             const b = ['left', 'middle', 'right'], s = b[this.spam]
             const spam = this.checkSpam()
@@ -44,8 +44,9 @@ class Contact extends Html {
         }
         else return m ? 'complete the form' : 'enter your email'
     }
-    confirm = (r) => {
-        this.popup.close('<div class="success">Message sent.</div>')
+    confirm = (r, e) => {
+        if (e) error({ send: e })
+        this.popup.close(e ? '<div class="red">Error Sending.</div>' : '<div class="success">Message sent.</div>')
     }
     close = () => {
         this.popup.close()
@@ -71,7 +72,7 @@ class Contact extends Html {
         if (this._to) data.to = this._to
         ajax({ req: 'send', data })
             .then(r => this.confirm(r))
-            .catch(e => this.error(e))
+            .catch(e => this.confirm(null, e))
     }
     checkForm = () => {
         const form = this.form(), data = this._form = this.getForm(),

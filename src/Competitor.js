@@ -68,7 +68,7 @@ class Competitor extends Html {
     const { name, param } = o
     if (name === 'mf') return param === 'F' ? "Female" : "Open/Male"
     else if (name === 'cat') return rCat[param]
-    else if (name === 'Entries') return 'opens 12 December 2023'//`${this.rows} rows selected`
+    else if (name === 'Entries') return 'opens 15 December 2023'//`${this.rows} rows selected`
   }
   link = (name) => {
     if (name.startsWith('u_')) {

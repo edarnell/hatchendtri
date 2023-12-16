@@ -1,4 +1,4 @@
-import { debug, _s } from './Html'
+import { debug, error, _s } from './Html'
 import user from './html/user.html'
 import unsub from './html/unsub.html'
 import login from './html/login.html'
@@ -62,6 +62,10 @@ class Unsub extends User {
     constructor(p) {
         super()
         this.p = p
+        ajax({ req: 'name', tok: localStorage.getItem('HEtok') }).then(r => {
+            this.name = r.name
+            this.reload('unsub_name')
+        })
     }
     form = (name) => {
         return {
@@ -69,13 +73,14 @@ class Unsub extends User {
             unsub: { tip: 'Confirm Unsubscribe', class: 'form primary', click: this.confirm },
         }
     }
-    html = (n, p) => {
-        return unsub
+    html = (n) => {
+        if (n === 'unsub_name') return `<span id='unsub_name' class="bold">${this.name || ''}</span>`
+        else return unsub
     }
     close = (m) => this.p.close(m || 'Cancelled unsubscribe.')
     confirm = () => {
         const f = this.getForm()
-        ajax({ req: 'unsub', name: nav.d.name(), reason: f.reason })
+        ajax({ req: 'unsub', name: this.name, tok: localStorage.getItem('HEtok'), reason: f.reason })
             .then(r => {
                 this.close('Unsubscribed.')
             })
@@ -83,9 +88,6 @@ class Unsub extends User {
     }
     input = () => {
         // do nothing
-    }
-    var = (name) => {
-        if (name === 'user') return `<span class="bold">${nav.d.name()}</span>`
     }
 }
 

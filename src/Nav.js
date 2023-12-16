@@ -73,20 +73,21 @@ class Nav extends Html {
         else if (!p.hide) error({ toggle: { active, page, l } })
     }
     load = (pg) => {
+        const unsub = this.path === 'unsubscribe'
         if (!this.pages[this.path]) this.path = 'home'
         if (pg && pg !== this.path && this.pages[pg]) {
             this.toggle(false, this.path)
             this.path = pg
         }
         const p = this.pages[this.path], pe = this.q('#nav_page')
+        pe.innerHTML = p.nav
         this.page = p.page ? p.page() : this.O(p.nav)
         this.toggle(true, this.path)
         this.render(this.page, 'page')
-        pe.innerHTML = p.nav
         history.pushState(null, null, `/${this.path}`);
         this.image()
         if (pg) this.checkUser()
-        else if (this.unsub) this.unsubscribe()
+        else if (unsub) this.unsubscribe()
     }
     userIcon = (set) => {
         if (set !== undefined) {
@@ -113,7 +114,6 @@ class Nav extends Html {
         this.load()
     }
     unsubscribe = () => {
-        this.unsub = false // reset
         const l = this.q(`[id*="TT_user_nav"]`)
         this.popup('Unsub', 'nav_unsub', l, 'bottom-end')
     }

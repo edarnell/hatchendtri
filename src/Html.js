@@ -97,7 +97,7 @@ class Html {
     render(o, id = o.id) {
         //debug({ render: { o, id } })
         if (o === this) this.unload(this)
-        else if (o.p && o.p.div[id]) {
+        else if (o.p && o.p.div && o.p.div[id]) {
             this.unload(o.p.div[id])
             o.p.div[id] = o
         }
@@ -211,14 +211,11 @@ class Html {
         style.innerHTML = css
         document.head.appendChild(style)
         const hash = window.location.hash, token = hash && hash.substring(1)
-        if (token && token.length > 10) {
-            localStorage.setItem('HEtoken', token)
-            window.location.hash = ''
-        }
+        window.location.hash = ''
         this.path = window.location.pathname.replace('/', '')
-        if (this.path === 'unsubscribe') {
-            debug({ unsub: this.path })
-            this.unsub = true
+        if (token && token.length > 10) {
+            if (['home', 'unsubscribe'].includes(this.path)) localStorage.setItem('HEtok', token)
+            else localStorage.setItem('HEtoken', token)
         }
     }
     setForm = (vs) => {

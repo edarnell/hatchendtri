@@ -18,10 +18,12 @@ function _f(f) {
 
 function anon(j, d) {
     let o = d ? j : { ...j } // make copy of top level object to modify
-    const ks = ['email', 'phone', 'mobile']
+    const ks = ['email', 'phone', 'mobile'],
+        _emails = fz('gz/_emails.gz')
     for (let k in o) {
         if (ks.includes(k)) {
-            delete o[k]
+            if (k === 'email' && _emails && _emails[o[k]]) o[k] = _emails[o[k]].i
+            else delete o[k]
         }
         else if (typeof o[k] === 'object' && o[k] !== null) {
             anon(o[k], true)
@@ -47,7 +49,7 @@ function fz(f) {
 }
 
 function save(f, j) {
-    const _a = ['_vs'], // files to make anaonomised copies of
+    const _a = ['_vs', '_mailLog'], // files to make anaonomised copies of
         z = zip(j), ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
     if (fs.existsSync(`gz/${f}.gz`)) fs.renameSync(`gz/${f}.gz`, `gz/backups/${f}_${ts}.gz`);
     fs.writeFileSync(`gz/${f}.gz`, z)

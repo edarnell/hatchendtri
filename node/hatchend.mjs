@@ -17,7 +17,9 @@ let ns = fz('gz/_ns.gz') || {},
     cs = fz('gz/_cs.gz') || {},
     photos = fz('gz/_photos.gz') || {},
     ps = fz('gz/_ps.gz') || {},
-    pn = photoN()
+    pn = photoN(),
+    ei = []
+Object.keys(emails).forEach(e => ei[emails[e].i] = e)
 const app = express()
 /*app.use((req, res, next) => {
     req.rawBody = ''
@@ -220,17 +222,31 @@ function saveComp(req, json, r) {
     } else resp(req, r, { message: 'no comp' }, 400)
 }
 
+function nameReq(req, json, r, email) {
+    const tok = json.tok, auth = tok && jwt.verify(tok, config.key),
+        ae = auth && auth.email, n = ae && emails[ae],
+        name = n && `${n.first} ${n.lasts ? n.lasts[0] : ''}`,
+        i1 = email && emails[email] && emails[email].i, i2 = ae && emails[ae] && emails[ae].i
+    if (email && email !== ae) log.info({ nameReq: { email, i1, ae, i2 } })
+    if (n) resp(req, r, { name })
+    else resp(req, r, { message: 'unknown' }, 400)
+}
+
 function unsubReq(req, json, r, email) {
-    const u = emails[email], name = `${u.first} ${u.lasts ? u.lasts[0] : ''}`
-    if (json.name === name) {
+    const tok = json.tok, auth = tok && jwt.verify(tok, config.key),
+        ae = auth && auth.email, n = ae && emails[ae],
+        name = n && `${n.first} ${n.lasts ? n.lasts[0] : ''}`,
+        i1 = email && emails[email] && emails[email].i, i2 = n && n.i
+    if (email && email !== ae) log.error({ nameReq: { email, i1, ae, i2 } })
+    if (name && name == json.name) {
         const reason = json.reason || '',
             unsub = fs.existsSync(`gz/_unsub.gz`) ? fz('gz/_unsub.gz') : {}
-        unsub[email] = { reason, date: new Date().toISOString().slice(0, 10) }
+        unsub[ae] = { reason, date: new Date().toISOString().slice(0, 10) }
         save('_unsub', unsub)
-        //log.info('req->', req, { c, co, cn })
         send({
-            from_email: email, subject: 'Unsubscibe',
-            message: `${name} ${email} unsubscribed\n Reason: ${reason}\n`
+            from_email: ae, subject: 'Unsubscibe',
+            message: `${name} ${ae} unsubscribed\n Reason: ${reason}\n` +
+                `${email && email !== ae ? `${ae}(${i2}) !== ${email}(${i1})\n` : ''}`
         })
         resp(req, r, { unsub: true })
     } else resp(req, r, { message: 'data error' }, 400)
@@ -278,15 +294,15 @@ function volReq(req, json, r, email) {
 }
 
 function saveMl(j) {
-    const ml = fz('gz/_mailLog.gz'), ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
+    const ml = fz('gz/mailLog.gz'), ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
     ml[ts] = j
-    save('_mailLog', ml)
-    return f('gz/_mailLog.gz')
+    save('mailLog', ml)
+    return f('gz/mailLog.gz')
 }
 
 function delaySend(req) {
     const t = req.time, [h, m] = t ? t.split(':') : []
-    if (h & m) {
+    if (h && m) {
         const d = new Date(), now = new Date()
         d.setHours(h)
         d.setMinutes(m)
@@ -300,11 +316,11 @@ function delaySend(req) {
 function bulksendReq(req, json, r, email, aed) {
     const { subject, message, list, live, time } = json
     if (!config.live && subject && message && list && list.length && aed) {
-        const _mailLog = saveMl(json)
-        log.info({ bulksend: { to: live.length, subject, time } })
+        const pre = { ...json, list: [] }, mailLog = saveMl(pre)
+        log.info({ bulksend: { to: list.length, subject, time } })
         if (time) delaySend(json)
         else send_list(json)
-        resp(req, r, { bulksend: list.length, time, _mailLog })
+        resp(req, r, { bulksend: list.length, time, mailLog })
     } else resp(req, r, { error: 'Unauthorized' }, 401)
 }
 
@@ -368,8 +384,8 @@ app.post(config.url, (m, r) => {
         email = auth ? auth.email : null,
         aed = email && email === 'ed@darnell.org.uk',
         reqF = {
-            anon: { filesReq, datesReq, loginReq, sendReq },
-            auth: { userReq, volReq, compReq, saveReq, photoReq, bulksendReq, unsubReq }
+            anon: { filesReq, datesReq, loginReq, sendReq, nameReq, unsubReq },
+            auth: { userReq, volReq, compReq, saveReq, photoReq, bulksendReq }
         }
     if (req) {
         log.info('req->', req)
@@ -395,5 +411,5 @@ function start() {
         log.info(`listening on ${config.url} port ${config.port}`)
     })
 }
-export { log, saveMl }
+export { log, saveMl, ei }
 export default start

@@ -56,7 +56,7 @@ class Volunteer extends Html {
   }
   html = (name, param) => {
     if (!nav.d.data.vs) return '' // wait to load
-    if (!name) return html
+    else if (!name) return html
     else if (name === 'greet') return `<div id="greet"><p>Welcome {var.name}</p></div>`
     else if (name === 'nr') {
       const f = this._form, nr = (f && f.nr) || 'Roles'

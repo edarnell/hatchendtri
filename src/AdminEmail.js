@@ -6,7 +6,7 @@ class AdminEmail extends Html {
     constructor() {
         super()
         this.id = 'AdminEmail'
-        this.data = ['_emails', '_mailLog']
+        this.data = ['emails', 'mailLog']
     }
     //             save: { tip: `save emails_`, class: 'form danger', click: this.save },
     form = () => {
@@ -23,20 +23,21 @@ class AdminEmail extends Html {
         }
     }
     ml = () => {
-        const d = nav.d.data, ml = d && d._mailLog, e = d && d._emails, eml = {}
+        const d = nav.d.data, ml = d && d.mailLog, e = d && d.emails, eml = {}
         if (ml && e) {
             let last = ''
             const opt = Object.keys(ml).filter(dt => ml[dt].req === 'bulksend' && ml[dt].live).reverse().map(dt => {
                 const m = ml[dt], dmy = dt.replace(/^(\d{2})(\d{2})(\d{2})(\d{2}).*$/, '$4/$3/$2'), s = m.subject
                 let r = { name: `${dmy} ${s}`, value: dt }
-                if (r.name === last) r = null
-                else {
-                    last = r.name
-                    m.list.forEach(r => {
-                        if (!eml[r.to.email]) eml[r.to.email] = []
-                        eml[r.to.email].push(dt)
-                    })
-                }
+                m.list.forEach(r => {
+                    if (!eml[r.to.email]) eml[r.to.email] = [dt]
+                    else {
+                        const l = eml[r.to.email][eml[r.to.email].length - 1]
+                        if (ml[l].subject !== m.subject) eml[r.to.email].push(dt)
+                    }
+                })
+                if (m.subject === last) r = null
+                else last = m.subject
                 return r
             }).filter(r => r)
             this._ml = eml
@@ -46,7 +47,7 @@ class AdminEmail extends Html {
     filter = (r) => {
         let ret = true
         const f = this.f
-        if (!f) ret = r[3].includes('ed@darnell')
+        if (!f) ret = r[3] === '57'
         else if (f.test3) ret = r[2].includes('Darnell')
         else {
             const last = this._ml[r[3]] ? this._ml[r[3]][0] : ''
@@ -65,14 +66,14 @@ class AdminEmail extends Html {
     }
     save = (e, o) => {
         debug({ AdminEmails: this, e, o })
-        const _emails = zip(this.rows, true)
-        debug({ save: _emails.length })
-        ajax({ req: 'save', zips: { _emails } }).then(r => {
+        const emails = zip(this.rows, true)
+        debug({ save: emails.length })
+        ajax({ req: 'save', zips: { emails } }).then(r => {
             debug({ r })
         }).catch(e => error(e))
     }
     loaded = (r) => {
-        // debug({ loaded: { r, d: nav.d.data } })
+        debug({ loaded: { r, d: nav.d.data } })
         if (r) this.reload("emails")
     }
     rendered = (id) => {
@@ -95,7 +96,7 @@ class AdminEmail extends Html {
     }
     link = (n, p) => {
         if (n.charAt(0) === 'f') {
-            const i = n.substring(3), d = nav.d.data, emails = d && d._emails, ks = emails && Object.keys(emails),
+            const i = n.substring(3), d = nav.d.data, emails = d && d.emails, ks = emails && Object.keys(emails),
                 k = ks[i], e = emails && emails[k],
                 color = { f0: 'amber', fE: 'red', fn: 'green', fe: 'blue' }
             //e.first = p
@@ -107,9 +108,9 @@ class AdminEmail extends Html {
         }
     }
     to = (dt, i) => {
-        const d = nav.d.data, ml = d && d._mailLog, m = ml && ml[dt],
-            emails = d && d._emails, ks = emails && Object.keys(emails), e = ks && ks[i],
-            to = m.list.filter(r => r.to.email.toLowerCase() === e)[0].to
+        const d = nav.d.data, ml = d && d.mailLog, m = ml && ml[dt],
+            emails = d && d.emails, ks = emails && Object.keys(emails), e = ks && ks[i],
+            to = m.list.filter(r => r.to.email * 1 === e * 1)[0].to
         //debug({ dt, i, m, to, e })
         return `${to.name} ${m.live ? '' : '(testing)'}<br />${m.subject}`
     }
@@ -123,7 +124,7 @@ class AdminEmail extends Html {
         return ys.length ? ys : null
     }
     trs = (n) => {
-        const d = nav.d.data, emails = d._emails, ml = this._ml
+        const d = nav.d.data, emails = d.emails, ml = this._ml
         let ret = this.rows = []
         debug({ trs: { n, emails, ml } })
         if (n === 'emails' && ml) {
@@ -140,7 +141,7 @@ class AdminEmail extends Html {
         return ret
     }
     trs1 = (n) => {
-        const d = nav.d.data, emails = d.emails, ml = d._mailLog, rs = {}
+        const d = nav.d.data, emails = d.emails, ml = d.mailLog, rs = {}
         let ret = []
         if (n === 'emails' && emails && ml) {
             if (!this._ml) this.ml()
@@ -204,7 +205,7 @@ class AdminEmail extends Html {
 class Email extends Html {
     constructor(p, name, param) {
         super(p, name, param)
-        const d = nav.d.data, emails = d && d._emails
+        const d = nav.d.data, emails = d && d.emails
         this.u = emails && emails[param]
         debug({ Email: this })
     }
@@ -256,7 +257,7 @@ class Email extends Html {
 class Send extends Html {
     constructor(p, name, param) {
         super(p, name, param)
-        const d = nav.d.data, ml = d && d._mailLog
+        const d = nav.d.data, ml = d && d.mailLog
         this.m = ml && ml[param]
         this.dt = this.m && param.replace(/^(\d{2})(\d{2})(\d{2})(\d{2}).*$/, '$4/$3/$2')
     }
@@ -295,7 +296,7 @@ class Send extends Html {
     input = (e, o) => {
         const f = this.f = this.getForm()
         if (o.name === 'load') {
-            const d = nav.d.data, ml = d && d._mailLog
+            const d = nav.d.data, ml = d && d.mailLog
             this.m = ml && ml[f.load]
             this.fe('subject', this.m.subject)
             this.fe('message', this.m.message)
@@ -304,11 +305,11 @@ class Send extends Html {
     }
     send = (l) => {
         const fm = this.getForm(), live = l === true, rows = live ? this.p.rows : this.p.rows.slice(0, 20),
-            d = nav.d.data, emails = d._emails,
+            d = nav.d.data, emails = d.emails,
             list = rows.map(email => (emails[email] && { to: { name: emails[email].first, email } })).filter(r => r),
             { subject, message, unsub, time } = fm
         if (list.length) ajax({ req: 'bulksend', subject, message, unsub, time, list, live }).then(r => {
-            if (r._mailLog) nav.d.saveZip('_mailLog', r._mailLog)
+            if (r.mailLog) nav.d.saveZip('mailLog', r.mailLog)
             this.p.ml()
             this.p.reload('emails')
             debug({ r })
