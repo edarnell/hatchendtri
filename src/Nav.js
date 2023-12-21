@@ -26,12 +26,17 @@ class Nav extends Html {
         this.i = Math.floor(Math.random() * 3)
         this.init(css, favicon)
         import('./Objects.js').then(m => {
+            debug({ m })
             const H = new m.default()
             this.O = H.O
             nav = this
             this.d.user().then(r => {
+                debug({ r })
                 this._user = r
                 this.render(this, 'root')
+            }).catch(e => {
+                debug({ e })
+                if (this.path === 'subscribe') this.render(this, 'root')
             })
         })
     }
@@ -62,7 +67,10 @@ class Nav extends Html {
         const p = this.pages[path], l = this.q(`[id*="TT_${path}_nav"]`)
         this.userIcon()
         if (l) {
-            if (!active) l.classList.remove('active')
+            if (!active) {
+                l.classList.remove('active')
+                if (l.classList.length === 0) l.removeAttribute('class') // better for testing
+            }
             else if (l.classList) l.classList.add('active')
             else l.classList = ['active']
             if (l.tagName === 'IMG') {
@@ -73,7 +81,8 @@ class Nav extends Html {
         else if (!p.hide) error({ toggle: { active, page, l } })
     }
     load = (pg) => {
-        const unsub = this.path === 'unsubscribe'
+        const unsub = this.path === 'unsubscribe',
+            sub = this.path === 'subscribe'
         if (!this.pages[this.path]) this.path = 'home'
         if (pg && pg !== this.path && this.pages[pg]) {
             this.toggle(false, this.path)
@@ -84,10 +93,11 @@ class Nav extends Html {
         this.page = p.page ? p.page() : this.O(p.nav)
         this.toggle(true, this.path)
         this.render(this.page, 'page')
-        history.pushState(null, null, `/${this.path}`);
+        history.pushState(null, null, this.path === 'home' ? '/' : `/${this.path}`);
         this.image()
         if (pg) this.checkUser()
         else if (unsub) this.unsubscribe()
+        else if (sub) this.subscribe()
     }
     userIcon = (set) => {
         if (set !== undefined) {
@@ -116,6 +126,10 @@ class Nav extends Html {
     unsubscribe = () => {
         const l = this.q(`[id*="TT_user_nav"]`)
         this.popup('Unsub', 'nav_unsub', l, 'bottom-end')
+    }
+    subscribe = () => {
+        const l = this.q(`[id*="TT_user_nav"]`)
+        this.popup('Sub', 'nav_sub', l, 'bottom-end')
     }
     close = (m) => {
         this.popup('close', 'nav_unsub')

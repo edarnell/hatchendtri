@@ -122,6 +122,7 @@ class TT {
             arrow = this.arrow = document.createElement('div'),
             link = this.lk,
             id = this.id
+        tt.id = 'tip_' + id
         tt.classList.add('tooltip')
         arrow.classList.add('arrow')
         const html = m ?? (typeof link.tip === 'function' ? link.tip(e, this) : link.tip)

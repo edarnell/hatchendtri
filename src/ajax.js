@@ -2,18 +2,17 @@ import { debug, page } from './Html'
 
 function ajax(req) // token used when state not yet set
 {
-  return new Promise((s, f) => {
+  return new Promise((s, _f) => {
+    let ok
     fetch('/ajax', params(req))
       .then(res => {
-        if (!res.ok) f({ res })
-        else {
-          return req.gz ? res.text() : res.json()
-        }
-      }).then(r => s(r))
+        ok = res.ok
+        req.gz ? res.text() : res.json()
+      })
+      .then(r => s(r))
       .catch(e => f(e))
   })
 }
-
 function params(data) {
   const ret = {
     headers: {

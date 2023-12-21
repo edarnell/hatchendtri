@@ -10,21 +10,30 @@ class Data {
     user = () => {
         return new Promise((s, f) => {
             const token = localStorage.getItem('HEtoken')
-            if (token) ajax({ req: 'user' }).then(r => {
-                const user = (r.vol || r.comp) ? {} : null
-                if (r.vol) user.vol = r.vol.reduce((a, u) => {
-                    a[u.id] = u
-                    return a
-                }, {})
-                if (r.comp) {
-                    user.comp = r.comp
-                }
-                if (r.names) {
-                    user.names = r.names
-                }
-                s(user) // user or null (no vol or comp)
-            })
-            else s(false) // undefined (no token)
+            if (token) ajax({ req: 'user' })
+                .then(r => {
+                    debug({ r })
+                    const user = (r.vol || r.comp) ? {} : null
+                    if (r.vol) user.vol = r.vol.reduce((a, u) => {
+                        a[u.id] = u
+                        return a
+                    }, {})
+                    if (r.comp) {
+                        user.comp = r.comp
+                    }
+                    if (r.names) {
+                        user.names = r.names
+                    }
+                    s(user) // user or null (no vol or comp)
+                })
+                .catch(e => {
+                    debug({ e })
+                    f(e)
+                })
+            else {
+                debug({ s: false })
+                s(false) // undefined (no token)
+            }
         })
     }
     admin = (ed) => {

@@ -2,6 +2,7 @@
 import { STSClient, GetSessionTokenCommand } from '@aws-sdk/client-sts'
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
 import { f } from './zip.mjs'
+import fs from 'fs'
 import jwt from 'jsonwebtoken'
 import { log, saveMl, ei } from './hatchend.mjs'
 
@@ -65,28 +66,29 @@ function html_text(html) {
     return html.replace(/<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1[^>]*?>(.*?)<\/a>/gi, '$3 ($2)').replace(/<br\s*\/?>/gi, '\n');
 }
 
-const _footer = '<a href="{host}">Hatch End Triathlon</a> is organised and run by '
-    + '<a href="https://jetstreamtri.com">Jetstream Triathlon Club</a><br/><br/>',
-    _unsub = 'You are receiving this email because you previously entered or volunteered at the Hatch End Triathlon.<br/>'
-        + 'You can reply to this email or <a href="{host}/unsubscribe{token}">unsubscribe</a> at any time.'
+const _footer = '{het} is organised and run by {jet}<br/><br/>',
+    _unsub = 'You are receiving this email because you previously entered or volunteered.<br/>'
+        + 'You can reply to this email or {unsubscribe} at any time.',
+    _sub = 'Your email is not currently subscribed. You can reply to this email, {subscribe} or {unsubscribe} at any time.'
 function email(p) {
     var html = mail.slice()
     const m = {}
-    const token = (p.email || p.uEmail) ? jwt.sign({ email: p.email || p.uEmail, ts: Date.now() }, config.key) : ''
+        , token = p.email ? jwt.sign({ email: p.email, ts: Date.now() }, config.key) : '',
+        test = p.from_email === 'epdarnell+test@gmail.com' || p.email === 'epdarnell+test@gmail.com'
     m.to = p.to || "Race Organiser"
-    m.footer = (p.footer || _footer) + (p.unsub ? _unsub : '')
+    m.footer = (p.footer || _footer) + (p.unsub ? _unsub : '') + (p.sub ? _sub : '')
     m.from = p.from || 'Ed Darnell<br>Race Organiser'
     m.message = p.message && p.message.replace(/\n/g, "<br />\r\n") || ''
         ;['to', 'message', 'from', 'footer'].forEach(k => {
             const re = new RegExp('{{' + k + '}}', 'g')
             html = html.replace(re, m[k])
         })
-    html = html.replace(/\{(volunteer|competitor|home|details|results|yes|no)(?:\.([^\s}]+))?\}/g, (match, page, link) => {
+    html = html.replace(/\{(volunteer|competitor|home|details|results|subscribe|unsubscribe|yes|no)(?:\.([^\s}]+))?\}/g, (match, page, link) => {
         return `<a href="{host}/${page}{token}">${(link && link.replace(/_/g, "&nbsp;")) || page}</a>`
     })
-    html = html.replace(/\{(enter)(?:\.([^\s}]+))?\}/g, (match, page, link) => {
-        return `<a href="{host}">${(link && link.replace(/_/g, "&nbsp;")) || page}</a>`
-    })
+    html = html.replace(/\{jet\}/g, '<a href="https://jetstreamtri.com">Jetstream Triathlon Club</a>')
+    html = html.replace(/\{het\}/g, '<a href="{host}">Hatch End Triathlon</a>')
+    html = html.replace(/\{atw\}/g, '<a href="https://www.atwevents.co.uk/e/hatch-end-harrow-triathlon-10671">ATW</a>')
     html = html.replace(/\{token\}/g, '#' + token)
     html = html.replace(/\{host\}/g, p.live ? 'https://hatchendtri.com' : config.host)
     const text = "Dear " + m.to + "\r\n"
@@ -95,7 +97,7 @@ function email(p) {
         + html_text(m.footer) + "\r\n"
     const ps = {
         Destination: {
-            ToAddresses: [((p.live || config.live) && p.email) || config.admin_to],
+            ToAddresses: [((p.live || config.live || test) && p.email) || config.admin_to],
         },
         Message: {
             Body: {
@@ -116,6 +118,7 @@ function email(p) {
         Source: config.admin_to,
         ReplyToAddresses: [p.from_email || config.admin_to],
     }
+    if (!config.live && test) fs.writeFileSync('test/' + p.subject + '.email', JSON.stringify(ps, null, 2))
     return ps
 }
 

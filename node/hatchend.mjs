@@ -34,14 +34,14 @@ const app = express()
 })*/
 app.use(express.json())
 
-function resp(req, r, json, status) {
+function resp(j, r, a, rj, status) {
     if (status) {
-        log.error('resp->' + req, status)
-        r.status(status).json(json)
+        log.error('resp->' + j.req, status)
+        r.status(status).json(rj)
     }
     else {
-        log.info('resp->' + req)
-        r.json(json)
+        log.info('resp->', j.req, a ? a.i : '')
+        r.json(rj)
     }
 }
 
@@ -87,24 +87,11 @@ function saveRZ(rz) {
     save('results', r)
     console.log('saveRZ', Object.keys(r), Object.keys(r23))
 }
-/*
-function userPhotos(email) {
-    const ns = ns[email], r = {}
-    Object.keys(photos).forEach(y => {
-        r[y] = {}
-        Object.keys(photos[y]).forEach(n => {
-            if (ns[y] && ns[y][n]) r[y] = { ...r[y], [n]: ps[n] }
-        })
-    }
-    
-
-}
-*/
 
 
-function filesReq(req, json, r, email, aed) {
-    if (json.files) {
-        const { files } = json, zips = {}, csvs = {}
+function filesReq(j, r, a) {
+    if (j.files) {
+        const { files } = j, zips = {}, csvs = {}
         //log.info('req->', req, files)
         let ok = true
         files.forEach(fn => {
@@ -115,67 +102,67 @@ function filesReq(req, json, r, email, aed) {
         })
         const e = Object.values(zips).some(value => value === null)
             || Object.values(csvs).some(value => value === null)
-        if (!e) resp(req, r, { zips, csvs })
-        else resp(req, r, { error: 'Unauthorized' }, 401)
-    } else resp(req, r, { message: 'no files' }, 400)
+        if (!e) resp(j, r, a, { zips, csvs })
+        else resp(j, r, a, { error: 'Unauthorized' }, 401)
+    } else resp(j, r, a, { message: 'no files' }, 400)
 }
 
-function datesReq(req, json, r) {
-    if (json.files) {
-        const { files } = json, date = {}
+function datesReq(j, r, a) {
+    if (j.files) {
+        const { files } = j, date = {}
         //log.info('req->', req, files)
         files.forEach(fn => {
             if (fn === 'vs' && !fs.existsSync(`gz/vs.gz`)) _f('vs') // restore from backup after copied to gz
             const { mtime } = fn === 'photos' ? { mtime: pn.date } : fs.statSync(`gz/${fn}.gz`)
             date[fn] = mtime
         })
-        resp(req, r, { date })
-    } else resp(req, r, { message: 'no files' }, 400)
+        resp(j, r, a, { date })
+    } else resp(j, r, a, { message: 'no files' }, 400)
 }
 
-function loginReq(req, json, r) {
-    if (json.email) {
-        const email = json.email, name = typeof email === 'string' && get_name(email)
-        //log.info('req->', req, email)
-        if (!name) send({
-            to: 'Competitor/Volunteer', email: email, subject: 'Login',
-            message: 'Self-service capabilities will be added to <a href="{host}">hatchendtri.com</a> soon. You may safetly ignore this email if someone else has mistakenly entered your email address.'
-        }).then(s => resp(req, r, { sent: s }))
+function loginReq(j, r, a) {
+    if (j.email) {
+        const email = j.email, u = emails[email]
+        if (!u) send({
+            to: 'Competitor/Volunteer', sub: true, email: email, subject: 'Login',
+            message: 'Your email is not registered with {het} but you can {subscribe}.\n\n' +
+                'You may safetly ignore this email if someone else has mistakenly entered your email address.'
+        }).then(s => resp(j, r, a, { sent: s }))
         else send({
-            to: name, email: email, subject: 'Login',
-            message: 'You will be automatically logged in by the following <a href="{host}/competitor{token}">competitor</a>, <a href="{host}/volunteer{token}">volunteer</a> or <a href="{host}/{token}">home page</a> links.'
-        })
-            .then(s => resp(req, r, { sent: s }))
-    } else resp(req, r, { message: 'no email' }, 400)
+            to: u.first, email: email, unsub: true, subject: 'Login',
+            message: 'You will be automatically logged in by the following {results}, {competitor} or {volunteer} links.'
+        }).then(s => resp(j, r, u, { sent: s }))
+    } else resp(j, r, a, { message: 'no email' }, 400)
 }
 
-function sendReq(req, json, r, email) {
-    if (json.data) {
-        const { to: id, name: from_name, email: from_email, subject, message } = json.data,
+function sendReq(j, r, a) {
+    if (j.data) {
+        const { to: id, name: from_name, email: from_e, subject, message } = j.data,
             to = id && vs[id],
             to_email = to && to.email,
             to_name = to && to.name.split(' ')[0],
-            from = email ? get_name(email, false) || get_cname(email) : from_name
+            from = from_name || a.name,
+            from_email = from_e || a.email
         //log.info('req->', req, id || '', from)
-        saveMl(json)
-        if (subject && message && (email || !to)) send({ to: to_name, email: to_email, from_email: email || from_email, from, subject, message })
-            .then(s => resp(req, r, { sent: s }))
-        else resp(req, r, { message: 'no data' }, 400)
-    }
+        saveMl(j)
+        if (subject && message) send({ to: to_name, email: to_email, from_email, from, subject, message })
+            .then(s => resp(j, r, a, { sent: s }))
+        else resp(j, r, a, { e: 'no message' }, 400)
+    } else resp(j, r, a, { e: 'no data' }, 400)
 }
 
-function saveReq(req, json, r, email) {
-    if (json.vol) saveVol(req, json, r, email)
-    else if (json.comp) saveComp(req, json, r)
-    else if (json.zips) saveZips(req, json, r)
-    else if (json.files) saveFiles(req, json, r)
-    else resp(req, r, { message: 'no data' }, 400)
+function saveReq(j, r, a) {
+    if (j.vol) saveVol(j, r, a)
+    else if (j.comp) saveComp(j, r, a)
+    else if (j.zips) saveZips(j, r, a)
+    else if (j.files) saveFiles(j, r, a)
+    else resp(j, r, a, { e: 'no data' }, 400)
 }
 
-function saveVol(req, json, r, email) {
-    if (json.roles || json.details) {
-        const { vol, roles, year, details } = json,
-            v = vs[vol] || {}
+function saveVol(j, r, a) {
+    if (a && (j.roles || j.details)) {
+        const { vol, roles, year, details } = j,
+            v = vs[vol] || {}, email = a.email
         if (vol * 1 === 0 || vol * 1 === -1) {
             v.id = Math.max(...Object.keys(vs).filter(x => isNaN(x) === false)) + 1
             const bad_ids = Object.keys(vs).filter(x => isNaN(x) === true),
@@ -203,13 +190,13 @@ function saveVol(req, json, r, email) {
         else vs[v.id] = v
         save('_vs', vs)
         const vu = f('gz/vs.gz')
-        resp(req, r, { vs: vu, v })
-    } else resp(req, r, { message: 'no roles or details' }, 400)
+        resp(j, r, a, { vs: vu, v })
+    } else resp(j, r, a, { e: 'no roles or details' }, 400)
 }
 
-function saveComp(req, json, r) {
-    if (json.comp) {
-        const cn = json.comp,
+function saveComp(j, r, a) {
+    if (j.comp) {
+        const cn = j.comp,
             co = cs[cn.id],
             c = cs[cn.id] = co ? { ...co, ...cn } : cn
         save('_cs', cs)
@@ -218,43 +205,39 @@ function saveComp(req, json, r) {
             from_email: email, uEmail: email, subject: `comp ${c.id} ${c.first} ${c.last}`,
             message: `{competitor}\n ${JSON.stringify(json.comp)}`
         })
-        resp(req, r, { comp: c })
-    } else resp(req, r, { message: 'no comp' }, 400)
+        resp(j, r, a, { comp: c })
+    } else resp(j, r, a, { message: 'no comp' }, 400)
 }
 
-function nameReq(req, json, r, email) {
-    const tok = json.tok, auth = tok && jwt.verify(tok, config.key),
-        ae = auth && auth.email, n = ae && emails[ae],
-        name = n && `${n.first} ${n.lasts ? n.lasts[0] : ''}`,
-        i1 = email && emails[email] && emails[email].i, i2 = ae && emails[ae] && emails[ae].i
-    if (email && email !== ae) log.info({ nameReq: { email, i1, ae, i2 } })
-    if (n) resp(req, r, { name })
-    else resp(req, r, { message: 'unknown' }, 400)
+function nameReq(j, r, a) {
+    const tok = j.tok, auth = tok && jwt.verify(tok, config.key),
+        ae = ue(auth.email)
+    if (a && a.email !== ae) log.info({ nameReq: { a: a.i, ae: ae.i } })
+    if (ae) resp(j, r, ae, { name: ae.name })
+    else resp(j, r, a, { e: 'unknown' }, 400)
 }
 
-function unsubReq(req, json, r, email) {
-    const tok = json.tok, auth = tok && jwt.verify(tok, config.key),
-        ae = auth && auth.email, n = ae && emails[ae],
-        name = n && `${n.first} ${n.lasts ? n.lasts[0] : ''}`,
-        i1 = email && emails[email] && emails[email].i, i2 = n && n.i
-    if (email && email !== ae) log.error({ nameReq: { email, i1, ae, i2 } })
-    if (name && name == json.name) {
-        const reason = json.reason || '',
+function unsubReq(j, r, a) {
+    const tok = j.tok, auth = tok && jwt.verify(tok, config.key),
+        ae = ue(auth.email)
+    if (a && a.i !== ae.i) log.info({ nameReq: { a: a.i, ae: ae.i } })
+    if (ae && ae.name === j.name) {
+        const reason = j.reason || '',
             unsub = fs.existsSync(`gz/_unsub.gz`) ? fz('gz/_unsub.gz') : {}
         unsub[ae] = { reason, date: new Date().toISOString().slice(0, 10) }
         save('_unsub', unsub)
         send({
-            from_email: ae, subject: 'Unsubscibe',
-            message: `${name} ${ae} unsubscribed\n Reason: ${reason}\n` +
-                `${email && email !== ae ? `${ae}(${i2}) !== ${email}(${i1})\n` : ''}`
+            from_email: ae.email, subject: 'Unsubscibe',
+            message: `${ae.name} ${ae.i} unsubscribed\n Reason: ${reason}\n` +
+                `${a && a.i !== ae.i ? `${ae.i}(${ae.email}) !== ${a.i}(${a.email})\n` : ''}`
         })
-        resp(req, r, { unsub: true })
-    } else resp(req, r, { message: 'data error' }, 400)
+        resp(j, r, a, { unsub: true })
+    } else resp(j, r, a, { e: 'data error' }, 400)
 }
 
-function saveZips(req, json, r) {
-    if (json.zips) {
-        const { zips } = json, fs = Object.keys(zips),
+function saveZips(j, r, a) {
+    if (j.zips) {
+        const { zips } = j, fs = Object.keys(zips),
             saved = {}
         //log.info('req->', req, fs)
         fs.forEach(fn => {
@@ -262,35 +245,35 @@ function saveZips(req, json, r) {
             else save(fn, unzip(zips[fn], true))
             saved[fn] = f(`gz/${fn}.gz`)
         })
-        resp(req, r, saved)
-    } else resp(req, r, { message: 'no zips' }, 400)
+        resp(j, r, a, saved)
+    } else resp(j, r, a, { e: 'no zips' }, 400)
 }
 
-function saveFiles(req, json, r) {
-    if (json.files) {
-        const { files } = json, zips = {}, fs = Object.keys(files)
+function saveFiles(j, r, a) {
+    if (j.files) {
+        const { files } = j, zips = {}, fs = Object.keys(files)
         //log.info('req->', req, fs)
         fs.forEach(fn => {
             save(fn, files[fn], true)
             zips[fn] = f(`gz/${fn}.gz`)
         })
-        resp(req, r, { zips })
-    } else resp(req, r, { message: 'no files' }, 400)
+        resp(j, r, a, { zips })
+    } else resp(j, r, a, { message: 'no files' }, 400)
 }
 
-function userReq(req, json, r, email) {
-    const names = emails[email], vol = get_vol(null, email), comp = ns[email]
-    resp(req, r, { email, names, vol, comp })
+function userReq(j, r, a) {
+    const email = a && a.email, names = emails[email], vol = get_vol(null, email), comp = ns[email]
+    resp(j, r, a, { email, names, vol, comp })
 }
 
-function volReq(req, json, r, email) {
-    if (json.vol) {
-        const vol = get_vol(json.vol, email)
+function volReq(j, r, a) {
+    if (j.vol && a) {
+        const vol = get_vol(j.vol, a.email)
         if (vol) {
             //log.info('req->', req, { id: json.vol, name: vol.name })
-            resp(req, r, { vol })
-        } else resp(req, r, { error: 'Unauthorized' }, 401)
-    } else resp(req, r, { message: 'no vol' }, 400)
+            resp(j, r, a, { vol })
+        } else resp(j, r, a, { e: 'Unauthorized' }, 401)
+    } else resp(j, r, a, { e: 'no vol' }, 400)
 }
 
 function saveMl(j) {
@@ -313,18 +296,28 @@ function delaySend(req) {
     else log.error({ bulksend: { t } })
 }
 
-function bulksendReq(req, json, r, email, aed) {
-    const { subject, message, list, live, time } = json
-    if (!config.live && subject && message && list && list.length && aed) {
-        const pre = { ...json, list: [] }, mailLog = saveMl(pre)
+function bulksendReq(j, r, a) {
+    const { subject, message, list, live, time } = j
+    if (subject && message && list && list.length && a.aed) {
+        const pre = { ...j, list: [] }, mailLog = saveMl(pre)
         log.info({ bulksend: { to: list.length, subject, time } })
-        if (time) delaySend(json)
-        else send_list(json)
-        resp(req, r, { bulksend: list.length, time, mailLog })
-    } else resp(req, r, { error: 'Unauthorized' }, 401)
+        if (time) delaySend(j)
+        else send_list(j)
+        resp(j, r, a, { bulksend: list.length, time, mailLog })
+    } else resp(j, r, a, { e: 'Unauthorized' }, 401)
 }
 
-function compReq(req, json, r) {
+function compReq(j, r, a) {
+    if (j.cid && a.aed) {
+        const c = cs[j.cid]
+        if (c) {
+            //log.info('req->', req, { id: c.cid, name: `${c.first} ${c.last}` })
+            resp(j, r, a, {})
+        } else resp(j, r, a, { e: 'no comp' }, 400)
+    } else resp(j, r, a, { e: 'Unauthorized' }, 401)
+}
+
+function awsSnsReq(req, json, r) {
     if (json.cid && aed) {
         const c = cs[json.cid]
         if (c) {
@@ -349,16 +342,16 @@ function photoN() {
     return { date: ts, data: zip(r, false, true) }
 }
 
-function photoReq(req, json, r, email) {
-    const { y, n } = (json.get || json.public), np = ns[email],
+function photoReq(j, r, a) {
+    const { y, n } = (j.get || j.public), np = ns[a.email],
         u = np[y] && (np[y].includes(n + '') || np[y].includes(n * 1)), p = u && photos[y][n]
-    if (json.get) {
+    if (j.get) {
         const pp = ps[y][n]
         log.info({ photo: { y, n } })
-        resp(req, r, { ps: p || pp, pp })
+        resp(j, r, a, { ps: p || pp, pp })
     }
-    else if (json.public) {
-        const ph = json.public.pn
+    else if (j.public) {
+        const ph = j.public.pn
         if (ps[y]) {
             if (ps[y][n]) {
                 const i = ps[y][n].indexOf(ph)
@@ -372,34 +365,58 @@ function photoReq(req, json, r, email) {
         pn = photoN()
         const pp = u && ps[y][n]
         log.info({ ps: { y, n, ph } })
-        resp(req, r, { photos: pn, ps: p, pp })
-    } else resp(req, r, { message: 'no photo' }, 400)
+        resp(j, r, a, { photos: pn, ps: p, pp })
+    } else resp(j, r, a, { e: 'no photo' }, 400)
 }
 
-app.post(config.url, (m, r) => {
-    const json = m.body, { req } = json
-    if (m.headers.a_hatchend !== '20230521') return resp(req, r, { message: 'Invalid request' }, 404)
-    const h = m.headers.authorization, token = h && h.startsWith('Bearer ') ? h.substring(7) : null,
-        auth = token ? jwt.verify(token, config.key) : null,
-        email = auth ? auth.email : null,
-        aed = email && email === 'ed@darnell.org.uk',
-        reqF = {
-            anon: { filesReq, datesReq, loginReq, sendReq, nameReq, unsubReq },
-            auth: { userReq, volReq, compReq, saveReq, photoReq, bulksendReq }
-        }
-    if (req) {
-        log.info('req->', req)
-        if (reqF.anon[req + 'Req']) reqF.anon[req + 'Req'](req, json, r, email, aed)
-        else if (reqF.auth[req + 'Req']) {
-            if (auth) reqF.auth[req + 'Req'](req, json, r, email, aed)
-            else resp(req, r, { error: 'Unauthorized' }, 401)
-        }
-        else resp(req, r, { message: 'Invalid request' }, 404)
-    } else {
-        log.info('req->', req)
-        resp(req, r, { message: 'No Request' }, 400)
+app.post(config.url, auth(async (j, r, a) => {
+    const reqF = {
+        anon: { filesReq, datesReq, loginReq, sendReq, nameReq, unsubReq },
+        auth: { userReq, volReq, compReq, saveReq, photoReq, bulksendReq }
     }
-})
+    log.info('req->', j.req, a ? a.i : '')
+    if (reqF.anon[j.req + 'Req']) reqF.anon[j.req + 'Req'](j, r, a)
+    else if (reqF.auth[j.req + 'Req']) {
+        if (a) reqF.auth[j.req + 'Req'](j, r, a)
+        else resp(j, r, a, { error: 'Unauthorized' }, 401)
+    }
+    else resp(j, r, a, { error: 'Invalid request' }, 404)
+}))
+
+function ue(email) {
+    const u = email && emails[email],
+        aed = email && email === 'ed@darnell.org.uk',
+        i = u && u.i,
+        name = i && `${u.first} ${u.lasts ? u.lasts[0] : ''}`
+    return i ? { i, email, name, aed } : null
+}
+
+function authH(h) {
+    const token = h && h.startsWith('Bearer ') ? h.substring(7) : null,
+        auth = token ? jwt.verify(token, config.key) : null,
+        u = auth ? ue(auth.email) : null
+    return u
+}
+
+function auth(rH) {
+    return async (m, r) => {
+        const j = m.body, h = m.headers, a = j.req ? authH(h.authorization) : null
+        try {
+            if (j.req) {
+                if (m.headers.a_hatchend !== '20230521') return resp(j.req, r, { message: 'Invalid request' }, 404)
+                else await rH(j, r, a)
+            }
+            else if (j.MessageId && j.TopicArn) sns(j, r)
+            else {
+                log.info('req->', j.req)
+                resp(j, r, a, { message: 'No Request' }, 400)
+            }
+        } catch (e) {
+            log.error({ j, a, e })
+            resp(j, r, a, { e }, 500)
+        }
+    }
+}
 
 app.listen(config.port, () => {
     log.info(`listening on ${config.url} port ${config.port}`)
