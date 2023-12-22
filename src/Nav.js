@@ -36,7 +36,8 @@ class Nav extends Html {
                 this.render(this, 'root')
             }).catch(e => {
                 debug({ e })
-                if (this.path === 'subscribe') this.render(this, 'root')
+                this._user=false
+                this.render(this, 'root')
             })
         })
     }
