@@ -10,28 +10,14 @@ class Data {
     user = () => {
         return new Promise((s, f) => {
             const token = localStorage.getItem('HEtoken')
-            if (token) ajax({ req: 'user' })
-                .then(r => {
-                    debug({ r })
-                    const user = (r.vol || r.comp) ? {} : null
-                    if (r.vol) user.vol = r.vol.reduce((a, u) => {
-                        a[u.id] = u
-                        return a
-                    }, {})
-                    if (r.comp) {
-                        user.comp = r.comp
-                    }
-                    if (r.names) {
-                        user.names = r.names
-                    }
-                    s(user) // user or null (no vol or comp)
-                })
-                .catch(e => {
-                    debug({ e })
-                    f(e)
-                })
+            if (token) ajax({ req: 'user' }).then(r => {
+                const user = r.u
+                s(user) // user or null (no vol or comp)
+            }).catch(e => {
+                debug({ e })
+                f(e)
+            })
             else {
-                debug({ s: false })
                 s(false) // undefined (no token)
             }
         })
@@ -42,17 +28,6 @@ class Data {
         if (vs) ret = Object.values(vs).some(u => u.admin === true)
         if (ret && ed) ret = Object.values(vs).some(u => u.email === 'ed@darnell.org.uk')
         return ret
-    }
-    name = () => {
-        const u = nav._user
-        if (u && u.names) {
-            return `${u.names.first} ${(u.names.lasts && u.names.lasts[0]) || ''}`
-            //if (nav.page.id === 'competitor' && u.comp) return Object.values(u.comp).map(c => `${c.first} ${c.last}`).join(', ')
-            //if (u.vol) return Object.values(u.vol).map(v => `${v.name}`).join(', ')
-            //else if (u.comp) return `${u.comp.first} ${u.comp.last}`
-            //Object.values(u.comp).map(c => `${c.first} ${c.last}`).join(', ')
-        }
-        else return null
     }
     check = async (req) => {
         if (Array.isArray(req.data)) return req.every(r => this.data[r])

@@ -4,12 +4,10 @@ function ajax(req) // token used when state not yet set
 {
   return new Promise((s, f) => {
     let ok
-    fetch('/ajax', params(req))
-      .then(res => {
-        ok = res.ok
-        res.json()
-      })
-      .then(r => ok?s(r):f(r))
+    fetch('/ajax', params(req)).then(res => {
+      ok = res.ok
+      return res.json()
+    }).then(r => ok ? s(r) : f(r.e))
       .catch(e => f(e))
   })
 }

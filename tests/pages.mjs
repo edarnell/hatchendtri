@@ -102,7 +102,7 @@ describe('HTML Fragment Test', () => {
         await scp('Contact', email, '.email')
     })
 
-    test.only('Login', async () => {
+    test('Login', async () => {
         await page.goto(url)
         await hover('TT_user', 'login')
         await page.click('[id^="TT_user"]')

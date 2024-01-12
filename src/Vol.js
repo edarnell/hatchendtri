@@ -1,9 +1,10 @@
-import Html, { debug, nav, _s } from './Html'
+import Html, { debug, nav, _s, error } from './Html'
 import { sections, roles, selectSection, selectRole } from './roles'
 import html from './html/Vol.html'
 import volD from './html/volD.html'
 import volE from './html/volE.html'
 import { ajax } from './ajax'
+import { name } from './Volunteer'
 
 const year = 2024
 
@@ -19,29 +20,24 @@ const roleForm = { // section and options populated on load
 }
 
 const volForm = { // section and options populated on load
-    name: { placeholder: 'name', width: '50rem' },
+    first: { placeholder: 'first name', width: '50rem' },
+    last: { placeholder: 'last name', width: '50rem' },
     email: { placeholder: 'email', type: 'email', width: '50rem' },
     mobile: { placeholder: 'mobile', type: 'tel', width: '50rem' },
-    notes: { placeholder: 'notes', rows: 1, cols: 20 },
-    unsub: { class: 'bold red', label: 'Unsub', tip: 'Warning - remove completely. Consider role "none" instead.' },
-    admin: { class: 'bold red hidden', label: 'Admin', tip: 'Warning - admin rights' }
+    notes: { placeholder: 'notes', rows: 1, cols: 20 }
 }
 
 
 class Vol extends Html {
-    constructor(p, name) {
-        super(p, name)
+    constructor(p, n) {
+        super(p, n)
         const vs = nav.d.data.vs
-        if (name === 'n') this.v = this.user() // will be updated when ajax returns email
-        else this.v = (vs && vs[this.name]) || { id: 0 }
+        if (n === 'n') this.v = this.user()
+        else this.v = (vs && vs[this.n]) || { id: 0 }
     }
     user = () => {
-        ajax({ req: 'vol', vol: -1 }).then(r => {
-            debug({ r })
-            this.v = r.vol
-        })
-        const u = nav._user, n = u.names
-        return this.v || { id: -1, name: `${n.first} ${n.lasts ? n.lasts[0] : ''}` }
+        const u = nav._user, vs = nav.d.data.vs, vi = Object.values(vs).filter(v => v.i == u.i)
+        return vi.length ? vi[0] : { id: -1, i: u.i }
     }
     form = () => {
         if (this.edit) return volForm
@@ -52,8 +48,11 @@ class Vol extends Html {
         else return html
     }
     var = (n) => {
-        const v = this.v
-        if (n === 'name') return v.id ? `{link.details.${_s(v.name)}_}` : 'New'
+        if (n === 'name') {
+            const v = this.v, fl = v && v.id > 0 && name(v.id, true), es = nav.d.data.es, u = es && es[v.i]
+            if (fl) return `{link.details.${fl.first + '_' + fl.last}_}`
+            return u ? `{link.details.${u.first + '_' + u.last}_}` : 'New'
+        }
         else if (n === 'admin') return nav.d.admin() ? '{checkbox.admin}' : ''
     }
     link = (name) => {
@@ -82,7 +81,7 @@ class Vol extends Html {
         else {
             const v = this.v, f = this.getForm()
             let upd = false
-            Object.keys(roleForm).forEach(k => {
+            Object.keys(volForm).forEach(k => {
                 if (v[k] !== f[k]) {
                     upd = true
                     v[k] = f[k]
@@ -90,7 +89,7 @@ class Vol extends Html {
             })
             if (upd) ajax({ req: 'save', vol: this.v.id, details: f }).then(r => {
                 this.edit = false
-                nav.d.saveZip({ vs: r.vs })
+                nav.d.saveZip('vs', r.vs)
                 if (this.v.id < 0) {
                     this.v = r.v
                     this.name = r.v.id
@@ -183,12 +182,13 @@ class Vol extends Html {
         const r24 = this.roleRem(this.getForm()), v = this.v,
             roles = (JSON.stringify(r24) !== JSON.stringify(v.year && v.year[year])) && r24
         if (roles) ajax({ req: 'save', vol: this.v.id, year, roles }).then(r => {
-            nav.d.saveZip({ vs: r.vs })
-            //debug({ save: this, v })
-            if (this.v.id < 0) nav._user.vol = { [r.v.id]: r.v }
-            this.p.reload('greet')
-            this.popup.close('updated')
-        }).catch(e => debug({ e }))
+            debug({ save: this, year, roles, r })
+            nav.d.saveZip('vs', r.vs)
+            this.popup.close('updated', { vol: r.v })
+        }).catch(e => {
+            error({ save: e })
+            this.popup.close('<div class="red">Error</div>')
+        })
         else this.popup.close('unchanged')
     }
     input = (e, o) => {

@@ -2,6 +2,7 @@ import Html, { debug, _s, error } from './Html'
 import html from './html/Contact.html'
 import { ajax } from './ajax'
 import { nav } from './Nav'
+import { name } from './Volunteer'
 
 class Contact extends Html {
     constructor(p, uid) {
@@ -19,7 +20,7 @@ class Contact extends Html {
             const extra = {
                 name: { placeholder: 'name', required: !nav._user },
                 email: { placeholder: 'email', type: 'email', required: !nav._user },
-                spam1: {}, spam2: {}, spam3: {}
+                spam1: { tip: this.spamtt }, spam2: { tip: this.spamtt }, spam3: { tip: this.spamtt }
             }
             form = { ...form, ...extra }
         }
@@ -28,11 +29,11 @@ class Contact extends Html {
     html = () => {
         return html
     }
-    var = (name) => {
-        const user = nav._user, to = this._to && nav.d.data.vs[this._to]
-        if (name === 'name_email') return `${user ? '' : '{input.name}<br />{input.email}<br />'}`
-        if (name === 'spam') return `${user ? '' : '{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} '}`
-        return to ? to.name : 'Hatch End Triathlon'
+    var = (n) => {
+        const user = nav._user, to = this._to && name(this._to, true, true)
+        if (n === 'name_email') return `${user ? '' : '{input.name}<br />{input.email}<br />'}`
+        if (n === 'spam') return `${user ? '' : '{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} '}`
+        return to || 'Hatch End Triathlon'
     }
     spamtt = () => {
         const complete = this.checkForm(), m = this.form().message

@@ -1,7 +1,7 @@
 // npm install @aws-sdk/client-ses
 const debug = console.log.bind(console)
 import express from 'express'
-import { f, _f, fz, save, unzip, zip } from './zip.mjs'
+import { f, fz, save, zip } from './zip.mjs'
 import { send, send_list } from './mail.mjs'
 import log4js from "log4js"
 import jwt from 'jsonwebtoken'
@@ -13,13 +13,126 @@ const log = log4js.getLogger()
 log.info("Started")
 let ns = fz('gz/_ns.gz') || {},
     emails = fz('gz/_emails.gz') || {},
-    vs = fz('gz/_vs.gz') || {},
-    cs = fz('gz/_cs.gz') || {},
     photos = fz('gz/_photos.gz') || {},
     ps = fz('gz/_ps.gz') || {},
-    pn = photoN(),
-    ei = []
-Object.keys(emails).forEach(e => ei[emails[e].i] = e)
+    ei = [], fns = {}, vs, _vs
+fns['photos'] = photoN()
+fns['vs'] = f_vs()
+fns['ds'] = f_('ds')
+fns['cs'] = f_('cs')
+fns['es'] = f_es()
+fns['mailLog'] = f('gz/mailLog.gz')
+fns['results'] = f('gz/results.gz')
+function f_vs() {
+    if (ei.length === 0) Object.keys(emails).forEach(e => ei[emails[e].i] = e)
+    const f = fs.existsSync(`gz/_vs.gz`), ts = f ? fs.statSync(`gz/_vs.gz`).mtime : new Date(),
+        j = f ? fz('gz/_vs.gz') : {},
+        r = {}
+    let n = 0, ui = 0, uf = 0, ul = 0, e = 0
+    for (let i in j) {
+        const o = j[i], u = o.email && emails[o.email.toLowerCase()]
+        if (u) {
+            r[i] = { id: o.id, i: u.i, year: o.year }
+            if (o.name) {
+                let [a, ...b] = o.name.trim().split(' '), last = b.pop(), first = (a + ' ' + b.join(' ')).trim()
+                if (o.name === u.first + ' ' + u.last) ui++
+                else if (last === u.last || !last) {
+                    r[i].first = first.trim()
+                    uf++
+                }
+                else {
+                    r[i].first = first.trim()
+                    r[i].last = last.trim()
+                    ul++
+                }
+            }
+            n++
+        }
+        else {
+            if (!o.unsub && i > 0) {
+                e++
+                if (o.year && Object.keys(o.year).length) {
+                    r[i] = o
+                    //debug({ keep: o })
+                }
+            }
+        }
+    }
+    log.info({ vs: { n, ui, uf, ul, e } })
+    _vs = j
+    vs = r
+    return { date: ts, data: zip(r, false, true) }
+}
+function f_(fn) {
+    if (ei.length === 0) Object.keys(emails).forEach(e => ei[emails[e].i] = e)
+    const fe = fs.existsSync(`gz/_${fn}.gz`),
+        j = fe ? fz(`gz/_${fn}.gz`) : {},
+        ts = fe ? fs.statSync(`gz/_${fn}.gz`).mtime : new Date(),
+        r = {}
+    let h = 0, n = 0, e = 0
+    for (let k in j) {
+        const o = j[k], { first, last, cat, mf, club, ag, swim, n } = o,
+            email = o.email.toLowerCase(),
+            u = emails[email]
+        if (email) {
+            let i = u ? u.i : ei.length
+            if (u) {
+                u.fi[fn] = u.fi[fn] || []
+                if (!u.fi[fn].includes(k)) {
+                    u.fi[fn].push(k)
+                    h++
+                }
+            }
+            else {
+                const m = Math.max(...Object.values(emails).map(x => x.i)) + 1
+                if (i !== m) {
+                    log.error({ i: { i, m } })
+                    i = m
+                }
+                emails[email] = { i, first, last, fi: { [fn]: [k] } }
+                ei[i] = email
+                n++
+            }
+            r[k] = { first, last, cat, mf, club, ag, email: i, swim, n }
+        }
+        else {
+            log.error({ error: o })
+            e++
+        }
+    }
+    const rn = Object.keys(r).length
+    log.info({ [fn]: { h, n, rn, e } })
+    if (n || h) save('_emails', emails)
+    return { date: ts, data: zip(r, false, true) }
+}
+function f_es() {
+    if (ei.length === 0) Object.keys(emails).forEach(e => ei[emails[e].i] = e)
+    const ts = fs.existsSync(`gz/_emails.gz`) ? fs.statSync(`gz/_emails.gz`).mtime : new Date(),
+        r = {}
+    let n = 0
+    Object.values(emails).forEach(e => {
+        const { i, first, last, fi } = e
+        r[i] = { first, last, email: i, fi }
+        n++
+    })
+    log.info({ es: n })
+    return { date: ts, data: zip(r, false, true) }
+}
+function photoN() {
+    const ts = fs.existsSync(`gz/_ps.gz`) ? fs.statSync(`gz/_ps.gz`).mtime : new Date(),
+        r = {}
+    Object.keys(photos).forEach(y => {
+        r[y] = {}
+        Object.keys(photos[y]).forEach(n => {
+            const pu = ps[y] && ps[y][n],
+                p = pu ? pu.length : 0,
+                t = photos[y][n].length
+            r[y][n] = { p, t }
+        })
+    })
+    return { date: ts, data: zip(r, false, true) }
+}
+
 const app = express()
 /*app.use((req, res, next) => {
     req.rawBody = ''
@@ -43,6 +156,7 @@ function resp(j, r, a, rj, status) {
         log.info('resp->', j.req, a ? a.i : '')
         r.json(rj)
     }
+    _resp = true
 }
 
 function get_name(email, split = true) {
@@ -61,62 +175,45 @@ function get_cname(email) {
 }
 
 function get_vol(id, email) {
+    debug({ get_vol: { id, email } })
+    const u = emails[email]
     if (id * 1 === -1) {
-        const u = emails[email]
-        return { id, name: `${u.first} ${u.lasts ? u.lasts[0] : ''}`, email, mobile: '' }
+        return { id, name: `${u.first} ${u.last}`, email, mobile: '' }
     }
-    const us = Object.values(vs).filter(u => u.email === email),
-        admin = us.some(u => u.admin === true),
-        self = id && us.some(u => u.id === id)
-    if (id && (self || admin)) return vs[id]
-    else if (!id) return us.length ? us : null
+    const v = vs[id], i = v && v.i, self = i === u.i
+    if (self || email === 'ed@darnell.org.uk') {
+        const { first, last, mobile, notes } = v,
+            r = { id, first: first || u.first, last: last || u.last, email, mobile, notes, i }
+        debug({ get_vol: { self, r } })
+        return r
+    }
+    else return null
 }
-
-function get_comp(id, email) {
-    const us = Object.values(cs).filter(u => u.email === email),
-        admin = us.some(u => u.admin === true),
-        self = id && us.some(u => u.id === id)
-    if (id && (self || admin)) return cs[id]
-    else if (!id) return us.length ? us : null
-}
-
-function saveRZ(rz) {
-    const r = fz('gz/results.gz'),
-        r23 = unzip(rz, true)
-    r[2023] = r23
-    save('results', r)
-    console.log('saveRZ', Object.keys(r), Object.keys(r23))
-}
-
 
 function filesReq(j, r, a) {
     if (j.files) {
-        const { files } = j, zips = {}, csvs = {}
+        const { files } = j, zips = {}, csvs = {}, error = []
         //log.info('req->', req, files)
         let ok = true
         files.forEach(fn => {
-            if (fn.endsWith('.csv')) csvs[fn] = aed && !config.live ? f(`lists/${fn}`, true) : null
-            else if (fn.charAt(0) === '_') zips[fn] = aed && !config.live ? f(`gz/${fn}.gz`) : null
-            else if (fn === 'photos') zips[fn] = pn
-            else zips[fn] = f(`gz/${fn}.gz`)
+            if (fns[fn]) zips[fn] = fns[fn]
+            else error.push(fn)
         })
-        const e = Object.values(zips).some(value => value === null)
-            || Object.values(csvs).some(value => value === null)
-        if (!e) resp(j, r, a, { zips, csvs })
-        else resp(j, r, a, { error: 'Unauthorized' }, 401)
+        if (!error.length) resp(j, r, a, { zips, csvs })
+        else resp(j, r, a, { error }, 400)
     } else resp(j, r, a, { message: 'no files' }, 400)
 }
 
 function datesReq(j, r, a) {
     if (j.files) {
-        const { files } = j, date = {}
+        const { files } = j, date = {}, error = []
         //log.info('req->', req, files)
         files.forEach(fn => {
-            if (fn === 'vs' && !fs.existsSync(`gz/vs.gz`)) _f('vs') // restore from backup after copied to gz
-            const { mtime } = fn === 'photos' ? { mtime: pn.date } : fs.statSync(`gz/${fn}.gz`)
-            date[fn] = mtime
+            if (fns[fn]) date[fn] = fns[fn].date
+            else error.push(fn)
         })
-        resp(j, r, a, { date })
+        if (!error.length) resp(j, r, a, { date })
+        else resp(j, r, a, { error }, 400)
     } else resp(j, r, a, { message: 'no files' }, 400)
 }
 
@@ -154,44 +251,102 @@ function sendReq(j, r, a) {
 function saveReq(j, r, a) {
     if (j.vol) saveVol(j, r, a)
     else if (j.comp) saveComp(j, r, a)
-    else if (j.zips) saveZips(j, r, a)
-    else if (j.files) saveFiles(j, r, a)
     else resp(j, r, a, { e: 'no data' }, 400)
 }
 
+function vName(id) {
+    const v = vs[id], u = emails[ei[v.i]], first = v.first || u.first, last = v.last || u.last
+    return `${first} ${last}`
+}
+
+function update_v(v, details) {
+    const { first, last, mobile, notes, email } = details,
+        { i, id } = v, u = emails[email]
+    if (v.first) v = { first, last, mobile, notes, email, i, id }
+    else if (v.last) v = { last, mobile, notes, email, i, id }
+    else {
+        if (u.first !== first || u.last !== last) {
+            u.first = first
+            u.last = last
+            emails[email] = u
+            save('_emails', emails)
+        }
+        v = { mobile, notes, email, i, id }
+    }
+    return v
+}
+
+function new_user(v, details) {
+    const { first, last, email } = details
+    let i = Math.max(...Object.keys(emails).filter(x => isNaN(x) === false)) + 1
+    emails[email] = { first, last, email, i, vs: [v.id] }
+    ei[i] = email
+    save('_emails', emails)
+    return emails[email]
+}
+
+function switch_v(v, details) {
+    const { first, last, mobile, notes, email } = details,
+        uv = emails[ei[v.i]], u = emails[email] || new_user(v, details)
+    if (uv.vs && uv.vs.includes(v.id)) {
+        uv.vs.splice(uv.vs.indexOf(v.id), 1)
+        emails[ei[v.i]] = uv
+        save('_emails', emails)
+    }
+    v = { i: u.i, id: v.id }
+    if (!u.vs) u.vs = [v.id]
+    else u.vs.push(v.id)
+    save('_emails', emails)
+    v = update_v(v, details)
+    return v
+}
+
+function update_vuser(v, details) {
+    const email = details.email,
+        uv = emails[ei[v.i]],
+        ue = emails[email],
+        u = (uv && ue) && uv.i === ue.i && uv
+    if (!uv) v = null
+    else if (u) v = update_v(v, details)
+    else v = switch_v(v, details)
+    return v
+}
+
 function saveVol(j, r, a) {
-    if (a && (j.roles || j.details)) {
-        const { vol, roles, year, details } = j,
-            v = vs[vol] || {}, email = a.email
-        if (vol * 1 === 0 || vol * 1 === -1) {
-            v.id = Math.max(...Object.keys(vs).filter(x => isNaN(x) === false)) + 1
-            const bad_ids = Object.keys(vs).filter(x => isNaN(x) === true),
-                u = emails[email]
-            debug({ new_id: v.id, u, email })
-            v.name = `${u.first} ${u.lasts ? u.lasts[0] : ''}`
-            v.email = email
-            debug({ new_id: v.id, v, bad_ids })
-        }
-        if (details) Object.keys(details).forEach(k => v[k] = details[k])
-        if (roles && year) (v.year = v.year || {})[year] = roles
-        send({
-            from_email: email, uEmail: email, subject: `vol ${v.unsub ? 'unsub' : 'update'} ${v.name}`,
-            message: `{volunteer} ${v.name}\n` +
-                (roles && (roles.adult || roles.junior || roles.none) ? `adult: ${roles && roles.adult ? roles.arole ? `${roles.asection},${roles.arole}` : 'yes' : 'no'}\n` +
-                    `junior: ${roles && roles.junior ? roles.jrole ? `${roles.jsection},${roles.jrole}` : 'yes' : 'no'}\n` +
-                    `${roles && roles.notes ? `notes: ${roles.notes}\n` : ''}`
-                    : `${details ? JSON.stringify(details) : ''}`)
-        })
-        if (v.unsub) {
-            if (!vs[0]) vs[0] = {}
-            vs[0][v.id] = { ...v }
-            delete vs[vol]
-        }
-        else vs[v.id] = v
-        save('_vs', vs)
-        const vu = f('gz/vs.gz')
-        resp(j, r, a, { vs: vu, v })
-    } else resp(j, r, a, { e: 'no roles or details' }, 400)
+    let v
+    const { vol, roles, year, details } = j
+    if (vol === -1) {
+        const u = emails[a.email], i = u && u.i,
+            id = Math.max(...Object.keys(vs).filter(x => isNaN(x) === false)) + 1
+        v = { i, id }
+    }
+    else if (vol) v = vs[vol]
+    else if (details) {
+        id = Math.max(...Object.keys(vs).filter(x => isNaN(x) === false)) + 1
+        v = { id }
+    }
+    else resp(j, r, a, { e: 'no vol or details' }, 400)
+    if (details) v = update_vuser(v, details)
+    if (roles && year) {
+        v.year = v.year || {}
+        v.year[year] = v.year[year] || {}
+        v.year[year] = roles
+    }
+    vs[v.id] = v
+    const email = ei[v.i]
+    _vs[v.id] = { email, ...v }
+    const ts = save('_vs', _vs)
+    fns['vs'] = { date: ts, data: zip(vs, false, true) }
+    resp(j, r, a, { vs: fns['vs'], v })
+    send({
+        from_email: email, uEmail: email, subject: `vol update ${v.id}`,
+        message: `{volunteer} ${v.id} ${vName(v.id)}\n` +
+            (roles && (roles.adult || roles.junior || roles.none) ? `adult: ${roles && roles.adult ? roles.arole ? `${roles.asection},${roles.arole}` : 'yes' : 'no'}\n` +
+                `junior: ${roles && roles.junior ? roles.jrole ? `${roles.jsection},${roles.jrole}` : 'yes' : 'no'}\n` +
+                `${roles && roles.notes ? `notes: ${roles.notes}\n` : ''}`
+                : `${details ? JSON.stringify(details) : ''}`)
+    })
+
 }
 
 function saveComp(j, r, a) {
@@ -207,14 +362,6 @@ function saveComp(j, r, a) {
         })
         resp(j, r, a, { comp: c })
     } else resp(j, r, a, { message: 'no comp' }, 400)
-}
-
-function nameReq(j, r, a) {
-    const tok = j.tok, auth = tok && jwt.verify(tok, config.key),
-        ae = ue(auth.email)
-    if (a && a.email !== ae) log.info({ nameReq: { a: a.i, ae: ae.i } })
-    if (ae) resp(j, r, ae, { name: ae.name })
-    else resp(j, r, a, { e: 'unknown' }, 400)
 }
 
 function unsubReq(j, r, a) {
@@ -235,35 +382,31 @@ function unsubReq(j, r, a) {
     } else resp(j, r, a, { e: 'data error' }, 400)
 }
 
-function saveZips(j, r, a) {
-    if (j.zips) {
-        const { zips } = j, fs = Object.keys(zips),
-            saved = {}
-        //log.info('req->', req, fs)
-        fs.forEach(fn => {
-            if (fn === 'results') saveRZ(zips[fn])
-            else save(fn, unzip(zips[fn], true))
-            saved[fn] = f(`gz/${fn}.gz`)
-        })
-        resp(j, r, a, saved)
-    } else resp(j, r, a, { e: 'no zips' }, 400)
-}
-
-function saveFiles(j, r, a) {
-    if (j.files) {
-        const { files } = j, zips = {}, fs = Object.keys(files)
-        //log.info('req->', req, fs)
-        fs.forEach(fn => {
-            save(fn, files[fn], true)
-            zips[fn] = f(`gz/${fn}.gz`)
-        })
-        resp(j, r, a, { zips })
-    } else resp(j, r, a, { message: 'no files' }, 400)
+function subReq(j, r, a) {
+    const tok = j.tok, auth = tok && jwt.verify(tok, config.key),
+        email = auth.email,
+        { first, last } = j.details || {},
+        ae = ue(email)
+    if (ae) {
+        log.info({ subReq: { ae: ae.i } })
+        resp(j, r, a, { u: ae })
+    } else if (first && last && email) {
+        debug({ subReq: { first, last, email } })
+        const i = Math.max(...Object.values(emails).map(x => x.i)) + 1
+        emails[email] = { first, last, email, i }
+        save('_emails', emails)
+        fns['es'] = f_es()
+        resp(j, r, a, { u: { first, last, i }, es: fns['es'] })
+    } else resp(j, r, a, { e: 'data error' }, 400)
 }
 
 function userReq(j, r, a) {
-    const email = a && a.email, names = emails[email], vol = get_vol(null, email), comp = ns[email]
-    resp(j, r, a, { email, names, vol, comp })
+    const email = ei[a.aed && j.i] || a.email, u = emails[email]
+    if (u) {
+        const { first, last, i } = u, admin = a.aed && !j.i
+        resp(j, r, a, { u: { first, last, i, admin } })
+    }
+    else resp(j, r, a, { e: j }, 400)
 }
 
 function volReq(j, r, a) {
@@ -327,21 +470,6 @@ function awsSnsReq(req, json, r) {
     } else resp(req, r, { error: 'Unauthorized' }, 401)
 }
 
-function photoN() {
-    const ts = fs.existsSync(`gz/_ps.gz`) ? fs.statSync(`gz/_ps.gz`).mtime : new Date(),
-        r = {}
-    Object.keys(photos).forEach(y => {
-        r[y] = {}
-        Object.keys(photos[y]).forEach(n => {
-            const pu = ps[y] && ps[y][n],
-                p = pu ? pu.length : 0,
-                t = photos[y][n].length
-            r[y][n] = { p, t }
-        })
-    })
-    return { date: ts, data: zip(r, false, true) }
-}
-
 function photoReq(j, r, a) {
     const { y, n } = (j.get || j.public), np = ns[a.email],
         u = np[y] && (np[y].includes(n + '') || np[y].includes(n * 1)), p = u && photos[y][n]
@@ -371,7 +499,7 @@ function photoReq(j, r, a) {
 
 app.post(config.url, auth(async (j, r, a) => {
     const reqF = {
-        anon: { filesReq, datesReq, loginReq, sendReq, nameReq, unsubReq },
+        anon: { filesReq, datesReq, loginReq, sendReq, unsubReq, subReq },
         auth: { userReq, volReq, compReq, saveReq, photoReq, bulksendReq }
     }
     log.info('req->', j.req, a ? a.i : '')
@@ -387,8 +515,8 @@ function ue(email) {
     const u = email && emails[email],
         aed = email && email === 'ed@darnell.org.uk',
         i = u && u.i,
-        name = i && `${u.first} ${u.lasts ? u.lasts[0] : ''}`
-    return i ? { i, email, name, aed } : null
+        { first, last } = u || {}
+    return i ? { i, aed, first, last, email } : null
 }
 
 function authH(h) {
@@ -398,7 +526,9 @@ function authH(h) {
     return u
 }
 
+var _resp
 function auth(rH) {
+    _resp = false
     return async (m, r) => {
         const j = m.body, h = m.headers, a = j.req ? authH(h.authorization) : null
         try {
@@ -409,11 +539,11 @@ function auth(rH) {
             else if (j.MessageId && j.TopicArn) sns(j, r)
             else {
                 log.info('req->', j.req)
-                resp(j, r, a, { message: 'No Request' }, 400)
+                resp(j, r, a, { e: 'No Request' }, 400)
             }
         } catch (e) {
             log.error({ j, a, e })
-            resp(j, r, a, { e }, 500)
+            if (!_resp) resp(j, r, a, { e: 'Server catch' }, 500)
         }
     }
 }

@@ -26,17 +26,15 @@ class Nav extends Html {
         this.i = Math.floor(Math.random() * 3)
         this.init(css, favicon)
         import('./Objects.js').then(m => {
-            debug({ m })
             const H = new m.default()
             this.O = H.O
             nav = this
             this.d.user().then(r => {
-                debug({ r })
                 this._user = r
                 this.render(this, 'root')
             }).catch(e => {
                 debug({ e })
-                this._user=false
+                this._user = false
                 this.render(this, 'root')
             })
         })
@@ -116,7 +114,14 @@ class Nav extends Html {
                 this.logout() // logout elsewhere
                 s()
             }
-            else if (token && this._user === false) this.login().then(() => s())
+            else if (token) {
+                this.d.user().then(r => {
+                    this.userIcon(r)
+                }).catch(e => {
+                    debug({ e })
+                    this.userIcon(false)
+                })
+            }
         })
     }
     logout = (e, o) => {
@@ -132,15 +137,20 @@ class Nav extends Html {
         const l = this.q(`[id*="TT_user_nav"]`)
         this.popup('Sub', 'nav_sub', l, 'bottom-end')
     }
-    close = (m) => {
-        this.popup('close', 'nav_unsub')
+    close = (m, u) => {
+        this.popup('close')
+        if (u) {
+            const token = localStorage.getItem('HEtok')
+            localStorage.setItem('HEtoken', token)
+            this._user = u
+        }
         if (m) {
             const tt = this.tt.TT_user_nav_5
             tt.tooltip(null, m)
             tt.timer = setTimeout(() => {
                 tt.ttremove()
                 tt.listen(true)
-                if (m === 'Unsubscribed.') this.logout()
+                if (m === 'Unsubscribed') this.logout()
             }, 2000)
         }
     }
@@ -150,8 +160,8 @@ class Nav extends Html {
     }
     tt = () => {
         this.checkUser()
-        const u = this.d.name(), a = this.d.admin()
-        return a ? `<span class='red'>${u}</span>` : u || 'login'
+        const u = this._user, name = u ? u.first + ' ' + u.last : '', a = u && u.admin
+        return a ? `<span class='red'>${name}</span>` : name || 'login'
     }
 }
 export default Nav

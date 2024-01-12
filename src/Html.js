@@ -151,6 +151,7 @@ class Html {
         }
     }
     pdiv = (n) => {
+        if (this.id === n) return this
         const d = this.div && this.div[n]
         if (d) return d
         else if (this.p) return this.p.pdiv(n)
@@ -214,7 +215,7 @@ class Html {
         window.location.hash = ''
         this.path = window.location.pathname.replace('/', '')
         if (token && token.length > 10) {
-            if (['home', 'unsubscribe'].includes(this.path)) localStorage.setItem('HEtok', token)
+            if (['home', 'unsubscribe', 'subscribe'].includes(this.path)) localStorage.setItem('HEtok', token)
             else localStorage.setItem('HEtoken', token)
         }
     }

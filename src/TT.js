@@ -163,28 +163,28 @@ class TT {
             })
         }
     }
+    updP = (r) => {
+        const f = this.p._p('updated')
+        if (f) f(r)
+    }
     close = (m, r) => {
-        //debug({ close: this, m, r })
         if (this.pdiv) {
-            if (this.pO) {
-                this.pO.unload(this.pO)
-                this.pdiv.remove()
-                if (this.pop) this.pop.destroy()
-                this.pO = this.pop = this.pdiv = null
-            }
-            else error({ TT: this })
-            if (r) {
-                const l = this.el()
-                l.innerHTML = this.html() // reload link
-            }
+            if (this.pO) this.pO.unload(this.pO)
+            if (this.pdiv) this.pdiv.remove()
+            if (this.pop) this.pop.destroy()
+            this.pO = this.pop = this.pdiv = null
             if (m) {
                 this.tooltip(null, m)
                 this.timer = setTimeout(() => {
                     this.ttremove
                     this.listen(true)
+                    this.updP(r)
                 }, 2000)
             }
-            else this.listen(true) // add back listeners
+            else {
+                this.listen(true) // add back listeners
+                this.updP(r)
+            }
         }
         if (m) {
             if (this.tt) this.timer = setTimeout(this.ttremove, 1000)

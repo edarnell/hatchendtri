@@ -679,12 +679,4 @@ function selectRole(p, sn, rn) {
         r.value = v
     }
 }
-function firstLast(name) {
-    const nm = name.trim(),
-        s = nm.lastIndexOf(' '),
-        first = s > 0 ? nm.substring(0, s) : nm,
-        last = s > 0 ? nm.substring(s + 1) : ''
-    return { first, last }
-}
-
-export { section, sections, roles, selectSection, selectRole, firstLast }
+export { section, sections, roles, selectSection, selectRole }

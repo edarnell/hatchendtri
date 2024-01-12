@@ -3,35 +3,46 @@ import html from './html/Volunteer.html'
 import greet from './html/greet.html'
 import greetY from './html/greetY.html'
 import greetN from './html/greetN.html'
-import { sections, section, roles, selectSection, selectRole, firstLast } from './roles'
+import { sections, section, roles, selectSection, selectRole } from './roles'
 
 const year = 2024
 class Volunteer extends Html {
   constructor() {
     super()
     this.id = 'volunteer'
-    this.data = ['vs']
+    this.data = ['vs', 'es']
   }
-  vol = (id) => {
-    return new Vol(id)
-  }
-  var = (n, p) => {
-    if (n === 'name') return this.names()
-    else if (n === 'year') return '' + year
-  }
-  names = () => {
-    const u = nav._user
-    if (u && u.vol) {
-      return Object.values(u.vol).map(v => `{link.v${v.id}.${_s(v.name)}}`).join(', ')
+  vs_ = () => {
+    const vs = nav.d.data.vs
+    if (!this._vs && vs) {
+      const _vs = this._vs = {}
+      Object.values(vs).forEach(v => {
+        if (_vs[v.i]) {
+          if (!v.first) _vs[v.i].unshift(v.id)
+          else _vs[v.i].push(v.id)
+        }
+        else _vs[v.i] = [v.id]
+      })
     }
-    else if (u.names) return `{link.n.${u.names.first}_${u.names.lasts ? u.names.lasts[0] : ''}}`
-    else return null
+    return this._vs
+  }
+  var = (n) => {
+    if (n === 'name') {
+      const u = nav._user, _vs = this._vs, v = _vs && _vs[u.i], fl = v && name(v[0], true),
+        first = (fl || u).first, last = (fl || u).last
+      return `{link.n.${first}_${last}}`
+    }
+    else if (n === 'year') return '' + year
   }
   loaded = (r) => {
     if (r) this.reload()
   }
+  volClose = () => this.updated()
+  updated = (r) => {
+    this.reload('greet')
+  }
   rendered = () => {
-    if (nav.d.admin()) {
+    if (nav._user.admin) {
       const n = this.fe('New')
       if (n) n.classList.remove('hidden')
     }
@@ -45,32 +56,38 @@ class Volunteer extends Html {
     }
   }
   link = (n) => {
-    const id = n.substring(1), vol = nav.d.data.vs[id]
-    if (n === 'n') return { tip: 'set volunteer availability', class: 'grey', popup: `{Vol.n}` }
-    else if (vol) {
-      if (n.charAt(0) === 'v') return { tip: () => this.tip(id, 2024), theme: 'light', class: 'span ' + this.color(id), popup: `{Vol.${id}}` }
-      else return nav.d.admin() ? { tip: () => this.tip(id), theme: 'light', class: this.color(id), popup: `{Vol.${id}}` }
-        : { tip: `contact ${vol.name}`, class: this.color(id), theme: 'light', popup: `{Contact.${id}}` }
+    if (n === 'n') return { tip: 'set volunteer availability', class: this.color(), popup: `{Vol.n}` }
+    else {
+      const id = n.substring(1), vs = nav.d.data.vs, vol = vs[id]
+      if (vol) {
+        if (n.charAt(0) === 'v') return { tip: () => this.tip(id, 2024), theme: 'light', class: 'span ' + this.color(id), popup: `{Vol.${id}}` }
+        else return nav._user.admin ? { tip: () => this.tip(id), theme: 'light', class: this.color(id), popup: `{Vol.${id}}` }
+          : { tip: `contact ${name(id)}`, class: this.color(id), theme: 'light', popup: `{Contact.${id}}` }
+      }
+      else error({ link: n, id, vol })
     }
-    else error({ link: n, id, vol })
   }
-  html = (name, param) => {
-    if (!nav.d.data.vs) return '' // wait to load
-    else if (!name) return html
-    else if (name === 'greet') return `<div id="greet"><p>Welcome {var.name}</p></div>`
-    else if (name === 'nr') {
+  html = (n) => {
+    const vs = nav.d.data.vs
+    if (vs && !this._vs) this._vs = this.vs_()
+    if (!vs) return `<div id="volunteer"></div>` // wait to load
+    else if (!n) return `<div id="volunteer">${html}</div>`
+    else if (n === 'greet') return `<div id="greet"><p>Welcome {var.name} please click on your name to set availability or to update contact details.</p></div>`
+    else if (n === 'nr') {
       const f = this._form, nr = (f && f.nr) || 'Roles'
       return `<div id="nr">${nr === 'Roles' ? '{div.vRoles}' : '{div.vNames}'}</div>`
     }
-    else if (name === 'vRoles') return new Vroles(this.div['nr'], name)
-    else if (name === 'vNames') return new Vnames(this.div['nr'], name)
+    else if (n === 'vRoles') return new Vroles(this.div['nr'], n)
+    else if (n === 'vNames') return new Vnames(this.div['nr'], n)
   }
   color = (id, y = year) => {
-    const v = nav.d.data.vs[id], vy = v.year && v.year[y],
-      n = v.unsub || (vy && vy.none),
+    const u = !id && nav._user, _vs = u && this._vs, vid = _vs && _vs[u.i] && _vs[u.i][0],
+      v = nav.d.data.vs[id || vid], yr = v && v.year, vy = yr && yr[y],
+      n = vy && vy.none,
       r = vy && (vy.adult || vy.junior),
       rb = r && ((vy.adult && !vy.arole) || (vy.junior && !vy.jrole))
-    return r ? rb ? 'blue' : 'green' : n ? 'red' : 'grey'
+    const ret = r ? (rb && id) ? 'blue' : 'green' : n ? 'red' : 'grey'
+    return ret
   }
   vtip = (id, y = 2024) => {
     const vs = nav.d.data.vs, v = vs && vs[id], cl = this.color(v.id, y), vy = v && v.year && v.year[y]
@@ -106,7 +123,7 @@ class Volunteer extends Html {
     return years.sort().reverse().map(y => `{link._${id}._${y}}`).join(' ')
   }
   years = (v, y, id) => { // v=volunteer, y=years
-    const { first, last } = firstLast(v.name || ''),
+    const { first, last } = name(v.id, true),
       years = y ? Object.keys(y) : []
     return { first, last, years: this.vlinks(years, id) }
   }
@@ -139,10 +156,13 @@ class Vnames extends Html {
     }
     else if (name.startsWith('v_')) {
       const id = name.substring(2), vol = nav.d.data.vs[id], _id = name.substring(1)
-      if (vol && nav.d.admin()) return { tip: () => this._p('tip')(id), class: ' ', theme: 'light', popup: `{Vol.${_id}}` }
-      else if (vol) return { tip: 'contact', class: ' ', theme: 'light', popup: `{Vol.${id}}` }
+      if (vol && nav.d.admin()) return { tip: () => this._p('tip')(id), class: ' ', theme: 'light', popup: `{Vol.${id}}` }
+      else if (vol) return { tip: 'contact', class: ' ', theme: 'light', popup: `{Contact.${id}}` }
     }
-    else return this.plink(name, param)
+    else if (name.startsWith('_')) {
+      const id = name.substring(1)
+      return { tip: 'contact', theme: 'light', popup: `{Contact.${id}}` }
+    }
   }
   filter = (id) => {
     const fd = this.p._p('_form'), f = fd && fd.filter,
@@ -178,8 +198,8 @@ class Vnames extends Html {
     return ret
   }
   tr = (id) => {
-    const v = nav.d.data.vs[id], { name, email } = v,
-      c = firstLast(name),
+    const v = nav.d.data.vs[id],
+      c = name(id, true),
       n = Object.keys(v.year).length,
       l = v.year[year],
       a = l && l.arole ? l.asection + ' ' + l.arole : '',
@@ -190,14 +210,14 @@ class Vnames extends Html {
 }
 
 class Vroles extends Html {
-  constructor(p, name) {
-    super(p, name)
+  constructor(p, n) {
+    super(p, n)
   }
-  html = (name) => {
-    if (name === 'vRoles') {
+  html = (n) => {
+    if (n === 'vRoles') {
       return "<form>{select.section} {select.role} {button.R.C}</form>{div.roles}"
     }
-    else if (name === 'roles') {
+    else if (n === 'roles') {
       return `<div id="roles">
       ${sections.map((s, i) => `{table.section${i}.${_s(s)}}`).join('')}
       </div>`
@@ -228,26 +248,26 @@ class Vroles extends Html {
     R.classList[r ? 'remove' : 'add']('hidden')
     if (reload) this.reload('roles')
   }
-  link = (name, param) => {
-    if (name.startsWith('u_')) {
-      const id = name.substring(2), vol = nav.d.data.vs[id], _id = name.substring(1)
+  link = (n, param) => {
+    if (n.startsWith('u_')) {
+      const id = n.substring(2), vol = nav.d.data.vs[id], _id = n.substring(1)
       if (vol) return { tip: () => this.tip(id), theme: 'light', class: this.p.color(id) }
     }
-    else if (name.charAt(1) === '_') {
-      const f = { a: 'adult', j: 'junior', s: 'both', f: 'both' }, ajs = f[name.charAt(0)]
-      return { tip: `fill ${ajs}`, popup: `{Vselect.${name}}` }
+    else if (n.charAt(1) === '_') {
+      const f = { a: 'adult', j: 'junior', s: 'both', f: 'both' }, ajs = f[n.charAt(0)]
+      return { tip: `fill ${ajs}`, popup: `{Vselect.${n}}` }
     }
-    else return this.plink(name, param)
+    else return this.plink(n, param)
   }
-  ths = (name, param) => {
-    if (name.startsWith('section')) {
-      const sn = _s(param, false), s = section[sn]
+  ths = (n, p) => {
+    if (n.startsWith('section')) {
+      const sn = _s(p, false), s = section[sn]
       return [s.name, `${s.start.adult} - ${s.end.adult}`, `${s.start.junior} - ${s.end.junior}`]
     }
   }
-  trs = (name, param) => {
-    if (name.startsWith('section')) {
-      const s = _s(param, false), f = this._form, sf = f && f.section
+  trs = (n, p) => {
+    if (n.startsWith('section')) {
+      const s = _s(p, false), f = this._form, sf = f && f.section
       //debug({ s, sf, f, name, param })
       if (sf && sf !== 'Section' && sf !== s) return []
       else return this.role_rows(s)
@@ -265,7 +285,7 @@ class Vroles extends Html {
   }
   sr = (id, s, r) => {
     const v = nav.d.data.vs[id], { asection, arole, jsection, jrole } = (v.year && v.year[year]) || {}
-    if (!v.year) debug({ id, v })
+    //if (!v.year) debug({ id, v })
     let n = 0
     n += (asection === s && arole === r) ? 2 : 0
     n += (jsection === s && jrole === r) ? 1 : 0
@@ -296,8 +316,8 @@ class Vroles extends Html {
       }
       else {
         const n = v[i].n, m = v[j].n,
-          vi = `{link._${v[i].id}.${_s(vs[v[i].id].name)}}`,
-          vj = `{link._${v[j].id}.${_s(vs[v[j].id].name)}}`,
+          vi = `{link._${v[i].id}.${_s(name(v[i].id, true, true))}}`,
+          vj = `{link._${v[j].id}.${_s(name(v[j].id, true, true))}}`,
           bi = t < amin ? reqa : t < amax ? opta : '',
           bj = t < jmin ? reqj : t < jmax ? optj : ''
         if (n === 3) {
@@ -375,4 +395,16 @@ class Greet extends Html {
   }
 }
 
+function name(vid, l, s) {
+  const { vs, es } = nav.d.data, v = vs && vs[vid], e = v && es[v.i]
+  let first, last
+  if (v && v.first) first = v.first
+  else if (e && e.first) first = e.first
+  else error({ vid, v })
+  if (v && v.last) last = v.last
+  else if (e && e.last) last = e.last
+  else error({ vid, v })
+  return l ? s ? first + ' ' + last : { first, last } : first
+}
+export { name }
 export default Volunteer

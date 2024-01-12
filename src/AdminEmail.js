@@ -1,4 +1,4 @@
-import Html, { debug, nav, snakeCase, jsonToHtml } from './Html.js'
+import Html, { debug, error, nav, snakeCase, jsonToHtml } from './Html.js'
 import { ajax } from './ajax.js'
 import { zip } from './unzip.js'
 import html from './html/AdminEmail.html'
@@ -6,7 +6,7 @@ class AdminEmail extends Html {
     constructor() {
         super()
         this.id = 'AdminEmail'
-        this.data = ['emails', 'mailLog']
+        this.data = ['es', 'mailLog', 'cs', 'ds']
     }
     //             save: { tip: `save emails_`, class: 'form danger', click: this.save },
     form = () => {
@@ -17,13 +17,46 @@ class AdminEmail extends Html {
             since: { tip: 'last send before this', class: 'form', options: o || [] },
             jetstream: { tip: 'jetstream members' },
             photos: { tip: 'photos' },
+            cs: { tip: 'competitors' },
+            ds: { tip: 'deferred' },
             vs: { tip: 'volunteers' },
             unsubs: { tip: 'unsub and bounce' },
             test3: { tip: 'testing to Darnell' }
         }
     }
+    cs = () => {
+        const cs = nav.d.data.cs
+        if (cs) {
+            const r = {}
+            Object.values(cs).forEach(c => {
+                if (c.email) {
+                    r[c.email] = r[c.email] || []
+                    r[c.email].push(c)
+                }
+                else error({ c })
+            })
+            this._cs = r
+        }
+        const ds = nav.d.data.ds
+        if (ds) {
+            const r = {}
+            Object.values(ds).forEach(c => {
+                if (c.email) {
+                    r[c.email] = r[c.email] || []
+                    r[c.email].push(c)
+                }
+                else error({ c })
+            })
+            this._ds = r
+        }
+    }
+    names = (i) => {
+        const cs = this._cs, ds = this._ds, c = (cs && cs[i]) || (ds && ds[i])
+        if (c) return c.map(c => c.first).join(', ')
+        else return ''
+    }
     ml = () => {
-        const d = nav.d.data, ml = d && d.mailLog, e = d && d.emails, eml = {}
+        const d = nav.d.data, ml = d && d.mailLog, e = d && d.es, eml = {}
         if (ml && e) {
             let last = ''
             const opt = Object.keys(ml).filter(dt => ml[dt].req === 'bulksend' && ml[dt].live).reverse().map(dt => {
@@ -47,16 +80,16 @@ class AdminEmail extends Html {
     filter = (r) => {
         let ret = true
         const f = this.f
-        if (!f) ret = r[3] === '57'
-        else if (f.test3) ret = r[2].includes('Darnell')
+        if (!f) ret = r[0] === '57'
         else {
-            const last = this._ml[r[3]] ? this._ml[r[3]][0] : ''
-            if (f.jetstream) ret = ret && r[5].includes('jetstream')
-            if (f.photos) ret = ret && r[5].includes('photos')
-            if (f.vs) ret = ret && r[5].includes('vs')
+            const last = this._ml[r[0]] ? this._ml[r[0]][0] : ''
+            if (f.test3) ret = r[2].includes('Darnell')
+                ;['jetstream', 'photos', 'cs', 'vs', 'ds'].forEach(k => {
+                    if (f[k]) ret = ret && r[5].includes(k)
+                })
             if (f.unsubs) ret = ret && (r[5].includes('unsub') || r[5].includes('bounce'))
             else ret = ret && !r[5].includes('unsub') && !r[5].includes('bounce')
-            if (f.since) ret = ret && (last < f.since)
+            if (f.since) ret = ret && (last.substring(0, 8) < f.since.substring(0, 8))
             if (f.filter) {
                 const xs = f.filter.split(',').map(s => s.toLowerCase().trim())
                 ret = ret && xs.every(x => (r.some(c => c.toLowerCase().includes(x))))
@@ -82,6 +115,7 @@ class AdminEmail extends Html {
     }
     html = (n) => {
         if (!this._ml) this.ml()
+        if (!this._cs) this.cs()
         if (n === 'emails') {
             return `<div id="emails">${this._ml ? '{table.emails}' : 'no emails'}</div>`
         }
@@ -91,12 +125,12 @@ class AdminEmail extends Html {
         if (n === 'n') return '<span id="n">?</span>'
     }
     ths = (n) => {
-        if (n === 'emails') return ['first', 'firsts', 'lasts', 'email', 'sent', 'files']
+        if (n === 'emails') return ['eid', 'first', 'last', 'names', 'sent', 'files']
         else return ''
     }
     link = (n, p) => {
         if (n.charAt(0) === 'f') {
-            const i = n.substring(3), d = nav.d.data, emails = d && d.emails, ks = emails && Object.keys(emails),
+            const i = n.substring(3), d = nav.d.data, emails = d && d.es, ks = emails && Object.keys(emails),
                 k = ks[i], e = emails && emails[k],
                 color = { f0: 'amber', fE: 'red', fn: 'green', fe: 'blue' }
             //e.first = p
@@ -109,7 +143,7 @@ class AdminEmail extends Html {
     }
     to = (dt, i) => {
         const d = nav.d.data, ml = d && d.mailLog, m = ml && ml[dt],
-            emails = d && d.emails, ks = emails && Object.keys(emails), e = ks && ks[i],
+            emails = d && d.es, ks = emails && Object.keys(emails), e = ks && ks[i],
             to = m.list.filter(r => r.to.email * 1 === e * 1)[0].to
         //debug({ dt, i, m, to, e })
         return `${to.name} ${m.live ? '' : '(testing)'}<br />${m.subject}`
@@ -124,14 +158,13 @@ class AdminEmail extends Html {
         return ys.length ? ys : null
     }
     trs = (n) => {
-        const d = nav.d.data, emails = d.emails, ml = this._ml
+        const d = nav.d.data, emails = d.es, ml = this._ml
         let ret = this.rows = []
-        debug({ trs: { n, emails, ml } })
         if (n === 'emails' && ml) {
             const rs = Object.keys(emails).map((e, i) => {
                 const r = emails[e],
                     sent = ml[e] ? ml[e].map(dt => `{link.s${dt}_${i}.${dt.replace(/^(\d{2})(\d{2})(\d{2})(\d{2}).*$/, '$4/$3/$2')}}`).join(' ') : ''
-                return [`{link.fe_${i}.${r.first}}`, r.firsts.join(', '), this.dedupe(r.lasts).join(', '), this.color(e, r), sent, Object.keys(r.fi).join(' ')]
+                return [e, `{link.fe_${i}.${r.first}}`, this.color(r.last, r), this.names(e), sent, Object.keys(r.fi || {}).join(' ')]
             })
             ret = rs.filter(this.filter).sort((a, b) => a[2].toLowerCase().localeCompare(b[2].toLowerCase()))
             this.rows = ret.map(r => r[3])
@@ -140,58 +173,14 @@ class AdminEmail extends Html {
         if (v) v.innerHTML = ret.length
         return ret
     }
-    trs1 = (n) => {
-        const d = nav.d.data, emails = d.emails, ml = d.mailLog, rs = {}
-        let ret = []
-        if (n === 'emails' && emails && ml) {
-            if (!this._ml) this.ml()
-            ret = Object.keys(emails).map((email, i) => {
-                let fn = '', efn = '', ef0 = '?'
-                const e = emails[email], fi = {}, fs = [], ls = [], efs = []
-                Object.keys(e).filter(f => ['unsub', 'bounce', 'first', 'sent', 'fi'].indexOf(f) === -1).forEach(f => {
-                    const emf = (e[f].eName || '').split(' ')[0]
-                    //if (typeof emf !== 'string') debug({ email, e, f, emf })
-                    if (emf && ef0 === '?') ef0 = emf
-                    if (!e[f].first) debug({ email, e, f })
-                    else if (!fn && email.indexOf(e[f].first.toLowerCase()) !== -1) fn = e[f].first
-                    else if (!fn && emf && email.indexOf(emf.toLowerCase()) !== -1) efn = emf
-                    fs.push(e[f].first)
-                    ls.push(e[f].last)
-                    if (e[f].file) e[f].file.forEach(n => fi[n] = n)
-                    else debug({ email, e, f })
-                    if (e[f].club && e[f].club.toLowerCase().includes('jetstream')) fi['jetstream'] = 'jetstream'
-                })
-                const first = e.first ? `{link.fn_${i}.${e.first}}` : fn ? `{link.fn_${i}.${snakeCase(fn)}}`
-                    : efn ? `{link.fe_${i}.${snakeCase(efn)}}`
-                        : fs.length === 1 ? `{link.f0_${i}.${snakeCase(fs[0])}}` : `{link.fE_${i}.${snakeCase(ef0)}}`,
-                    sent = e.sent ? e.sent.map(dt => `{link.s${dt}_${i}.${dt.replace(/^(\d{2})(\d{2})(\d{2})(\d{2}).*$/, '$4/$3/$2')}}`).join(' ') : '',
-                    photos = this.photos(email)
-                e.fi = fi
-                if (photos) e.fi['photos'] = photos
-                if (e.unsub) e.fi['unsub'] = e.unsub
-                if (e.bounce) e.fi['bounce'] = e.bounce
-                const f1 = e.first ? e.first : fn ? snakeCase(fn) : efn ? snakeCase(efn) : fs.length === 1 ? snakeCase(fs[0]) : snakeCase(ef0)
-                rs[email] = { first: f1, firsts: fs.map(f => snakeCase(f)), lasts: ls.map(l => snakeCase(l)), fi }
-                return [first, fs.join(', '), this.dedupe(ls).join(', '), this.color(email, e), sent, Object.keys(e.fi).join(' ')]
-            })
-        }
-        //debug({ emails, ret })
-        const sn = 2,
-            r = ret.filter(this.filter).sort((a, b) => a[sn].toLowerCase().localeCompare(b[sn].toLowerCase())),
-            v = this.q('#n')
-        this.rows = rs
-        if (v) v.innerHTML = `${r.length} (${this.rows.length})`
-        debug({ rows: this.rows })
-        return r
-    }
     input = (e, o) => {
         this.f = this.getForm()
         this.reload('emails')
     }
-    color = (email, e) => {
-        if (e.fi.unsub) return `<span class="red">${email}</span>`
-        else if (e.fi.bounce) return `<span class="amber">${email}</span>`
-        else return email
+    color = (s, e) => {
+        if (e.fi && e.fi.unsub) return `<span class="red">${s}</span>`
+        else if (e.fi && e.fi.bounce) return `<span class="amber">${s}</span>`
+        else return s
     }
     dedupe = (a) => {
         const ret = []
@@ -205,52 +194,73 @@ class AdminEmail extends Html {
 class Email extends Html {
     constructor(p, name, param) {
         super(p, name, param)
-        const d = nav.d.data, emails = d && d.emails
-        this.u = emails && emails[param]
+        ajax({ req: 'user', i: param }).then(r => {
+            this.u = r.u
+            this.reload('name')
+            this.reload('details')
+        }).catch(e => error(e))
         debug({ Email: this })
+    }
+    link = (n) => {
+        if (n === 'name') return { tip: 'save', icon_: 'save', click: this.save }
     }
     form = () => {
         return { // section and options populated on load
-            name: { placeholder: 'name', width: '50rem', value: this.u.first || '' },
-            jetstream: {
-                label: 'Jetstream', class: 'bold', tip: 'Jetstream member', value: this.u.fi.jetstream ? true : false
-            },
-            unsub: { class: 'bold red', label: 'Unsub', tip: 'unsubscribe', value: this.u.unsub ? true : false }
+            first: { placeholder: 'first name', width: '50rem', value: this.u.first || '' },
+            last: { placeholder: 'last name', width: '50rem', value: this.u.last || '' },
+            email: { placeholder: 'email', width: '50rem', type: 'email', value: this.u.email || '' },
+            bounce: { class: 'bold red hidden', label: 'Bounce', tip: 'bounced', value: this.u.bounce ? true : false },
+            unsub: { class: 'bold red hidden', label: 'Unsub', tip: 'unsubscribe', value: this.u.unsub ? true : false },
+            admin: { class: 'bold red hidden', label: 'Admin', tip: 'admin', value: this.u.admin ? true : false }
         }
     }
-    html = () => {
-        return `<div class="card fit">
+    html = (n) => {
+        if (n === 'details') {
+            return `<div id="details">
+            ${this.u ? `{input.first}<br />
+    {input.last}<br />
+    {input.email}<br />
+    {checkbox.unsub} {checkbox.bounce} {checkbox.admin}</div>`
+                    : `loading...`}
+            </div>`
+        }
+        else if (n === 'name') {
+            return `<span id='name'>${this.u ? `{link.name.Email}` : 'Email'}</span>`
+        }
+        else return `<div class="card fit">
                 <div class="card-header">
                 {link.close.×}
-                    <span class="title">${this.name}</span>
+                    <span class="title">{div.name}</span>
                 </div>
                 <div class="card-body">
-                {input.name}<br />
-                {checkbox.jetstream} {checkbox.unsub}
+                {div.details}
                 </div>`
     }
-    close = () => {
-        this.popup.close()
-        debug({ close: this })
-        this.p.reload("emails")
+    close = (m, e) => {
+        if (e) {
+            error({ e })
+            this.popup.close('<div class="red">Error updating</div>')
+        }
+        else this.popup.close(m || 'not updated')
+    }
+    save = () => {
+        const f = this.getForm(),
+            u = this.u
+        let c = false
+        for (let key in f) {
+            if (u[key] !== f[key] && (u[key] || f[key])) {
+                u[key] = f[key]
+                c = true
+                debug({ key, u, f })
+            }
+        }
+        if (c) ajax({ req: 'email', u }).then(r => {
+            this.close('updated')
+        }).catch(e => this.close(null, e))
+        else this.close('no change')
     }
     input = (e, o) => {
-        const f = this.getForm()
-        if (o.name === 'name') this.u.first = f.name
-        else if (o.name === 'unsub') {
-            if (f.unsub) {
-                if (!this.u.unsub) this.u.unsub = []
-                this.u.unsub.push(new Date().toISOString())
-            }
-            else if (this.u.unsub) delete this.u.unsub
-        }
-        else if (o.name === 'jetstream') {
-            if (f.jetstream) {
-                if (!this.u.fi.jetstream) this.u.fi.jetstream = 'jetstream'
-            }
-            else if (this.u.fi.jetstream) delete this.u.fi.jetstream
-        }
-        debug({ input: o, f, u: this.u })
+        // do nothing
     }
 }
 

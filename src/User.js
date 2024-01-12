@@ -19,7 +19,7 @@ class User extends Contact {
         }
         if (!nav._user) {
             const extra = {
-                spam1: {}, spam2: {}, spam3: {}
+                spam1: { tip: this.spamtt }, spam2: { tip: this.spamtt }, spam3: { tip: this.spamtt }
             }
             form = { ...form, ...extra }
         }
@@ -41,7 +41,7 @@ class User extends Contact {
     }
     var = (name) => {
         if (name === 'title') return nav._user ? 'Switch User' : 'Login'
-        else if (name === 'admin' && nav.d.admin(true)) return "{link.admin}"
+        else if (name === 'admin' && nav._user.admin) return "{link.admin}"
         else if (name === 'spam') return nav._user ? '' : '{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} '
         else return ''
     }
@@ -114,18 +114,20 @@ class Sub extends User {
     html = (n) => {
         return sub
     }
-    close = (m, e) => {
+    close = (m, e, u) => {
+        debug({ close: this, m, e })
         if (e) {
-            error({ unsub: e })
-            this.p.close('<div class="red">Error Unsubscribing - please contact us</div>')
+            error({ sub: e })
+            this.p.close('<div class="red">Error Subscribing - please contact us</div>')
         }
-        else this.p.close(m || 'Cancelled unsubscribe.')
+        else if (u) this.p.close(m || 'Subscribed', u)
+        else this.p.close(m || 'Cancelled Subscribe')
     }
     confirm = () => {
         const f = this.getForm()
-        ajax({ req: 'unsub', name: this.name, tok: localStorage.getItem('HEtok'), reason: f.reason })
+        ajax({ req: 'sub', tok: localStorage.getItem('HEtok'), details: f })
             .then(r => {
-                this.close('Unsubscribed.')
+                this.close('Subscribed', null, { u: r.u })
             })
             .catch(e => this.close(false, e))
     }

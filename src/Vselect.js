@@ -1,7 +1,7 @@
 import Html, { debug, nav, _s } from './Html'
 import select from './html/select.html'
 import selectV from './html/selectV.html'
-import { roles, sections, firstLast } from './roles'
+import { roles, sections } from './roles'
 import { ajax } from './ajax'
 
 const year = 2024
