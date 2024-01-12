@@ -42,11 +42,12 @@ class Volunteer extends Html {
     this.reload('greet')
   }
   rendered = () => {
-    if (nav._user.admin) {
+    const u = nav._user
+    if (u && u.admin) {
       const n = this.fe('New')
       if (n) n.classList.remove('hidden')
     }
-    if (this.color() === 'grey') {
+    if (u && this.color() === 'grey') {
       const l = this.q(`[id="TT_n_greet_0"]`)
       this.popup('{Vol.n}', 'vol_avail', l)
     }
@@ -72,11 +73,11 @@ class Volunteer extends Html {
     }
   }
   html = (n) => {
-    const vs = nav.d.data.vs
+    const vs = nav.d.data.vs, u = nav._user
     if (vs && !this._vs) this._vs = this.vs_()
     if (!vs) return `<div id="volunteer"></div>` // wait to load
     else if (!n) return `<div id="volunteer">${html}</div>`
-    else if (n === 'greet') return `<div id="greet"><p>Welcome {var.name} click on your name to update.</p></div>`
+    else if (n === 'greet') return `<div id="greet">${u ? '<p>Welcome {var.name} click on your name to update.</p>' : '<p>We need a large volunteer team please {nav.contact} to join.</p>'}</div>`
     else if (n === 'nr') {
       const f = this._form, nr = (f && f.nr) || 'Roles'
       return `<div id="nr">${nr === 'Roles' ? '{div.vRoles}' : '{div.vNames}'}</div>`
