@@ -64,8 +64,8 @@ class Unsub extends User {
     constructor(p) {
         super()
         this.p = p
-        ajax({ req: 'name', tok: localStorage.getItem('HEtok') }).then(r => {
-            this.name = r.name
+        ajax({ req: 'unsub', tok: localStorage.getItem('HEtok'), u: true }).then(r => {
+            this.u = r.u
             this.reload('unsub_name')
         }).catch(e => this.close('Unsubscribed.'))
     }
@@ -76,7 +76,7 @@ class Unsub extends User {
         }
     }
     html = (n) => {
-        if (n === 'unsub_name') return `<span id='unsub_name' class="bold">${this.name || ''}</span>`
+        if (n === 'unsub_name') return `<span id='unsub_name' class="bold">${this.u ? this.u.first + ' ' + this.u.last : ''}</span>`
         else return unsub
     }
     close = (m, e) => {
@@ -88,7 +88,7 @@ class Unsub extends User {
     }
     confirm = () => {
         const f = this.getForm()
-        ajax({ req: 'unsub', name: this.name, tok: localStorage.getItem('HEtok'), reason: f.reason })
+        ajax({ req: 'unsub', i: this.u.i, tok: localStorage.getItem('HEtok'), reason: f.reason })
             .then(r => {
                 this.close('Unsubscribed.')
             })
@@ -118,10 +118,10 @@ class Sub extends User {
         debug({ close: this, m, e })
         if (e) {
             error({ sub: e })
-            this.p.close('<div class="red">Error Subscribing - please contact us</div>')
+            this.p.close('<div class="red">Error Subscribing - please contact us</div>', false)
         }
         else if (u) this.p.close(m || 'Subscribed', u)
-        else this.p.close(m || 'Cancelled Subscribe')
+        else this.p.close(m || 'Cancelled Subscribe', false)
     }
     confirm = () => {
         const f = this.getForm()

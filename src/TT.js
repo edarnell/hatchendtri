@@ -173,17 +173,13 @@ class TT {
             if (this.pdiv) this.pdiv.remove()
             if (this.pop) this.pop.destroy()
             this.pO = this.pop = this.pdiv = null
+            this.listen(true)
+            this.updP(r)
             if (m) {
                 this.tooltip(null, m)
                 this.timer = setTimeout(() => {
                     this.ttremove
-                    this.listen(true)
-                    this.updP(r)
                 }, 2000)
-            }
-            else {
-                this.listen(true) // add back listeners
-                this.updP(r)
             }
         }
         if (m) {

@@ -71,7 +71,7 @@ function f_(fn) {
         r = {}
     let h = 0, n = 0, e = 0
     for (let k in j) {
-        const o = j[k], { first, last, cat, mf, club, ag, swim, n } = o,
+        const o = j[k], { first, last, cat, mf, club, ag, swim } = o,
             email = o.email.toLowerCase(),
             u = emails[email]
         if (email) {
@@ -367,15 +367,16 @@ function saveComp(j, r, a) {
 function unsubReq(j, r, a) {
     const tok = j.tok, auth = tok && jwt.verify(tok, config.key),
         ae = ue(auth.email)
-    if (a && a.i !== ae.i) log.info({ nameReq: { a: a.i, ae: ae.i } })
-    if (ae && ae.name === j.name) {
+    if (a && a.i !== ae.i) log.info({ unsub: { a: a.i, ae: ae.i } })
+    if (ae && j.u) resp(j, r, a, { u: ae })
+    else if (ae && j.i == ae.i) {
         const reason = j.reason || '',
             unsub = fs.existsSync(`gz/_unsub.gz`) ? fz('gz/_unsub.gz') : {}
         unsub[ae] = { reason, date: new Date().toISOString().slice(0, 10) }
         save('_unsub', unsub)
         send({
             from_email: ae.email, subject: 'Unsubscibe',
-            message: `${ae.name} ${ae.i} unsubscribed\n Reason: ${reason}\n` +
+            message: `${ae.first} ${ae.last} ${ae.i} unsubscribed\n Reason: ${reason}\n` +
                 `${a && a.i !== ae.i ? `${ae.i}(${ae.email}) !== ${a.i}(${a.email})\n` : ''}`
         })
         resp(j, r, a, { unsub: true })

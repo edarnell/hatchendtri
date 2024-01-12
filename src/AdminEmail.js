@@ -167,7 +167,7 @@ class AdminEmail extends Html {
                 return [e, `{link.fe_${i}.${r.first}}`, this.color(r.last, r), this.names(e), sent, Object.keys(r.fi || {}).join(' ')]
             })
             ret = rs.filter(this.filter).sort((a, b) => a[2].toLowerCase().localeCompare(b[2].toLowerCase()))
-            this.rows = ret.map(r => r[3])
+            this.rows = ret.map(r => r[0])
         }
         const v = this.q('#n')
         if (v) v.innerHTML = ret.length
@@ -315,7 +315,7 @@ class Send extends Html {
     }
     send = (l) => {
         const fm = this.getForm(), live = l === true, rows = live ? this.p.rows : this.p.rows.slice(0, 20),
-            d = nav.d.data, emails = d.emails,
+            d = nav.d.data, emails = d.es,
             list = rows.map(email => (emails[email] && { to: { name: emails[email].first, email } })).filter(r => r),
             { subject, message, unsub, time } = fm
         if (list.length) ajax({ req: 'bulksend', subject, message, unsub, time, list, live }).then(r => {
@@ -323,7 +323,7 @@ class Send extends Html {
             this.p.ml()
             this.p.reload('emails')
             debug({ r })
-        }).catch(e => this.error(e, o))
+        }).catch(e => error(e, o))
     }
 }
 

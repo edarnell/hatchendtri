@@ -178,18 +178,26 @@ class Vol extends Html {
         })
         return r
     }
+    close = (m, p) => {
+        if (this.popup.close) this.popup.close(m, p)
+        else {
+            this.p.popclose('vol_avail', m, p)
+            this.p.updated()
+        }
+    }
     save = () => {
+        debug({ save: this })
         const r24 = this.roleRem(this.getForm()), v = this.v,
             roles = (JSON.stringify(r24) !== JSON.stringify(v.year && v.year[year])) && r24
         if (roles) ajax({ req: 'save', vol: this.v.id, year, roles }).then(r => {
             debug({ save: this, year, roles, r })
             nav.d.saveZip('vs', r.vs)
-            this.popup.close('updated', { vol: r.v })
+            this.close('updated', { vol: r.v })
         }).catch(e => {
             error({ save: e })
-            this.popup.close('<div class="red">Error</div>')
+            this.close('<div class="red">Error</div>')
         })
-        else this.popup.close('unchanged')
+        else this.close('unchanged')
     }
     input = (e, o) => {
         const name = o.name

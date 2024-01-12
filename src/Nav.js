@@ -127,7 +127,9 @@ class Nav extends Html {
     logout = (e, o) => {
         localStorage.removeItem('HEtoken')
         this.userIcon(false)
-        this.load()
+        debug({ page: this.page, path: this.path })
+        if (this.path = 'volunteer') this.page.popclose('vol_avail') // safe to call if not open
+        this.load('home')
     }
     unsubscribe = () => {
         const l = this.q(`[id*="TT_user_nav"]`)
@@ -138,7 +140,7 @@ class Nav extends Html {
         this.popup('Sub', 'nav_sub', l, 'bottom-end')
     }
     close = (m, u) => {
-        this.popup('close')
+        this.popclose(u || u === false ? 'nav_sub' : 'nav_unsub')
         if (u) {
             const token = localStorage.getItem('HEtok')
             localStorage.setItem('HEtoken', token)

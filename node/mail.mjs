@@ -88,6 +88,7 @@ function email(p) {
     })
     html = html.replace(/\{jet\}/g, '<a href="https://jetstreamtri.com">Jetstream Triathlon Club</a>')
     html = html.replace(/\{het\}/g, '<a href="{host}">Hatch End Triathlon</a>')
+    html = html.replace(/\{url\}/g, '<a href="{host}">hatchendtri.com</a>')
     html = html.replace(/\{atw\}/g, '<a href="https://www.atwevents.co.uk/e/hatch-end-harrow-triathlon-10671">ATW</a>')
     html = html.replace(/\{token\}/g, '#' + token)
     html = html.replace(/\{host\}/g, p.live ? 'https://hatchendtri.com' : config.host)

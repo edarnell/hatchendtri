@@ -149,6 +149,7 @@ class Html {
             Object.keys(p.img).forEach(id => p.img[id].remove(null, true))
             p.img = {}
         }
+        if (p.popups) Object.keys(p.popups).forEach(id => p.popclose(id))
     }
     pdiv = (n) => {
         if (this.id === n) return this
