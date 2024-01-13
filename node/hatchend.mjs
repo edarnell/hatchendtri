@@ -424,7 +424,7 @@ function saveMl(j) {
     const ml = fz('gz/mailLog.gz'), ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
     ml[ts] = j
     save('mailLog', ml)
-    return f('gz/mailLog.gz')
+    fns['mailLog'] = f('gz/mailLog.gz')
 }
 
 function delaySend(req) {

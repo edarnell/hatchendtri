@@ -26,13 +26,16 @@ class Volunteer extends Html {
     }
     return this._vs
   }
+  greet = () => {
+    const u = nav._user, _vs = this._vs, v = _vs && _vs[u.i], fl = v && name(v[0], true),
+      first = (fl || u).first, last = (fl || u).last,
+      c = this.color()
+    return u ? `Welcome {link.n.${first}_${last}} ` + (c === 'grey' ? 'please confirm availability.' :
+      c === 'red' ? 'thank you for confirming you are unable to help this year.' : 'thank you for volunteering.')
+      : 'We need a large volunteer team please {nav.contact} if you can help. All help is greatly appreciated.'
+  }
   var = (n) => {
-    if (n === 'name') {
-      const u = nav._user, _vs = this._vs, v = _vs && _vs[u.i], fl = v && name(v[0], true),
-        first = (fl || u).first, last = (fl || u).last
-      return `{link.n.${first}_${last}}`
-    }
-    else if (n === 'year') return '' + year
+    if (n === 'year') return '' + year
   }
   loaded = (r) => {
     if (r) this.reload()
@@ -61,7 +64,7 @@ class Volunteer extends Html {
     }
   }
   link = (n) => {
-    if (n === 'n') return { tip: 'set volunteer availability', class: this.color(), popup: `{Vol.n}` }
+    if (n === 'n') return { tip: () => this.utip(), class: this.color(), popup: `{Vol.n}` }
     else {
       const id = n.substring(1), vs = nav.d.data.vs, vol = vs[id]
       if (vol) {
@@ -73,11 +76,11 @@ class Volunteer extends Html {
     }
   }
   html = (n) => {
-    const vs = nav.d.data.vs, u = nav._user
+    const vs = nav.d.data.vs, u = nav._user, c = this.color()
     if (vs && !this._vs) this._vs = this.vs_()
     if (!vs) return `<div id="volunteer"></div>` // wait to load
     else if (!n) return `<div id="volunteer">${html}</div>`
-    else if (n === 'greet') return `<div id="greet">${u ? '<p>Welcome {var.name} click on your name to update.</p>' : '<p>We need a large volunteer team please {nav.contact} to join.</p>'}</div>`
+    else if (n === 'greet') return `<div id="greet"><p>${this.greet()}</p></div>`
     else if (n === 'nr') {
       const f = this._form, nr = (f && f.nr) || 'Roles'
       return `<div id="nr">${nr === 'Roles' ? '{div.vRoles}' : '{div.vNames}'}</div>`
@@ -93,6 +96,12 @@ class Volunteer extends Html {
       rb = r && ((vy.adult && !vy.arole) || (vy.junior && !vy.jrole))
     const ret = r ? (rb && id) ? 'blue' : 'green' : n ? 'red' : 'grey'
     return ret
+  }
+  utip = () => {
+    const u = nav._user, _vs = this._vs, vs = _vs && _vs[u.i],
+      vid = vs && vs[0], c = this.color()
+    if (c === 'grey') return '<div class="grey">click to set availability</div>'
+    else return this.vtip(vid, year).replace(/\?/g, '✓')
   }
   vtip = (id, y = 2024) => {
     const vs = nav.d.data.vs, v = vs && vs[id], cl = this.color(v.id, y), vy = v && v.year && v.year[y]
