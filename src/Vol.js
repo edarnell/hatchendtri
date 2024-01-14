@@ -16,7 +16,7 @@ const roleForm = { // section and options populated on load
     arole: { class: "form hidden", options: ['Role'].concat(roles()) },
     jsection: { class: "form hidden", options: ['Section'].concat(sections) },
     jrole: { class: "form hidden", options: ['Role'].concat(roles()) },
-    notes: { placeholder: 'notes', rows: 1, cols: 20 }
+    notes: { placeholder: 'role preference?', rows: 1, cols: 20 }
 }
 
 const volForm = { // section and options populated on load
