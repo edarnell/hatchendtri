@@ -32,7 +32,7 @@ class Contact extends Html {
     var = (n) => {
         const user = nav._user, to = this._to && name(this._to, true, true)
         if (n === 'name_email') return `${user ? '' : '{input.name}<br />{input.email}<br />'}`
-        if (n === 'spam') return `${user ? '' : '{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} '}`
+        if (n === 'spam') return `${user ? '' : "<div class=\"small\">I'm not a robot</div>{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} "}`
         return to || 'Hatch End Triathlon'
     }
     spamtt = () => {

@@ -14,7 +14,7 @@ class Nav extends Html {
         this.pages = {
             home: { nav: 'Home', href: 'home', tip: 'overview, updates and entry link' },
             details: { nav: 'Details', href: 'details', tip: 'detailed event information' },
-            results: { nav: 'Results', href: 'results', tip: 'results from 2000 onwards' },
+            results: { nav: 'Results', href: 'results', tip: 'previous results' },
             volunteer: { nav: 'Volunteer', hide: true, href: 'volunteer', tip: 'volunteer system' },
             admin: { nav: 'Admin', page: () => apage(this.f ? this.f.admin : 'email'), hide: true, href: 'admin', tip: 'data admin' },
             competitor: { nav: 'Competitor', hide: true, href: 'competitor', tip: 'entry system' },

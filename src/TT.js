@@ -76,10 +76,11 @@ class TT {
             this.lk = link
             if (link.id) this.id = link.id
             const icon = (link.icon_ && icons[link.icon_]) || (link.icon && icons[link.icon]) || (type === 'svg' && icons[k]),
-                img = icon ? `<img id="${'icon_' + this.id}" src="${link.active ? icon.active : icon.default}" class="${link.class || 'icon'}"/>` : '',
-                w = link.body ? link.body(this) :
-                    link.icon || type === 'svg' ? img
-                        : param ? param.replace(/_/g, "&nbsp;") + img : name.replace(/_/g, "&nbsp;") + img
+                img = icon ? `<img id="${'icon_' + this.id}" src="${link.active ? icon.active : icon.default}" class="${link.class || 'icon'}"/>` : ''
+            let w = link.body ? link.body(this) :
+                link.icon || type === 'svg' ? img
+                    : param ? param.replace(/_/g, "&nbsp;") + img : name.replace(/_/g, "&nbsp;") + img
+            if (link.img) w = `<img id="${'img_' + this.id}" height="${link.height}" width="${link.width}" src="${link.img}" />`
             if (link.nav) {
                 return `<a id="${this.id}" href="${link.href}">${w}</a>`
             }
