@@ -368,15 +368,15 @@ function unsubReq(j, r, a) {
     const tok = j.tok, auth = tok && jwt.verify(tok, config.key),
         ae = ue(auth.email)
     if (a && a.i !== ae.i) log.info({ unsub: { a: a.i, ae: ae.i } })
-    if (ae && j.u) resp(j, r, a, { u: ae })
+    if (ae && j.u) resp(j, r, a, { u: ae }) // get unsub user details
     else if (ae && j.i == ae.i) {
-        const reason = j.reason || '',
+        const reason = j.reason || '', { first, last } = ae,
             unsub = fs.existsSync(`gz/_unsub.gz`) ? fz('gz/_unsub.gz') : {}
-        unsub[ae] = { reason, date: new Date().toISOString().slice(0, 10) }
+        unsub[ae.i] = { i: ae.i, first, last, reason, date: new Date().toISOString().slice(0, 10) }
         save('_unsub', unsub)
         send({
             from_email: ae.email, subject: 'Unsubscibe',
-            message: `${ae.first} ${ae.last} ${ae.i} unsubscribed\n Reason: ${reason}\n` +
+            message: `${first} ${last} ${ae.i} unsubscribed\n Reason: ${reason}\n` +
                 `${a && a.i !== ae.i ? `${ae.i}(${ae.email}) !== ${a.i}(${a.email})\n` : ''}`
         })
         resp(j, r, a, { unsub: true })
@@ -473,7 +473,7 @@ function awsSnsReq(req, json, r) {
 
 function photoReq(j, r, a) {
     const { y, n } = (j.get || j.public), np = ns[a.email],
-        u = np[y] && (np[y].includes(n + '') || np[y].includes(n * 1)), p = u && photos[y][n]
+        u = np[y] && (np[y].includes(n + '') || np[y].includes(n * 1)), p = (u || a.aed) && photos[y][n]
     if (j.get) {
         const pp = ps[y][n]
         log.info({ photo: { y, n } })

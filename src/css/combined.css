@@ -153,9 +153,21 @@ body {
     color: #333;
 }
 
-.a-img {
+.stluke-img {
+    margin-top: -30px;
     position: relative;
     display: inline-block;
+}
+
+.bt-img {
+    position: relative;
+    display: inline-block;
+}
+
+.jet-img {
+    position: relative;
+    top: -30px;
+    margin-bottom: -30px;
 }
 
 .contact-link {
