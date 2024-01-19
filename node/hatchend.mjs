@@ -156,19 +156,14 @@ function update_vuser(v, details) {
     return v
 }
 
-function saveEmail(j, r, a) {
+function saveU(j, r, a) {
     let v
-    const d = j.email, u = d.i ? d.emails[d.i] : new_user(d)
-        ;['first', 'last', 'email'].forEach(x => {
-            if (u[x] !== d[x]) {
-                u[x] = d[x]
-                u.updated = true
-            }
-        })
+    const d = j.u, u = d.emails[d.email] || new_user(d)
     if (d.admin !== u.admin) {
         u.admin = d.admin
-        u.updated = true
+        u.updated=true
     }
+    if (u.updated) saveF('es', u)
     resp(j, r, a, { u })
 }
 

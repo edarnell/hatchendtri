@@ -44,11 +44,15 @@ function saveMl(j) {
     fns['mailLog'] = f('gz/mailLog.gz')
 }
 
-function saveE(u) {
-    const email = d.ei[u.i]
-    if (u.updated) {
-        delete u.updated
-        save('_emails', emails)
+function saveE(u2) {
+    const email = u2.email.toLowerCase(),
+    u=d.emails[email]
+    if (u2.i !== u.i) debug({ error: { email, u2, u } })
+    else if (u2.updated) {
+        u.first = u2.first
+        u.last = u2.last
+        u.admin = u2.admin
+        save('_emails', d.emails)
     }
 }
 
