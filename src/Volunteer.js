@@ -45,7 +45,7 @@ class Volunteer extends Html {
     this.reload('greet')
   }
   rendered = () => {
-    const u = nav._user
+    const vs = nav.d.data.vs, u = vs && nav._user
     if (u && u.admin) {
       const n = this.fe('New')
       if (n) n.classList.remove('hidden')
@@ -76,7 +76,7 @@ class Volunteer extends Html {
     }
   }
   html = (n) => {
-    const vs = nav.d.data.vs, u = nav._user, c = this.color()
+    const vs = nav.d.data.vs, u = nav._user, c = vs && this.color()
     if (vs && !this._vs) this._vs = this.vs_()
     if (!vs) return `<div id="volunteer"></div>` // wait to load
     else if (!n) return `<div id="volunteer">${html}</div>`

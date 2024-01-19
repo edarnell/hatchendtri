@@ -4,7 +4,8 @@ import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
 import { f } from './zip.mjs'
 import fs from 'fs'
 import jwt from 'jsonwebtoken'
-import { log, saveMl, ei } from './hatchend.mjs'
+import { log } from './hatchend.mjs'
+import { d, saveF } from './files.mjs'
 
 const config = f('config.json', true).data
 const mail = f('mail.html', true).data
@@ -45,7 +46,7 @@ function send_list(m) {
 async function send_batch(ses, n, m, i) {
     const { subject, message, live, unsub, list } = m, emails = list.slice(i, i + n)
     const promises = emails.map(async r => {
-        return ses.send(new SendEmailCommand(email({ to: r.to.name, email: ei[r.to.email], subject, message, live, unsub })))
+        return ses.send(new SendEmailCommand(email({ to: r.to.name, email: d.ei[r.to.email], subject, message, live, unsub })))
             .then(r => r.MessageId)
             .catch(e => {
                 log.error({ error: e, email: r.to.email })
@@ -58,7 +59,7 @@ async function send_batch(ses, n, m, i) {
     const log = { ...m }
     log.list = emails
     log.results = results
-    saveMl(log)
+    saveF('mail', log)
     return { sent, failed }
 }
 

@@ -14,6 +14,7 @@ class AdminEmail extends Html {
         return {
             filter: { tip: 'filter by name or club or key', placeholder: 'name,name,...', width: '50rem' },
             send: { tip: `send to selected`, class: 'form primary', drag: () => new Send(this, 'Send') },
+            new: { tip: `add email`, class: 'form primary', popup: () => new Email(this, 'Email', null) },
             since: { tip: 'last send before this', class: 'form', options: o || [] },
             jetstream: { tip: 'jetstream members' },
             photos: { tip: 'photos' },
@@ -194,11 +195,12 @@ class AdminEmail extends Html {
 class Email extends Html {
     constructor(p, name, param) {
         super(p, name, param)
-        ajax({ req: 'user', i: param }).then(r => {
+        if (param) ajax({ req: 'user', i: param }).then(r => {
             this.u = r.u
             this.reload('name')
             this.reload('details')
         }).catch(e => error(e))
+        else this.u = { first: '', last: '', email: '' }
         debug({ Email: this })
     }
     link = (n) => {
@@ -211,7 +213,7 @@ class Email extends Html {
             email: { placeholder: 'email', width: '50rem', type: 'email', value: this.u.email || '' },
             bounce: { class: 'bold red hidden', label: 'Bounce', tip: 'bounced', value: this.u.bounce ? true : false },
             unsub: { class: 'bold red hidden', label: 'Unsub', tip: 'unsubscribe', value: this.u.unsub ? true : false },
-            admin: { class: 'bold red hidden', label: 'Admin', tip: 'admin', value: this.u.admin ? true : false }
+            admin: { class: 'bold red', label: 'Admin', tip: 'admin', value: this.u.admin ? true : false }
         }
     }
     html = (n) => {
@@ -251,10 +253,10 @@ class Email extends Html {
             if (u[key] !== f[key] && (u[key] || f[key])) {
                 u[key] = f[key]
                 c = true
-                debug({ key, u, f })
             }
         }
-        if (c) ajax({ req: 'email', u }).then(r => {
+        if (c) ajax({ req: 'save', email: u }).then(r => {
+            debug({ r, u })
             this.close('updated')
         }).catch(e => this.close(null, e))
         else this.close('no change')

@@ -7,14 +7,14 @@ class PhotosP extends Html {
         this.pn = null
         const y = this.name, n = this.param
         ajax({ req: 'photo', get: { y, n } }).then(r => {
-            this.ps = r.ps
             this.pp = r.pp
+            this.op = r.op
             this.reload(`ps_${y}_${n}`)
         }).catch(e => error(e))
     }
     html = (p) => {
         const y = this.name, n = this.param
-        if (p === 'ps') return this.ps ? this.photos() : ''
+        if (p === 'ps') return this.pp ? this.photos() : ''
         else return `<div class="card fit">
             <div class="card-header">
             {link.close.×}
@@ -29,7 +29,7 @@ class PhotosP extends Html {
         else if (n === 'thumb') return { class: "photolink", body: () => this.image(p, 'thumb'), tip: 'enlarge', click: () => this.photo(p) }
     }
     image = (pn, c) => {
-        const y = this.name, ps = this.ps,
+        const y = this.name, ps = this.op || this.pp,
             aws = 'https://hatchend.s3.eu-west-1.amazonaws.com',
             tn = c === 'thumb',
             src = tn ? `${aws}/${y}/thumbs/${ps[pn]}` : `${aws}/${y}/${ps[pn]}`,
@@ -46,7 +46,7 @@ class PhotosP extends Html {
     close = () => this.popup.close(null, this.updated)
     instruct = () => ''
     photos = () => {
-        const ps = this.ps
+        const ps = this.op || this.pp
         if (ps.length === 1) this.pn = 0
         let ret
         if (this.pn !== null) ret = `{link.photo.${this.pn}}`
@@ -67,10 +67,9 @@ class Photos extends PhotosP {
         return form
     }
     public = () => {
-        const y = this.name, n = this.param, ps = this.ps, pn = ps[this.pn]
-        ajax({ req: 'photo', public: { y, n, pn } }).then(r => {
-            nav.d.saveZip('photos', r.photos)
-            this.ps = r.ps
+        const y = this.name, n = this.param, ps = this.op, pn = ps[this.pn]
+        ajax({ req: 'photo', pub: { y, n, pn } }).then(r => {
+            nav.d.data.ps[y][n].p = r.pn
             this.pp = r.pp
             this.reload(`ps_${y}_${n}`)
             this.updated = true
@@ -81,7 +80,7 @@ class Photos extends PhotosP {
         this.popup.close(null, this.updated)
     }
     pub = (pn) => {
-        const ps = this.ps, p = ps && ps[pn], pp = this.pp
+        const ps = this.op, p = ps && ps[pn], pp = this.pp
         return p && pp && pp.includes(p)
     }
     instruct = () => {

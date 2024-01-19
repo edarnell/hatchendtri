@@ -5,10 +5,10 @@ class Results extends Html {
   constructor(p, name) {
     super(p, name)
     this.id = 'results'
-    this.data = ['results', 'photos']
+    this.data = ['results', 'ps']
   }
   loaded = (r) => {
-    //debug({ loaded: r, data: nav.d.data })
+    debug({ loaded: r, data: nav.d.data })
     if (r) this.refresh()
   }
   form = () => {
@@ -33,6 +33,10 @@ class Results extends Html {
     this.form_data = this.getForm()
     this.refresh()
   }
+  updated = (r) => {
+    debug({ updated: r, data: nav.d.data })
+    if (r) this.refresh()
+  }
   rendered = () => {
     this.form_data = this.getForm()
   }
@@ -42,20 +46,20 @@ class Results extends Html {
     else if (typeof name === 'string' && name.startsWith('results_')) return this.results_year(name.split('_')[1])
     else return html
   }
-  photos = (year, num) => {
-    const ps = nav.d.data.photos, y = ps && ps[year], p = y && y[num]
-    return p ? `{link.photos.${year}_${num}}` : null
+  own = (y, n) => {
+    const u = nav._user, ns = u && u.ns, l = ns && ns[y], a = l ? l.includes(n + '') : false
+    return a
   }
   link = (name, param) => {
     if (name === 'year') return { tip: `${param.replace(/_/g, " ")} all results`, click: this.year }
     else if (name === 'name') return { tip: `${param.replace(/_/g, " ")} all results`, click: this.name }
     else if (name === 'photos') {
-      const [y, n] = param.split('_'), ps = nav.d.data.photos, yp = ps && ps[y], p = yp && yp[n],
-        u = nav._user, ns = u && u.comp, ny = ns && ns[y], own = ny && (ny.includes(n) || ny.includes(n * 1)), active = p.p || own,
-        r = { id: `TT_photos_${param}`, active, placement: 'auto', icon: 'photo', tip: `${p.p} of ${p.t} photos` }
-      if (own || u.admin) r.drag = `{Photos.${y}.${n}}`
-      else if (p.p && nav._user) r.drag = `{PhotosP.${y}.${n}}`
-      else r.popup = 'Login'
+      const [y, n] = param.split('_'), ps = nav.d.data.ps, yp = ps && ps[y], p = yp && yp[n],
+        o = this.own(y, n), u = nav._user,
+        r = {
+          id: `TT_photos_${param}`, active: p.p, placement: 'auto', icon: 'photo', tip: `${p.p} of ${p.t} photos`,
+          ...(o ? { drag: `{Photos.${y}.${n}}` } : u && p.p ? { drag: `{Photos.${y}.${n}}` } : { popup: 'Login' })
+        }
       return r
     }
     else if (['close', 'Pinner_Camera_Club'].indexOf(name) === -1) debug({ link: { name, param } })
@@ -182,12 +186,11 @@ class Results extends Html {
       else if (n) rr = r[c.Pos] * 1 <= n ? r : null
       else rr = r
       if (rr) {
-        const photo = this.photos(yr, r[c['#']])
-        if (photo) r[c.Pos] = `${_n} ${photo}`
+        const ps = nav.d.data.ps, y = ps && ps[yr], nm = r[c['#']], p = y && y[nm]
+        if (p) r[c.Pos] = `${_n} {link.photos.${yr}_${nm}}`
         filtered.push(rr)
       }
     })
-    //debug({ filtered })
     return filtered
   }
   years = (years) => {
@@ -196,9 +199,6 @@ class Results extends Html {
           ${years.map(y => `<option ${y === year ? 'selected' : ''}>${y}</option>`).join('')}
         </select></div>`
   }
-  /*photos = (year, num) => {
-    return (this.np && year === '2022' && this.np[num]) ? `<image class="icon" name="${num}" src="${photo}">` : null
-  }*/
   cols(year) {
     const r = nav.d.data.results, c = {}
     r[year][0].forEach((n, i) => { c[n] = i })
