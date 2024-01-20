@@ -39,9 +39,6 @@ class Nav extends Html {
             })
         })
     }
-    form = () => { // section and options populated on load
-        return { admin: { options: ['select', 'email'] } }
-    }
     html = (n) => {
         // ${this.path === 'admin' ? '{select.admin}' : ''}
         if (n === 'nav_admin') return `<span id="nav_admin"></div>`
@@ -162,7 +159,7 @@ class Nav extends Html {
     }
     tt = () => {
         this.checkUser()
-        const u = this._user, name = u ? u.first + ' ' + u.last : '', a = u && u.admin
+        const u = this._user, name = u ? u.first + ' ' + u.last : '', a = u && u.aed
         return a ? `<span class='red'>${name}</span>` : name || 'login'
     }
 }

@@ -21,7 +21,7 @@ function load() {
 
 function saveF(n, d, k) {
     if (n === 'vs') saveV(d)
-    else if (n === 'es') saveE(d)
+    else if (n === 'es') return saveE(d)
     else if (n === 'mail') saveMl(d)
     else if (n === 'ps') return savePs(d, k)
 }
@@ -44,16 +44,17 @@ function saveMl(j) {
     fns['mailLog'] = f('gz/mailLog.gz')
 }
 
-function saveE(u2) {
-    const email = u2.email.toLowerCase(),
-    u=d.emails[email]
-    if (u2.i !== u.i) debug({ error: { email, u2, u } })
-    else if (u2.updated) {
-        u.first = u2.first
-        u.last = u2.last
-        u.admin = u2.admin
-        save('_emails', d.emails)
+function saveE(u) {
+    if (u) {
+        const o = d.emails[d.ei[u.i]]
+        o.first = u.first
+        o.last = u.last
+        o.admin = u.admin
+        if (u.unsub && !o.fi.unsub) o.fi.unsub = new Date()
+        else if (o.fi.unsub && !u.unsub) delete o.fi.unsub
     }
+    save('_emails', d.emails)
+    if (u) return d.emails[d.ei[u.i]]
 }
 
 function f_vs() {
@@ -151,10 +152,10 @@ function f_es() {
         r = {}
     let n = 0
     Object.values(d.emails).forEach(u => {
-        const { i, first, last, fi } = u
+        const { i, first, last, fi, admin } = u
         if (unsub[i]) fi.unsub = unsub[i].date
         if (bounce[i]) fi.bounce = bounce[i].mail.timestamp
-        r[i] = { first, last, email: i, fi }
+        r[i] = { first, last, email: i, fi, admin }
         n++
     })
     log.info({ es: n })

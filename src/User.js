@@ -41,7 +41,7 @@ class User extends Contact {
     }
     var = (name) => {
         if (name === 'title') return nav._user ? 'Switch User' : 'Login'
-        else if (name === 'admin' && nav._user.admin) return "{link.admin}"
+        else if (name === 'admin' && nav._user.aed) return "{link.admin}"
         else if (name === 'spam') return nav._user ? '' : "<div class=\"small\">I'm not a robot</div>{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} "
         else return ''
     }

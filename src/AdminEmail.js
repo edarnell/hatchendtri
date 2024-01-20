@@ -22,8 +22,15 @@ class AdminEmail extends Html {
             ds: { tip: 'deferred' },
             vs: { tip: 'volunteers' },
             unsubs: { tip: 'unsub and bounce' },
-            test3: { tip: 'testing to Darnell' }
+            admins: { tip: 'admins' }
         }
+    }
+    showEmail = (i) => {
+        ajax({ req: 'user', i }).then(r => {
+            const el = this.q(`[id*="tip_TT_fe_${i}_"]`), u = r.u
+            if (el) el.innerHTML = u.email
+        }).catch(e => error(e))
+        return i
     }
     cs = () => {
         const cs = nav.d.data.cs
@@ -80,11 +87,11 @@ class AdminEmail extends Html {
     }
     filter = (r) => {
         let ret = true
-        const f = this.f
-        if (!f) ret = r[0] === '57'
+        const f = this.f, d = nav.d.data, es = d && d.es
+        if (!f) ret = es && es[r[0]].admin
         else {
             const last = this._ml[r[0]] ? this._ml[r[0]][0] : ''
-            if (f.test3) ret = r[2].includes('Darnell')
+            if (f.admins) ret = ret && es && es[r[0]].admin
                 ;['jetstream', 'photos', 'cs', 'vs', 'ds'].forEach(k => {
                     if (f[k]) ret = ret && r[5].includes(k)
                 })
@@ -131,11 +138,9 @@ class AdminEmail extends Html {
     }
     link = (n, p) => {
         if (n.charAt(0) === 'f') {
-            const i = n.substring(3), d = nav.d.data, emails = d && d.es, ks = emails && Object.keys(emails),
-                k = ks[i], e = emails && emails[k],
-                color = { f0: 'amber', fE: 'red', fn: 'green', fe: 'blue' }
+            const i = n.substring(3), d = nav.d.data, emails = d && d.es, color = { f0: 'amber', fE: 'red', fn: 'green', fe: 'blue' }
             //e.first = p
-            return { tip: () => jsonToHtml(e), class: color[n.substring(0, 2)], popup: () => new Email(this, 'Email', k) }
+            return { tip: () => this.showEmail(i), class: color[n.substring(0, 2)], popup: () => new Email(this, 'Email', i) }
         }
         else if (n.charAt(0) === 's') {
             const [dt, i] = n.substring(1).split('_')
@@ -144,10 +149,10 @@ class AdminEmail extends Html {
     }
     to = (dt, i) => {
         const d = nav.d.data, ml = d && d.mailLog, m = ml && ml[dt],
-            emails = d && d.es, ks = emails && Object.keys(emails), e = ks && ks[i],
-            to = m.list.filter(r => r.to.email * 1 === e * 1)[0].to
-        //debug({ dt, i, m, to, e })
-        return `${to.name} ${m.live ? '' : '(testing)'}<br />${m.subject}`
+            to = m.list.filter(r => r.to.email + '' === i + '')[0].to,
+            n = m.list.length - 1
+        //debug({ m, to }) // ${to.name} 
+        return `${to.name}${n ? ` (+${n} others)` : ''} ${m.live ? '' : '(testing)'}<br />${m.subject}`
     }
     photos = (email) => {
         const d = nav.d.data, ns = d && d.ns_, ps = d && d.photos,
@@ -162,10 +167,10 @@ class AdminEmail extends Html {
         const d = nav.d.data, emails = d.es, ml = this._ml
         let ret = this.rows = []
         if (n === 'emails' && ml) {
-            const rs = Object.keys(emails).map((e, i) => {
-                const r = emails[e],
-                    sent = ml[e] ? ml[e].map(dt => `{link.s${dt}_${i}.${dt.replace(/^(\d{2})(\d{2})(\d{2})(\d{2}).*$/, '$4/$3/$2')}}`).join(' ') : ''
-                return [e, `{link.fe_${i}.${r.first}}`, this.color(r.last, r), this.names(e), sent, Object.keys(r.fi || {}).join(' ')]
+            const rs = Object.keys(emails).map(i => {
+                const r = emails[i],
+                    sent = ml[i] ? ml[i].map(dt => `{link.s${dt}_${i}.${dt.replace(/^(\d{2})(\d{2})(\d{2})(\d{2}).*$/, '$4/$3/$2')}}`).join(' ') : ''
+                return [i, `{link.fe_${i}.${r.first}}`, this.color(r.last, r), this.names(i), sent, Object.keys(r.fi || {}).join(' ')]
             })
             ret = rs.filter(this.filter).sort((a, b) => a[2].toLowerCase().localeCompare(b[2].toLowerCase()))
             this.rows = ret.map(r => r[0])
@@ -212,8 +217,8 @@ class Email extends Html {
             last: { placeholder: 'last name', width: '50rem', value: this.u.last || '' },
             email: { placeholder: 'email', width: '50rem', type: 'email', value: this.u.email || '' },
             bounce: { class: 'bold red hidden', label: 'Bounce', tip: 'bounced', value: this.u.bounce ? true : false },
-            unsub: { class: 'bold red hidden', label: 'Unsub', tip: 'unsubscribe', value: this.u.unsub ? true : false },
-            admin: { class: 'bold red', label: 'Admin', tip: 'admin', value: this.u.admin ? true : false }
+            admin: { class: 'bold red', label: 'Admin', tip: 'admin', value: this.u.admin ? true : false },
+            unsub: { class: 'bold red', label: 'Unsub', tip: 'unsubscribe', value: this.u.fi.unsub ? true : false }
         }
     }
     html = (n) => {
@@ -222,7 +227,7 @@ class Email extends Html {
             ${this.u ? `{input.first}<br />
     {input.last}<br />
     {input.email}<br />
-    {checkbox.unsub} {checkbox.bounce} {checkbox.admin}</div>`
+    {checkbox.admin} {checkbox.unsub} {checkbox.bounce}</div>`
                     : `loading...`}
             </div>`
         }
@@ -238,12 +243,13 @@ class Email extends Html {
                 {div.details}
                 </div>`
     }
-    close = (m, e) => {
+    close = (m, e, u) => {
         if (e) {
             error({ e })
             this.popup.close('<div class="red">Error updating</div>')
         }
         else this.popup.close(m || 'not updated')
+        if (u) this.p.reload('emails')
     }
     save = () => {
         const f = this.getForm(),
@@ -255,14 +261,20 @@ class Email extends Html {
                 c = true
             }
         }
-        if (c) ajax({ req: 'save', email: u }).then(r => {
-            debug({ r, u })
-            this.close('updated')
+        if (f.unsub !== u.fi.unsub ? true : false) c = true
+        if (c) ajax({ req: 'save', u }).then(r => {
+            debug({ r, u, f })
+            const es = nav.d.data.es
+            if (r.u) es[r.u.i] = r.u
+            if (r.x) es[r.x.i] = r.x
+            this.close('<div class="green">updated</div>', false, true)
         }).catch(e => this.close(null, e))
         else this.close('no change')
     }
     input = (e, o) => {
         // do nothing
+        const f = this.getForm()
+        debug({ input: f })
     }
 }
 

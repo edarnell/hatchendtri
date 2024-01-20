@@ -122,9 +122,9 @@ function update_v(v, details) {
 }
 
 function new_user(u, v) {
-    const { first, last, email } = u
+    const { first, last, email } = u, ts = new Date()
     let i = Math.max(...Object.keys(d.emails).filter(x => isNaN(x) === false)) + 1
-    d.emails[email] = { first, last, email, i, updated: true, ...v && { vs: [v.id] } }
+    d.emails[email] = { first, last, email, i, files: { ts }, ...v && { updated: true, vs: [v.id] } }
     d.ei[i] = email
     return d.emails[email]
 }
@@ -157,14 +157,29 @@ function update_vuser(v, details) {
 }
 
 function saveU(j, r, a) {
-    let v
-    const d = j.u, u = d.emails[d.email] || new_user(d)
-    if (d.admin !== u.admin) {
-        u.admin = d.admin
-        u.updated=true
+    const u2 = j.u, u = d.emails[u2.email]
+    if (!a.aed) resp(j, r, a, { e: 'Unauthorized' }, 401)
+    if (!u && u2.email) {
+        const u2 = new_user(d)
+        saveF('es')
+        resp(j, r, a, { u: u2 })
     }
-    if (u.updated) saveF('es', u)
-    resp(j, r, a, { u })
+    else if (u.i !== u2.i) {
+        if (u2.first !== u.first || u2.last !== u.last) {
+            log.error({ saveU: { u, u2 } })
+            resp(j, r, a, { e: 'u.i mismatch' }, 400)
+        }
+        else {
+            const old = d.ei[u2.i], x = d.emails[old], unsub = u.fi.unsub
+            u.fi = { ...u.fi, ...x.fi }
+            if (!unsub && u.fi.unsub) delete u.fi.unsub
+            if (!x.fi.unsub) x.fi.unsub = new Date()
+            x._i = u.i
+            saveF('es')
+            resp(j, r, a, { u, x })
+        }
+    }
+    else resp(j, r, a, { u: saveF('es', u2) })
 }
 
 function saveVol(j, r, a) {
@@ -215,6 +230,13 @@ function saveComp(j, r, a) {
     } else resp(j, r, a, { message: 'no comp' }, 400)
 }
 
+function saveReq(j, r, a) {
+    if (j.vol) saveVol(j, r, a)
+    else if (j.comp) saveComp(j, r, a)
+    else if (j.u) saveU(j, r, a)
+    else resp(j, r, a, { e: 'no data' }, 400)
+}
+
 function unsubReq(j, r, a) {
     const tok = j.tok, auth = tok && jwt.verify(tok, d.config.key),
         ae = ue(auth.email)
@@ -255,9 +277,9 @@ function subReq(j, r, a) {
 function userReq(j, r, a) {
     const email = d.ei[a.aed && j.i] || a.email, u = d.emails[email]
     if (u) {
-        const { first, last, i } = u, aed = a.aed && !j.i,
+        const { first, last, i, admin, fi } = u, aed = a.aed && !j.i,
             n = d.ns[email]
-        resp(j, r, a, { u: { first, last, i, admin: aed, ns: n, ...(j.i && { email }) } })
+        resp(j, r, a, { u: { first, last, i, fi, aed, admin, ns: n, ...(j.i && { email }) } })
     }
     else resp(j, r, a, { e: j }, 400)
 }
@@ -339,13 +361,6 @@ function photoReq(j, r, a) {
         log.info({ pp })
         resp(j, r, a, { pp, pn })
     } else resp(j, r, a, { e: 'no photo' }, 400)
-}
-
-function saveReq(j, r, a) {
-    if (j.vol) saveVol(j, r, a)
-    else if (j.comp) saveComp(j, r, a)
-    else if (j.email) saveEmail(j, r, a)
-    else resp(j, r, a, { e: 'no data' }, 400)
 }
 
 app.post(d.config.url, auth(async (j, r, a) => {

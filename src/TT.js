@@ -119,6 +119,7 @@ class TT {
         else debug({ TTclick: this, e })
     }
     tooltip = (e, m) => {
+        this.ttremove()
         const tt = this.tt = document.createElement('div'),
             arrow = this.arrow = document.createElement('div'),
             link = this.lk,
@@ -184,7 +185,7 @@ class TT {
             }
         }
         if (m) {
-            if (this.tt) this.timer = setTimeout(this.ttremove, 1000)
+            if (this.tt) this.timer = setTimeout(this.ttremove, 2000)
         }
     }
 }
