@@ -26,7 +26,7 @@ class Vselect extends Html {
         //debug({ html: this, n, p })
         if (n === 'names') return this.vol_names()
         else if (!p) {
-            if (nav.d.admin()) return select
+            if (nav._user.admin) return select
             else return selectV
         }
     }

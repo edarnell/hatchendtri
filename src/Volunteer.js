@@ -169,8 +169,8 @@ class Vnames extends Html {
       }
     }
     else if (name.startsWith('v_')) {
-      const id = name.substring(2), vol = nav.d.data.vs[id], _id = name.substring(1)
-      if (vol && nav.d.admin()) return { tip: () => this._p('tip')(id), class: ' ', theme: 'light', popup: `{Vol.${id}}` }
+      const id = name.substring(2), vol = nav.d.data.vs[id], _id = name.substring(1),u=nav._user
+      if (vol && u.admin) return { tip: () => this._p('tip')(id), class: ' ', theme: 'light', popup: `{Vol.${id}}` }
       else if (vol) return { tip: 'contact', class: ' ', theme: 'light', popup: `{Contact.${id}}` }
     }
     else if (name.startsWith('_')) {

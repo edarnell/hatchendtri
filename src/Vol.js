@@ -53,7 +53,7 @@ class Vol extends Html {
             if (fl) return `{link.details.${fl.first + '_' + fl.last}_}`
             return u ? `{link.details.${u.first + '_' + u.last}_}` : 'New'
         }
-        else if (n === 'admin') return nav.d.admin() ? '{checkbox.admin}' : ''
+        else if (n === 'admin') return nav._user.aed ? '{checkbox.admin}' : ''
     }
     link = (name) => {
         if (name === 'details') return { tip: this.edit ? 'save' : 'edit contact details', icon_: this.edit ? 'save' : 'edit', click: this.details }
@@ -160,7 +160,7 @@ class Vol extends Html {
                 c = race.charAt(0)
             if (x.checked) {
                 n.checked = false
-                if (nav.d.admin()) {
+                if (nav._user.aed) {
                     s.classList.remove('hidden')
                     r.classList.remove('hidden')
                 }

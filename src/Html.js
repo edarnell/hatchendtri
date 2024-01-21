@@ -212,6 +212,12 @@ class Html {
         const style = document.createElement('style')
         style.innerHTML = css
         document.head.appendChild(style)
+        const t = localStorage.getItem('HEtoken'),d=localStorage.getItem('HEdate')
+        if (!d) { // tidy up old storage - can add or d<date
+            localStorage.clear()
+            localStorage.setItem('HEdate', new Date().toISOString())
+            if (t) localStorage.setItem('HEtoken', t) // keep user token
+        }
         const hash = window.location.hash, token = hash && hash.substring(1)
         window.location.hash = ''
         this.path = window.location.pathname.replace('/', '')

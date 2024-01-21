@@ -164,11 +164,11 @@ class AdminEmail extends Html {
         return ys.length ? ys : null
     }
     trs = (n) => {
-        const d = nav.d.data, emails = d.es, ml = this._ml
+        const d = nav.d.data, es = d.es, ml = this._ml
         let ret = this.rows = []
         if (n === 'emails' && ml) {
-            const rs = Object.keys(emails).map(i => {
-                const r = emails[i],
+            const rs = Object.keys(es).map(i => {
+                const r = es[i],
                     sent = ml[i] ? ml[i].map(dt => `{link.s${dt}_${i}.${dt.replace(/^(\d{2})(\d{2})(\d{2})(\d{2}).*$/, '$4/$3/$2')}}`).join(' ') : ''
                 return [i, `{link.fe_${i}.${r.first}}`, this.color(r.last, r), this.names(i), sent, Object.keys(r.fi || {}).join(' ')]
             })
