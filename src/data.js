@@ -57,16 +57,15 @@ class Data {
                 const dates = {}
                 files.forEach(n => {
                     if (r.zips[n]) dates[n] = this.saveZip(n, r.zips[n])
-                    else if (r.csvs[n]) dates[n] = this.saveCsv(n, r.csvs[n])
                 })
                 s(dates)
             }).catch(e => f(e))
         })
     }
     saveZip = (f, z) => {
-        if (!z && typeof f==='object') {
-            z=Object.values(f)[0]
-            f=Object.keys(f)[0]
+        if (!z && typeof f === 'object') {
+            z = Object.values(f)[0]
+            f = Object.keys(f)[0]
         }
         if (z) {
             if (f.charAt(0) !== '_') localStorage.setItem('HE' + f, JSON.stringify(z))

@@ -63,6 +63,7 @@ class Html {
         else if (v) l.value = v
         return l
     }
+    /*
     popup = (o, id, l, placement) => {
         if (o === 'close') this.popclose(id, l)
         else {
@@ -74,6 +75,7 @@ class Html {
             this.popups[id] = popup
             const p = typeof o === 'string' ? nav.O(o, this) : o
             p.id = id
+            p.close=(m,d)=>this.popclose(id,m,d)
             this.popups = this.popups || {}
             document.body.appendChild(popup)
             this.render(p)
@@ -85,7 +87,7 @@ class Html {
             })
         }
     }
-    popclose = (id, m) => {
+    popclose = (id, m, d) => {
         //debug({ close: this, m, r })
         const pop = this.popups[id], l = this.q(`#${id}`)
         if (pop) {
@@ -94,6 +96,7 @@ class Html {
             delete this.popups[id]
         }
     }
+    */
     render(o, id = o.id) {
         //debug({ render: { o, id } })
         if (o === this) this.unload(this)
@@ -110,8 +113,17 @@ class Html {
             this.listen(o)
         })
     }
+    checkData = (o) => {
+        if (this._check === false) {
+            delete this._check
+            return
+        }
+        const data = (o || this)._p('data'), loaded = (o || this)._p('loaded')
+        debug({ checkData: (o || this), data, loaded })
+        if (data) nav.d.get(data).then(loaded)
+    }
     replace = (o, html) => {
-        if (!html && o && o.data) nav.d.get(o.data).then(o.loaded)
+        if (!html && o && o.data) this.checkData(o)
         const c = (html || o._p('html')(o.name, o.param)),
             _html = (typeof c === 'object') ? this.replace(c) : c
         //debug({ replace: { o, html, _html } })
@@ -159,6 +171,7 @@ class Html {
         else return null
     }
     reload = (n) => {
+        if (n === false) this._check = n
         if (!n) this.render(this)
         else {
             const div = this.pdiv(n)
@@ -212,7 +225,7 @@ class Html {
         const style = document.createElement('style')
         style.innerHTML = css
         document.head.appendChild(style)
-        const t = localStorage.getItem('HEtoken'),d=localStorage.getItem('HEdate')
+        const t = localStorage.getItem('HEtoken'), d = localStorage.getItem('HEdate')
         if (!d) { // tidy up old storage - can add or d<date
             localStorage.clear()
             localStorage.setItem('HEdate', new Date().toISOString())

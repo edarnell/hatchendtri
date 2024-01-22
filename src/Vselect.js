@@ -5,9 +5,9 @@ import { roles, sections } from './roles'
 import { ajax } from './ajax'
 
 function clear(id, aj, sec, role, ys) {
-    const vs = nav.d.data.vs
+    vr = nav.d.data.vr
     if (!id) {
-        Object.keys(vs).forEach(id => {
+        Object.keys(vr).forEach(id => {
             const r = clear(id, aj, sec, role)
             if (r) ys.push(r)
         })
@@ -15,14 +15,14 @@ function clear(id, aj, sec, role, ys) {
     }
     let ret
     if (aj !== 'a' && aj !== 'j') {
-        let r = clear(id, 'a', sec, role), r2 = clear(id, 'j', sec, role)
-        ret = r2 || r
+        let r1 = clear(id, 'a', sec, role), r2 = clear(id, 'j', sec, role)
+        ret = r2 || r1
     }
     else {
-        const v = vs[id], y = v.year, vy = y && y[year]
-        if (vy && vy[aj + 'section'] === sec && vy[aj + 'role'] === role) {
-            vy[aj + 'section'] = '', vy[aj + 'role'] = ''
-            ret = { id, year, vy }
+        const r = vr[id]
+        if (r && r[aj + 'section'] === sec && r[aj + 'role'] === role) {
+            r[aj + 'section'] = '', r[aj + 'role'] = ''
+            ret = { id, r }
         }
         else ret = false
     }
@@ -142,8 +142,7 @@ class Vselect extends Html {
         if (aj !== 'a') { vy.jsection = sec, vy.jrole = role, vy.junior = true, vy.none = false }
         if (aj !== 'j') { vy.asection = sec, vy.arole = role, vy.adult = true, vy.none = false }
         ajax({ req: 'save', vol: v.id, year, roles: vy, ys }).then(r => {
-            nav.d.saveZip({ vs: r.vs })
-            this.popup.close('<div class="green">updated</div>','vs')
+            this.popup.close('<div class="green">updated</div>', 'vs')
         }).catch(e => {
             error({ e })
             this.popup.close('<div class="red">Error</div>')

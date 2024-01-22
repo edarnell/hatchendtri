@@ -155,9 +155,9 @@ class TT {
         if (!p) error({ Popup: this, Objects: link.popup })
         else {
             p.id = id
-            p.popup = this
+            p.close = this.close
             p.render(p)
-            //debug({ popdiv: this, popup, p, l, link })
+            debug({ popdiv: this, popup, p, l, link })
             if (link.popup) this.pop = createPopper(l, popup, {
                 placement: link.placement || 'top',
                 strategy: link.strategy || 'absolute',
@@ -165,18 +165,14 @@ class TT {
             })
         }
     }
-    updP = (r) => {
-        const f = this.p._p('updated')
-        if (f) f(r)
-    }
-    close = (m, r) => {
+    close = (m, d) => {
         if (this.pdiv) {
             if (this.pO) this.pO.unload(this.pO)
             if (this.pdiv) this.pdiv.remove()
             if (this.pop) this.pop.destroy()
             this.pO = this.pop = this.pdiv = null
             this.listen(true)
-            this.updP(r)
+            if (d) this.p.checkData()
             if (m) {
                 this.tooltip(null, m)
                 this.timer = setTimeout(() => {

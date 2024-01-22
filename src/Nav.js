@@ -130,11 +130,13 @@ class Nav extends Html {
     }
     unsubscribe = () => {
         const l = this.q(`[id*="TT_user_nav"]`)
-        this.popup('Unsub', 'nav_unsub', l, 'bottom-end')
+        this.pages.user.pop = 'Unsub'
+        l.click()
     }
     subscribe = () => {
         const l = this.q(`[id*="TT_user_nav"]`)
-        this.popup('Sub', 'nav_sub', l, 'bottom-end')
+        this.pages.user.pop = 'Sub'
+        l.click()
     }
     close = (m, u) => {
         this.popclose(u || u === false ? 'nav_sub' : 'nav_unsub')

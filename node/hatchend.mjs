@@ -196,14 +196,12 @@ function saveVol(j, r, a) {
         v = d.vs[id] = { id }
     }
     if (v) {
-        if (details) v = update_vuser(v, details)
-        if (roles && year) {
-            v.year = v.year || {}
-            v.year[year] = v.year[year] || {}
-            v.year[year] = roles
+        if (details) {
+            v = update_vuser(v, details)
+            saveF('vs', v)
         }
-        saveF('vs', v, ys)
-        resp(j, r, a, { vs: d.fns['vs'], v })
+        if (roles) saveF('vs', v, roles, ys)
+        resp(j, r, a, { v })
         const email = d.ei[v.i]
         send({
             from_email: email, uEmail: email, subject: `vol update ${v.id}`,

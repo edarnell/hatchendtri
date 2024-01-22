@@ -10,7 +10,7 @@ class Volunteer extends Html {
   constructor() {
     super()
     this.id = 'volunteer'
-    this.data = ['vs', 'es']
+    this.data = ['vs', 'es', 'vr']
   }
   vs_ = () => {
     const vs = nav.d.data.vs
@@ -38,7 +38,8 @@ class Volunteer extends Html {
     if (n === 'year') return '' + year
   }
   loaded = (r) => {
-    if (r) this.reload()
+    debug({ loaded: this, r })
+    if (r) this.reload(false)
   }
   volClose = () => this.updated()
   updated = (r) => {
@@ -52,7 +53,7 @@ class Volunteer extends Html {
     }
     if (u && this.color() === 'grey') {
       const l = this.q(`[id="TT_n_greet_0"]`)
-      this.popup('{Vol.n}', 'vol_avail', l)
+      if (l) l.click()
     }
   }
   form = () => {
@@ -88,13 +89,14 @@ class Volunteer extends Html {
     else if (n === 'vRoles') return new Vroles(this.div['nr'], n)
     else if (n === 'vNames') return new Vnames(this.div['nr'], n)
   }
-  color = (id, y = year) => {
-    const u = !id && nav._user, _vs = u && this._vs, vid = _vs && _vs[u.i] && _vs[u.i][0],
-      v = nav.d.data.vs[id || vid], yr = v && v.year, vy = yr && yr[y],
-      n = vy && vy.none,
-      r = vy && (vy.adult || vy.junior),
-      rb = r && ((vy.adult && !vy.arole) || (vy.junior && !vy.jrole))
+  color = (id) => {
+    const u = !id && nav._user, vid = u && u.vs && u.vs[0],
+      v = nav.d.data.vr[id || vid],
+      n = v && v.none,
+      r = v && (v.adult || v.junior),
+      rb = r && ((v.adult && !v.arole) || (v.junior && !v.jrole))
     const ret = r ? (rb && id) ? 'blue' : 'green' : n ? 'red' : 'grey'
+    debug({ u, ret })
     return ret
   }
   utip = () => {
@@ -103,15 +105,15 @@ class Volunteer extends Html {
     if (c === 'grey') return '<div class="grey">click to set availability</div>'
     else return this.vtip(vid, year).replace(/\?/g, '✓')
   }
-  vtip = (id, y = 2024) => {
-    const vs = nav.d.data.vs, v = vs && vs[id], cl = this.color(v.id, y), vy = v && v.year && v.year[y]
-    if (vy) {
-      const c = vy.competitor, r = (vy.adult || vy.junior || vy.none),
-        ar = vy.adult ? vy.arole ? (vy.asection + ' ' + vy.arole) : '?' : c ? 'competitor' : r ? '✗' : '?',
-        jr = vy.junior ? vy.jrole ? (vy.jsection + ' ' + vy.jrole) : '?' : c ? 'competitor' : r ? '✗' : '?'
-      return `<div class=${cl}>${y} ${ar}, ${jr}</div>`
+  vtip = (id) => {
+    const vr = nav.d.data.vr, v = vr && vr[id], cl = this.color(id)
+    if (v) {
+      const r = (vy.adult || vy.junior || vy.none),
+        ar = vy.adult ? vy.arole ? (vy.asection + ' ' + vy.arole) : '?' : r ? '✗' : '?',
+        jr = vy.junior ? vy.jrole ? (vy.jsection + ' ' + vy.jrole) : '?' : r ? '✗' : '?'
+      return `<div class=${cl}>${year} ${ar}, ${jr}</div>`
     }
-    else return `<div class=${cl}>${y} ?</div>`
+    else return `<div class=${cl}>${year} ?</div>`
   }
   roles(id) {
     const v = nav.d.data.vs[id],
@@ -169,7 +171,7 @@ class Vnames extends Html {
       }
     }
     else if (name.startsWith('v_')) {
-      const id = name.substring(2), vol = nav.d.data.vs[id], _id = name.substring(1),u=nav._user
+      const id = name.substring(2), vol = nav.d.data.vs[id], _id = name.substring(1), u = nav._user
       if (vol && u.admin) return { tip: () => this._p('tip')(id), class: ' ', theme: 'light', popup: `{Vol.${id}}` }
       else if (vol) return { tip: 'contact', class: ' ', theme: 'light', popup: `{Contact.${id}}` }
     }
@@ -298,7 +300,7 @@ class Vroles extends Html {
     return ret
   }
   sr = (id, s, r) => {
-    const v = nav.d.data.vs[id], { asection, arole, jsection, jrole } = (v.year && v.year[year]) || {}
+    const v = nav.d.data.vr[id], { asection, arole, jsection, jrole } = v || {}
     //if (!v.year) debug({ id, v })
     let n = 0
     n += (asection === s && arole === r) ? 2 : 0
@@ -306,7 +308,7 @@ class Vroles extends Html {
     return n
   }
   vs = (s, r) => {
-    const vs = nav.d.data.vs, ks = vs && Object.keys(vs).map(id => { if (id * 1 && vs[id]) return { id, n: this.sr(id, s, r) } }),
+    const vr = nav.d.data.vr, ks = vr && Object.keys(vr).map(id => { if (id * 1 && vr[id]) return { id, n: this.sr(id, s, r) } }),
       fvs = ks && ks.filter(k => k && k.n).sort((a, b) => b.n - a.n)
     return fvs
   }

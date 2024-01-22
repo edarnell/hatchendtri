@@ -6,13 +6,14 @@ import { log } from './hatchend.mjs'
 
 const config = f('config.json', true).data
 // can refine by having one const d object with all the vars in it
-const d = { config, ei: [], vs: null, _vs: null, emails: null, photos: null, ps: null, pp: null, ns: null, fns: null }
+const d = { config, ei: [], vr: null, vs: null, _vs: null, emails: null, photos: null, ps: null, pp: null, ns: null, fns: null }
 function load() {
     const fns = d.fns = {}
     fns['ps'] = photoN() // also sets ns and pp 
-    fns['vs'] = f_vs() // also sets vs, _vs, emails
+    fns['vs'] = f_vs() // also sets vs, _vs, emails, vr
     fns['ds'] = f_('ds')
     fns['cs'] = f_('cs')
+    fns['vr'] = fv('vr')
     fns['es'] = f_es()
     fns['mailLog'] = f('gz/mailLog.gz')
     fns['results'] = f('gz/results.gz')
@@ -44,13 +45,20 @@ function saveMl(j) {
     fns['mailLog'] = f('gz/mailLog.gz')
 }
 
-function saveV(v, ys) {
-    if (ys && ys.length) ys.forEach(v => d.vs[v.id].year[v.year] = v.vy)
-    d.vs[v.id] = v
-    save('_vs', d.vs)
-    d.fns['vs'] = f_vs() // could be more efficient
-    const u = d.emails[d.ei[v.i]]
-    if (u.updated) saveE(u)
+function saveV(v, r, ys) {
+    if (r) {
+        if (ys && ys.length) ys.forEach(v => d.vr[v.id] = v.r)
+        d.vr[v.id] = r
+        save('vr', d.vr)
+        d.fns['vr'] = { date: fs.statSync(`gz/vr.gz`).mtime, data: zip(d.vr, false, true) }
+    }
+    else {
+        d.vs[v.id] = v
+        save('_vs', d.vs)
+        d.fns['vs'] = f_vs() // could be more efficient
+        const u = d.emails[d.ei[v.i]]
+        if (u.updated) saveE(u)
+    }
     return d.vs[v.id]
 }
 
@@ -109,6 +117,13 @@ function f_vs() {
     d._vs = j
     d.vs = r
     return { date: ts, data: zip(r, false, true) }
+}
+
+function fv(fn) {
+    const fe = fs.existsSync(`gz/_${fn}.gz`)
+    d[fn] = fe ? fz(`gz/_${fn}.gz`) : {}
+    log.info({ [fn]: Object.keys(d[fn]).length })
+    return fe ? f(fn) : { date: new Date(), data: zip({}, false, true) }
 }
 
 function f_(fn) {
