@@ -143,8 +143,7 @@ class Vselect extends Html {
         if (aj !== 'j') { vy.asection = sec, vy.arole = role, vy.adult = true, vy.none = false }
         ajax({ req: 'save', vol: v.id, year, roles: vy, ys }).then(r => {
             nav.d.saveZip({ vs: r.vs })
-            this.p.reload()
-            this.popup.close('<div class="green">updated</div>')
+            this.popup.close('<div class="green">updated</div>','vs')
         }).catch(e => {
             error({ e })
             this.popup.close('<div class="red">Error</div>')

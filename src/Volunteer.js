@@ -42,7 +42,7 @@ class Volunteer extends Html {
   }
   volClose = () => this.updated()
   updated = (r) => {
-    this.reload('greet')
+    this.reload()
   }
   rendered = () => {
     const vs = nav.d.data.vs, u = vs && nav._user

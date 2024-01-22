@@ -181,16 +181,13 @@ class Vol extends Html {
     save = () => {
         const r24 = this.roleRem(this.getForm()), v = this.v,
             roles = (JSON.stringify(r24) !== JSON.stringify(v.year && v.year[year])) && r24
-        debug({ save: { roles } })
         if (roles) {
             const ys = []
             if (roles.arole) clear(null, 'a', roles.asection, roles.arole, ys)
             if (roles.jrole) clear(null, 'j', roles.jsection, roles.jrole, ys)
-            debug({ save: roles, ys })
             ajax({ req: 'save', vol: v.id, year, roles, ys }).then(r => {
                 nav.d.saveZip({ vs: r.vs })
-                this.p.reload()
-                this.popup.close('<div class="green">updated</div>')
+                this.popup.close('<div class="green">updated</div>','vs')
             }).catch(e => {
                 error({ save: e })
                 this.popup.close('<div class="red">Error</div>')
