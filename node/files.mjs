@@ -20,7 +20,7 @@ function load() {
 }
 
 function saveF(n, d, k) {
-    if (n === 'vs') saveV(d)
+    if (n === 'vs') saveV(d, k)
     else if (n === 'es') return saveE(d)
     else if (n === 'mail') saveMl(d)
     else if (n === 'ps') return savePs(d, k)
@@ -44,16 +44,28 @@ function saveMl(j) {
     fns['mailLog'] = f('gz/mailLog.gz')
 }
 
+function saveV(v, ys) {
+    if (ys && ys.length) ys.forEach(v => d.vs[v.id].year[v.year] = v.vy)
+    d.vs[v.id] = v
+    save('_vs', d.vs)
+    d.fns['vs'] = f_vs() // could be more efficient
+    const u = d.emails[d.ei[v.i]]
+    if (u.updated) saveE(u)
+    return d.vs[v.id]
+}
+
 function saveE(u) {
     if (u) {
         const o = d.emails[d.ei[u.i]]
         o.first = u.first
         o.last = u.last
         o.admin = u.admin
+        if (o.updated) delete o.updated
         if (u.unsub && !o.fi.unsub) o.fi.unsub = new Date()
         else if (o.fi.unsub && !u.unsub) delete o.fi.unsub
     }
     save('_emails', d.emails)
+    fns['es'] = f_es() // could be more efficient
     if (u) return d.emails[d.ei[u.i]]
 }
 

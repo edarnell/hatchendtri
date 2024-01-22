@@ -184,34 +184,36 @@ function saveU(j, r, a) {
 
 function saveVol(j, r, a) {
     let v
-    const { vol, roles, year, details } = j
+    const { vol, roles, year, details, ys } = j
     if (vol === -1) {
         const u = d.emails[a.email], i = u && u.i,
             id = Math.max(...Object.keys(vs).filter(x => isNaN(x) === false)) + 1
-        v = { i, id }
+        v = d.vs[id] = { i, id }
     }
-    else if (vol) v = vs[vol]
+    else if (vol) v = d.vs[vol]
     else if (details) {
         id = Math.max(...Object.keys(vs).filter(x => isNaN(x) === false)) + 1
-        v = { id }
+        v = d.vs[id] = { id }
     }
-    else resp(j, r, a, { e: 'no vol or details' }, 400)
-    if (details) v = update_vuser(v, details)
-    if (roles && year) {
-        v.year = v.year || {}
-        v.year[year] = v.year[year] || {}
-        v.year[year] = roles
-    }
-    saveF('vs', v)
-    resp(j, r, a, { vs: d.fns['vs'], v })
-    send({
-        from_email: email, uEmail: email, subject: `vol update ${v.id}`,
-        message: `{volunteer} ${v.id} ${vName(v.id)}\n` +
-            (roles && (roles.adult || roles.junior || roles.none) ? `adult: ${roles && roles.adult ? roles.arole ? `${roles.asection},${roles.arole}` : 'yes' : 'no'}\n` +
-                `junior: ${roles && roles.junior ? roles.jrole ? `${roles.jsection},${roles.jrole}` : 'yes' : 'no'}\n` +
-                `${roles && roles.notes ? `notes: ${roles.notes}\n` : ''}`
-                : `${details ? JSON.stringify(details) : ''}`)
-    })
+    if (v) {
+        if (details) v = update_vuser(v, details)
+        if (roles && year) {
+            v.year = v.year || {}
+            v.year[year] = v.year[year] || {}
+            v.year[year] = roles
+        }
+        saveF('vs', v, ys)
+        resp(j, r, a, { vs: d.fns['vs'], v })
+        const email = d.ei[v.i]
+        send({
+            from_email: email, uEmail: email, subject: `vol update ${v.id}`,
+            message: `{volunteer} ${v.id} ${vName(v.id)}\n` +
+                (roles && (roles.adult || roles.junior || roles.none) ? `adult: ${roles && roles.adult ? roles.arole ? `${roles.asection},${roles.arole}` : 'yes' : 'no'}\n` +
+                    `junior: ${roles && roles.junior ? roles.jrole ? `${roles.jsection},${roles.jrole}` : 'yes' : 'no'}\n` +
+                    `${roles && roles.notes ? `notes: ${roles.notes}\n` : ''}`
+                    : `${details ? JSON.stringify(details) : ''}`)
+        })
+    } else resp(j, r, a, { e: 'no vol or details' }, 400)
 
 }
 

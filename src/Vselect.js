@@ -1,14 +1,40 @@
-import Html, { debug, nav, _s } from './Html'
+import Html, { error, debug, nav, _s } from './Html'
 import select from './html/select.html'
 import selectV from './html/selectV.html'
 import { roles, sections } from './roles'
 import { ajax } from './ajax'
+
+function clear(id, aj, sec, role, ys) {
+    const vs = nav.d.data.vs
+    if (!id) {
+        Object.keys(vs).forEach(id => {
+            const r = clear(id, aj, sec, role)
+            if (r) ys.push(r)
+        })
+        return ys
+    }
+    let ret
+    if (aj !== 'a' && aj !== 'j') {
+        let r = clear(id, 'a', sec, role), r2 = clear(id, 'j', sec, role)
+        ret = r2 || r
+    }
+    else {
+        const v = vs[id], y = v.year, vy = y && y[year]
+        if (vy && vy[aj + 'section'] === sec && vy[aj + 'role'] === role) {
+            vy[aj + 'section'] = '', vy[aj + 'role'] = ''
+            ret = { id, year, vy }
+        }
+        else ret = false
+    }
+    return ret
+}
 
 const year = 2024
 class Vselect extends Html {
     constructor(p, name) {
         super(p, name)
         this.id = 'vselect'
+        this.vs = this.vNames()
     }
     form = () => {
         return {
@@ -16,11 +42,11 @@ class Vselect extends Html {
             new: { class: "form green hidden", popup: 'Vol' }
         }
     }
-    link = (name, param) => {
-        if (name === 'close') return { class: 'close', tip: 'close', click: () => this.popup.close() }
-        else if (name === 'new') return { tip: 'check existing first' }
-        else if (name === 'request') return { tip: 'click to request', click: this.request }
-        else if (name.charAt(0) === '_') return { theme: 'light', tip: () => this.tip(name.substring(1)), click: () => this.setid(name.substring(1)) }
+    link = (n) => {
+        if (n === 'close') return { class: 'close', tip: 'close', click: () => this.popup.close() }
+        else if (n === 'new') return { tip: 'check existing first' }
+        else if (n === 'request') return { tip: 'click to request', click: this.request }
+        else if (n.charAt(0) === '_') return { theme: 'light', tip: () => this.tip(n.substring(1)), click: () => this.setid(n.substring(1)) }
     }
     html = (n, p) => {
         //debug({ html: this, n, p })
@@ -66,38 +92,39 @@ class Vselect extends Html {
         }
     }
     nameSort = (a, b) => {
-        const { last: al, first: af } = firstLast(a.name), { last: bl, first: bf } = firstLast(b.name)
+        const vs = this._vs
+        const { last: al, first: af } = vs[a], { last: bl, first: bf } = vs[b]
         if (al < bl) return -1
         if (al > bl) return 1
         if (af < bf) return -1
         if (af > bf) return 1
         return 0
     }
-    rendered = () => {
-        const vs = nav.d.data.vs
-        this._form = this.getForm()
+    filter = (id) => {
+        const f = this._form, vs = this._vs, v = vs[id], y = v && v.year, vy = y && y[year]
+        if (f && f.name) {
+            const name = v.first + ' ' + v.last
+            return name.toLowerCase().indexOf(f.name.toLowerCase()) > -1
+        }
+        else return vy && ((vy.adult && (!vy.arole || vy.arole === 'Role')) || (vy.junior && (!vy.jrole || vy.jrole === 'Role')))
     }
-    filter = () => {
-        const f = this._form, filter = f && (this._name = f.name), vs = nav.d.data.vs
-        if (filter) {
-            return Object.keys(vs).filter(id => vs[id].name.toLowerCase().indexOf(filter.toLowerCase()) > -1)
-                .map(id => ({ id, name: vs[id].name }))
-        }
-        else if (nav.path === 'volunteer') {
-            return Object.keys(vs).filter(id => {
-                const v = vs[id], y = v && v.year, vy = y && y[year]
-                return vy && ((vy.adult && (!vy.arole || vy.arole === 'Role')) || (vy.junior && (!vy.jrole || vy.jrole === 'Role')))
-            })
-                .map(id => ({ id, name: vs[id].name }))
-        }
-        else return []
+    vNames = () => {
+        const vs = nav.d.data.vs, es = nav.d.data.es, ns = {}
+        Object.keys(vs).filter(id => vs[id].i).forEach(id => {
+            ns[id] = vs[id]
+            const v = ns[id], u = es[v.i]
+            v.first = v.first || u.first
+            v.last = v.last || u.last
+        })
+        this._vs = ns
     }
     vol_names = () => {
-        const vols = this.filter()
-            .sort(this.nameSort),
-            html = vols.slice(0, 10).map(v => `<div>{link._${v.id}.${_s(v.name)}}</div>`)
+        const vs = this._vs,
+            vols = Object.keys(vs).filter(this.filter).sort(this.nameSort),
+            html = vols.slice(0, 10).map(id => `<div>{link._${id}.${_s(vs[id].first)}_${_s(vs[id].last)}}</div>`)
                 .join(' ')
-        if (this._name && vols.length === 0) {
+        const f = this._form, name = f && f.name
+        if (name && vols.length === 0) {
             const b = this.fe("new")
             b.classList.remove('hidden')
         }
@@ -108,20 +135,25 @@ class Vselect extends Html {
         const name = this.name,
             [, aj, s, r] = name.match(/([sajf])_(\d{1,2})r_(\d{1,2})/),
             sec = sections[s], rs = roles(sec), role = rs[r],
-            vs = nav.d.data.vs,
-            v = vs && vs[id]
-        const vy = v.year[year] || {}
+            vs = this._vs,
+            ys = []
+        clear(null, aj, sec, role, ys)
+        const v = vs && vs[id], vy = v.year[year] || {}
         if (aj !== 'a') { vy.jsection = sec, vy.jrole = role, vy.junior = true, vy.none = false }
         if (aj !== 'j') { vy.asection = sec, vy.arole = role, vy.adult = true, vy.none = false }
-        ajax({ req: 'save', vol: v.id, year, roles: vy }).then(r => {
+        ajax({ req: 'save', vol: v.id, year, roles: vy, ys }).then(r => {
             nav.d.saveZip({ vs: r.vs })
             this.p.reload()
-            this.popup.close('updated')
-        }).catch(e => debug({ e }))
+            this.popup.close('<div class="green">updated</div>')
+        }).catch(e => {
+            error({ e })
+            this.popup.close('<div class="red">Error</div>')
+        })
     }
     input = () => {
         this._form = this.getForm()
         this.reload('names')
     }
 }
+export { clear }
 export default Vselect
