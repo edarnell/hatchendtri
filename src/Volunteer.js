@@ -10,27 +10,11 @@ class Volunteer extends Html {
   constructor() {
     super()
     this.id = 'volunteer'
-    this.data = ['vs', 'es', 'vr']
-  }
-  vs_ = () => {
-    const vs = nav.d.data.vs
-    if (!this._vs && vs) {
-      const _vs = this._vs = {}
-      Object.values(vs).forEach(v => {
-        if (_vs[v.i]) {
-          if (!v.first) _vs[v.i].unshift(v.id)
-          else _vs[v.i].push(v.id)
-        }
-        else _vs[v.i] = [v.id]
-      })
-    }
-    return this._vs
+    this.data = ['vs', 'vr']
   }
   greet = () => {
-    const u = nav._user, _vs = this._vs, v = _vs && _vs[u.i], fl = v && name(v[0], true),
-      first = (fl || u).first, last = (fl || u).last,
-      c = this.color()
-    return u ? `Welcome {link.n.${first}_${last}} ` + (c === 'grey' ? 'please confirm availability.' :
+    const u = nav._user, v = u.vs && u.vs[0], c = this.color(v)
+    return u ? `Welcome {link.n.${u.first}_${u.last}} ` + (c === 'grey' ? 'please confirm availability.' :
       c === 'red' ? 'thank you for confirming you are unable to help this year.' : 'thank you for volunteering.')
       : 'We need a large volunteer team please {nav.contact} if you can help. All help is greatly appreciated.'
   }
@@ -65,7 +49,10 @@ class Volunteer extends Html {
     }
   }
   link = (n) => {
-    if (n === 'n') return { tip: () => this.utip(), class: this.color(), popup: `{Vol.n}` }
+    if (n === 'n') {
+      const u = nav._user, v = u.vs && u.vs[0], c = this.color(v)
+      return { tip: () => this.utip(), class: this.color(), popup: `{Vol.n}` }
+    }
     else {
       const id = n.substring(1), vs = nav.d.data.vs, vol = vs[id]
       if (vol) {
@@ -77,8 +64,7 @@ class Volunteer extends Html {
     }
   }
   html = (n) => {
-    const vs = nav.d.data.vs, u = nav._user, c = vs && this.color()
-    if (vs && !this._vs) this._vs = this.vs_()
+    const vs = nav.d.data.vs
     if (!vs) return `<div id="volunteer"></div>` // wait to load
     else if (!n) return `<div id="volunteer">${html}</div>`
     else if (n === 'greet') return `<div id="greet"><p>${this.greet()}</p></div>`
@@ -90,20 +76,18 @@ class Volunteer extends Html {
     else if (n === 'vNames') return new Vnames(this.div['nr'], n)
   }
   color = (id) => {
-    const u = !id && nav._user, vid = u && u.vs && u.vs[0],
-      v = nav.d.data.vr[id || vid],
+    const vr = nav.d.data.vr,
+      v = vr[id],
       n = v && v.none,
       r = v && (v.adult || v.junior),
       rb = r && ((v.adult && !v.arole) || (v.junior && !v.jrole))
     const ret = r ? (rb && id) ? 'blue' : 'green' : n ? 'red' : 'grey'
-    debug({ u, ret })
     return ret
   }
   utip = () => {
-    const u = nav._user, _vs = this._vs, vs = _vs && _vs[u.i],
-      vid = vs && vs[0], c = this.color()
+    const u = nav._user, v = u.vs && u.vs[0], c = this.color(v)
     if (c === 'grey') return '<div class="grey">click to set availability</div>'
-    else return this.vtip(vid, year).replace(/\?/g, '✓')
+    else return this.vtip(vid).replace(/\?/g, '✓')
   }
   vtip = (id) => {
     const vr = nav.d.data.vr, v = vr && vr[id], cl = this.color(id)
@@ -123,9 +107,7 @@ class Volunteer extends Html {
   yroles = (v, y = year) => {
     if (v && v.year && v.year[y]) {
       const vy = v.year[y]
-      if (y === year) return this.vtip(vy, y)
-      else if (y === '2023') return vy.adult || vy.junior ? `<div>${y} ${vy.adult ? (vy.asection + ' ' + vy.arole) : '✗'}, ${vy.junior ? (vy.jsection + ' ' + vy.jrole) : '✗'}</div>` : ''
-      else return `<div>${y} ${vy.adult}, ${vy.junior}</div>`
+      return `<div>${y} ${vy.adult || '✗'}, ${vy.junio || '✗'}</div>`
     }
     else return ''
   }
@@ -411,16 +393,4 @@ class Greet extends Html {
   }
 }
 
-function name(vid, l, s) {
-  const { vs, es } = nav.d.data, v = vs && vs[vid], e = v && es[v.i]
-  let first, last
-  if (v && v.first) first = v.first
-  else if (e && e.first) first = e.first
-  else error({ vid, v })
-  if (v && v.last) last = v.last
-  else if (e && e.last) last = e.last
-  else error({ vid, v })
-  return l ? s ? first + ' ' + last : { first, last } : first
-}
-export { name }
 export default Volunteer

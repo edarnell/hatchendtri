@@ -2,7 +2,6 @@ import Html, { debug, _s, error } from './Html'
 import html from './html/Contact.html'
 import { ajax } from './ajax'
 import { nav } from './Nav'
-import { name } from './Volunteer'
 
 class Contact extends Html {
     constructor(p, uid) {

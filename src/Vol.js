@@ -4,7 +4,6 @@ import html from './html/Vol.html'
 import volD from './html/volD.html'
 import volE from './html/volE.html'
 import { ajax } from './ajax'
-import { name } from './Volunteer'
 import { clear } from './Vselect'
 
 const year = 2024
@@ -50,9 +49,8 @@ class Vol extends Html {
     }
     var = (n) => {
         if (n === 'name') {
-            const v = this.v, fl = v && v.id > 0 && name(v.id, true), es = nav.d.data.es, u = es && es[v.i]
-            if (fl) return `{link.details.${fl.first + '_' + fl.last}_}`
-            return u ? `{link.details.${u.first + '_' + u.last}_}` : 'New'
+            const { first, last } = this.v
+            return `{link.details.${first + '_' + last}_}`
         }
         else if (n === 'admin') return nav._user.aed ? '{checkbox.admin}' : ''
     }

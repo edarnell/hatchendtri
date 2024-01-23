@@ -6,7 +6,7 @@ import { log } from './hatchend.mjs'
 
 const config = f('config.json', true).data
 // can refine by having one const d object with all the vars in it
-const d = { config, ei: [], vs: null, _vs: null, ev:null, vr:null, emails: null, photos: null, ps: null, pp: null, ns: null, fns: null }
+const d = { config, ei: [], vs: null, _vs: null, ev: null, vr: null, emails: null, photos: null, ps: null, pp: null, ns: null, fns: null }
 function load() {
     const fns = d.fns = {}
     fns['ps'] = photoN() // also sets ns and pp 
@@ -80,50 +80,30 @@ function saveE(u) {
 function f_vs() {
     d.emails = fs.existsSync(`gz/_emails.gz`) ? fz('gz/_emails.gz') : {}
     if (d.ei.length === 0) Object.keys(d.emails).forEach(e => d.ei[d.emails[e].i] = e)
-    const f = fs.existsSync(`gz/_vs.gz`), ts = f ? fs.statSync(`gz/_vs.gz`).mtime : new Date(),
-        j = f ? fz('gz/_vs.gz') : {},
-        r = {}
-    let n = 0, ui = 0, uf = 0, ul = 0, e = 0
-    d.ev = {}
-    for (let i in j) {
-        const o = j[i], u = o.email && d.emails[o.email.toLowerCase()]
+    const f = fs.existsSync(`gz/_vs.gz`), ts = f ? fs.statSync(`gz/_vs.gz`).mtime : new Date()
+    d._vs = f ? fz('gz/_vs.gz') : {}
+    let n = 0, m = 0, p = 0, e = 0
+    d.ev = {}, d.vs = {}
+    for (let v in d._vs) {
+        n++
+        const o = d._vs[v], u = o.email && d.emails[o.email.toLowerCase()]
         if (u) {
-            r[i] = { id: o.id, i: u.i, year: o.year }
-            if (!d.ev[u.i]) d.ev[u.i]=[]
-            if (o.name) {
-                let [a, ...b] = o.name.trim().split(' '), last = b.pop(), first = (a + ' ' + b.join(' ')).trim()
-                if (o.name === u.first + ' ' + u.last) {
-                    d.ev[u.i].unshift(o.id)
-                    ui++
-                }
-                else if (last === u.last || !last) {
-                    d.ev[u.i].push(o.id)
-                    r[i].first = first.trim()
-                    uf++
-                }
-                else {
-                    d.ev[u.i].push(o.id)
-                    r[i].first = first.trim()
-                    r[i].last = last.trim()
-                    ul++
-                }
+            const i = u.i, { id, first, last, year, mobile } = o
+            d.vs[v] = { id, first, last, mobile, i, year }
+            if (!d.ev[i]) d.ev[i] = []
+            if (first === u.first && last === u.last) {
+                d.ev[i].unshift(v)
+                m++
             }
-            n++
-        }
-        else {
-            if (!o.unsub && i > 0) {
-                e++
-                if (o.year && Object.keys(o.year).length) {
-                    r[i] = o
-                    //debug({ keep: o })
-                }
+            else {
+                d.ev[i].push(v)
+                p++
             }
         }
+        else e++
     }
-    log.info({ vs: { n, ui, uf, ul, e } })
-    d._vs = j
-    d.vs = r
-    return { date: ts, data: zip(r, false, true) }
+    log.info({ vs: { n, m, p, e } })
+    return { date: ts, data: zip(d.vs, false, true) }
 }
 
 function fv(fn) {
