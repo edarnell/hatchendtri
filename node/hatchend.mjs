@@ -278,8 +278,10 @@ function userReq(j, r, a) {
     const email = d.ei[a.aed && j.i] || a.email, u = d.emails[email]
     if (u) {
         const { first, last, i, admin, fi } = u, aed = a.aed && !j.i,
-            n = d.ns[email]
-        resp(j, r, a, { u: { first, last, i, fi, aed, admin, ns: n, ...(j.i && { email }) } })
+            n = d.ns[email],
+            vs=d.ev[i]
+            debug({vs})
+        resp(j, r, a, { u: { first, last, i, fi, aed, admin, ns: n,vs, ...(j.i && { email }) } })
     }
     else resp(j, r, a, { e: j }, 400)
 }

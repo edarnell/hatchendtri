@@ -6,7 +6,7 @@ import { log } from './hatchend.mjs'
 
 const config = f('config.json', true).data
 // can refine by having one const d object with all the vars in it
-const d = { config, ei: [], vr: null, vs: null, _vs: null, emails: null, photos: null, ps: null, pp: null, ns: null, fns: null }
+const d = { config, ei: [], vs: null, _vs: null, ev:null, vr:null, emails: null, photos: null, ps: null, pp: null, ns: null, fns: null }
 function load() {
     const fns = d.fns = {}
     fns['ps'] = photoN() // also sets ns and pp 
@@ -84,18 +84,25 @@ function f_vs() {
         j = f ? fz('gz/_vs.gz') : {},
         r = {}
     let n = 0, ui = 0, uf = 0, ul = 0, e = 0
+    d.ev = {}
     for (let i in j) {
         const o = j[i], u = o.email && d.emails[o.email.toLowerCase()]
         if (u) {
             r[i] = { id: o.id, i: u.i, year: o.year }
+            if (!d.ev[u.i]) d.ev[u.i]=[]
             if (o.name) {
                 let [a, ...b] = o.name.trim().split(' '), last = b.pop(), first = (a + ' ' + b.join(' ')).trim()
-                if (o.name === u.first + ' ' + u.last) ui++
+                if (o.name === u.first + ' ' + u.last) {
+                    d.ev[u.i].unshift(o.id)
+                    ui++
+                }
                 else if (last === u.last || !last) {
+                    d.ev[u.i].push(o.id)
                     r[i].first = first.trim()
                     uf++
                 }
                 else {
+                    d.ev[u.i].push(o.id)
                     r[i].first = first.trim()
                     r[i].last = last.trim()
                     ul++
