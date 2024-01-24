@@ -73,12 +73,15 @@ const _footer = '{het} is organised and run by {jet}<br/><br/>',
     _sub = 'Your email is not currently subscribed. You can reply to this email, {subscribe} or {unsubscribe} at any time.'
 function email(p) {
     var html = mail.slice()
-    const m = {}
-        , token = p.email ? jwt.sign({ email: p.email, ts: Date.now() }, config.key) : '',
-        test = p.from_email === 'epdarnell+test@gmail.com' || p.email === 'epdarnell+test@gmail.com'
-    m.to = p.to || "Race Organiser"
+    const m = {},
+        email = p.v ? d._vs[p.v].email : config.admin_to,
+        u = p.i && d.es[p.i],
+        from = u ? d.ei[u.i] : config.admin_to,
+        token = jwt.sign({ email, ts: Date.now() }, config.key),
+        test = email === 'epdarnell+test@gmail.com'
+    m.to = p.v ? d.vs[p.v].first : "Race Organiser"
     m.footer = (p.footer || _footer) + (p.unsub ? _unsub : '') + (p.sub ? _sub : '')
-    m.from = p.from || 'Ed Darnell<br>Race Organiser'
+    m.from = u ? u.first + ' ' + u.last : p.name || 'Ed Darnell<br>Race Organiser'
     m.message = p.message && p.message.replace(/\n/g, "<br />\r\n") || ''
         ;['to', 'message', 'from', 'footer'].forEach(k => {
             const re = new RegExp('{{' + k + '}}', 'g')
@@ -99,7 +102,7 @@ function email(p) {
         + html_text(m.footer) + "\r\n"
     const ps = {
         Destination: {
-            ToAddresses: [((p.live || config.live || test) && p.email) || config.admin_to],
+            ToAddresses: [((p.live || config.live || test) && email) || config.admin_to],
         },
         Message: {
             Body: {
@@ -118,7 +121,7 @@ function email(p) {
             },
         },
         Source: config.admin_to,
-        ReplyToAddresses: [p.from_email || config.admin_to],
+        ReplyToAddresses: [from],
     }
     if (!config.live && test) fs.writeFileSync('test/' + p.subject + '.email', JSON.stringify(ps, null, 2))
     return ps

@@ -148,6 +148,28 @@ body {
     vertical-align: bottom;
 }
 
+.small {
+    font-size: 12px;
+    color: #333;
+}
+
+.stluke-img {
+    margin-top: -30px;
+    position: relative;
+    display: inline-block;
+}
+
+.bt-img {
+    position: relative;
+    display: inline-block;
+}
+
+.jet-img {
+    position: relative;
+    top: -30px;
+    margin-bottom: -30px;
+}
+
 .contact-link {
     position: absolute;
     top: 10px;

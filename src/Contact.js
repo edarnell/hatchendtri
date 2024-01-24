@@ -44,13 +44,6 @@ class Contact extends Html {
         }
         else return m ? 'complete the form' : 'enter your email'
     }
-    confirm = (r, e) => {
-        if (e) error({ send: e })
-        this.popup.close(e ? '<div class="red">Error Sending.</div>' : '<div class="success">Message sent.</div>')
-    }
-    close = () => {
-        this.popup.close()
-    }
     input = (e, o) => {
         const complete = this.checkForm(),
             spam = this.checkSpam(),
@@ -68,11 +61,13 @@ class Contact extends Html {
         }
     }
     send = () => {
-        const data = this._form
-        if (this._to) data.to = this._to
-        ajax({ req: 'send', data })
-            .then(r => this.confirm(r))
-            .catch(e => this.confirm(null, e))
+        const { subject, message, name, email } = this._form, v = this._to
+        ajax({ req: 'send', subject, message, name, email, v })
+            .then(r => this.close('<div class="success">Message sent.</div>'))
+            .catch(e => {
+                error({ e })
+                this.close('<div class="red">Error Sending.</div>')
+            })
     }
     checkForm = () => {
         const form = this.form(), data = this._form = this.getForm(),

@@ -6,16 +6,16 @@ import { log } from './hatchend.mjs'
 
 const config = f('config.json', true).data
 // can refine by having one const d object with all the vars in it
-const d = { config, ei: [], vs: null, _vs: null, ev: null, vr: null, emails: null, photos: null, ps: null, pp: null, ns: null, fns: null }
+const d = { config }
 function load() {
     const fns = d.fns = {}
     fns['ps'] = photoN() // also sets ns and pp 
-    fns['vs'] = f_vs() // also sets vs, _vs, emails, vr
+    fns['vs'] = f_vs() // also sets ei, vs, _vs, emails, vr
     fns['ds'] = f_('ds')
     fns['cs'] = f_('cs')
     fns['vr'] = fv('vr')
     fns['es'] = f_es()
-    fns['mailLog'] = f('gz/mailLog.gz')
+    fns['ml'] = fv('ml')
     fns['results'] = f('gz/results.gz')
     return fns
 }
@@ -23,7 +23,7 @@ function load() {
 function saveF(n, d, k) {
     if (n === 'vs') saveV(d, k)
     else if (n === 'es') return saveE(d)
-    else if (n === 'mail') saveMl(d)
+    else if (n === 'ml') return saveMl(d, k)
     else if (n === 'ps') return savePs(d, k)
 }
 
@@ -37,12 +37,13 @@ function savePs(y, n) {
     return p
 }
 
-function saveMl(j) {
-    // rework maillog to make more efficient
-    const ml = fz('gz/mailLog.gz'), ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
-    ml[ts] = j
-    save('mailLog', ml)
-    fns['mailLog'] = f('gz/mailLog.gz')
+function saveMl(m, r) {
+    const ts = r ? m : new Date().toISOString()
+    if (r) d.ml[ts].sent = r.MessageId
+    else d.ml[ts] = m
+    save('_ml', d.ml)
+    d.fns['ml'] = f('gz/_ml.gz')
+    return ts
 }
 
 function saveV(v, r, ys) {
@@ -79,7 +80,10 @@ function saveE(u) {
 
 function f_vs() {
     d.emails = fs.existsSync(`gz/_emails.gz`) ? fz('gz/_emails.gz') : {}
-    if (d.ei.length === 0) Object.keys(d.emails).forEach(e => d.ei[d.emails[e].i] = e)
+    if (!d.ei) {
+        d.ei = {}
+        Object.keys(d.emails).forEach(e => d.ei[d.emails[e].i] = e)
+    }
     const f = fs.existsSync(`gz/_vs.gz`), ts = f ? fs.statSync(`gz/_vs.gz`).mtime : new Date()
     d._vs = f ? fz('gz/_vs.gz') : {}
     let n = 0, m = 0, p = 0, e = 0
@@ -110,11 +114,10 @@ function fv(fn) {
     const fe = fs.existsSync(`gz/_${fn}.gz`)
     d[fn] = fe ? fz(`gz/_${fn}.gz`) : {}
     log.info({ [fn]: Object.keys(d[fn]).length })
-    return fe ? f(fn) : { date: new Date(), data: zip({}, false, true) }
+    return fe ? f(`gz/_${fn}.gz`) : { date: new Date(), data: zip({}, false, true) }
 }
 
 function f_(fn) {
-    if (d.ei.length === 0) Object.keys(d.emails).forEach(e => d.ei[d.emails[e].i] = e)
     const fe = fs.existsSync(`gz/_${fn}.gz`),
         j = fe ? fz(`gz/_${fn}.gz`) : {},
         ts = fe ? fs.statSync(`gz/_${fn}.gz`).mtime : new Date(),
@@ -156,24 +159,23 @@ function f_(fn) {
     return { date: ts, data: zip(r, false, true) }
 }
 function f_es() {
-    if (d.ei.length === 0) Object.keys(d.emails).forEach(e => d.ei[d.emails[e].i] = e)
     const unsub = fs.existsSync(`gz/_unsub.gz`) ? fz(`gz/_unsub.gz`) : {},
         bounce = fs.existsSync(`gz/_bounce.gz`) ? fz(`gz/_bounce.gz`) : {},
         ets = fs.statSync(`gz/_emails.gz`).mtime,
         uts = fs.existsSync(`gz/_unsub.gz`) && fs.statSync(`gz/_unsub.gz`).mtime,
         bts = fs.existsSync(`gz/_bounce.gz`) && fs.statSync(`gz/_bounce.gz`).mtime,
-        ts = new Date(Math.max(ets.getTime(), uts ? uts.getTime() : 0, bts ? bts.getTime() : 0)),
-        r = {}
+        ts = new Date(Math.max(ets.getTime(), uts ? uts.getTime() : 0, bts ? bts.getTime() : 0))
+    d.es = {}
     let n = 0
     Object.values(d.emails).forEach(u => {
         const { i, first, last, fi, admin } = u
         if (unsub[i]) fi.unsub = unsub[i].date
         if (bounce[i]) fi.bounce = bounce[i].mail.timestamp
-        r[i] = { first, last, email: i, fi, admin }
+        d.es[i] = { first, last, i, fi, admin }
         n++
     })
     log.info({ es: n })
-    return { date: ts, data: zip(r, false, true) }
+    return { date: ts, data: zip(d.es, false, true) }
 }
 function photoN() {
     d.photos = fs.existsSync(`gz/_photos.gz`) ? fz('gz/_photos.gz') : {} // number to photos mapping

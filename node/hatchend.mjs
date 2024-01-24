@@ -85,19 +85,15 @@ function loginReq(j, r, a) {
 }
 
 function sendReq(j, r, a) {
-    if (j.data) {
-        const { to: id, name: from_name, email: from_e, subject, message } = j.data,
-            to = id && vs[id],
-            to_email = to && to.email,
-            to_name = to && to.name.split(' ')[0],
-            from = from_name || a.name,
-            from_email = from_e || a.email
-        //log.info('req->', req, id || '', from)
-        saveF('mail', j)
-        if (subject && message) send({ to: to_name, email: to_email, from_email, from, subject, message })
-            .then(s => resp(j, r, a, { sent: s }))
-        else resp(j, r, a, { e: 'no message' }, 400)
-    } else resp(j, r, a, { e: 'no data' }, 400)
+    const { v, name, email, subject, message } = j, i = a && a.i,
+        m = { v, subject, message, ...i ? { i } : { name, email } },
+        l = saveF('ml', m)
+    if (subject && message && (i || email)) send(m)
+        .then(s => {
+            saveF('ml', l, s)
+            resp(j, r, a, { sent: s })
+        })
+    else resp(j, r, a, { e: 'no message' }, 400)
 }
 
 function vName(id) {
@@ -279,9 +275,9 @@ function userReq(j, r, a) {
     if (u) {
         const { first, last, i, admin, fi } = u, aed = a.aed && !j.i,
             n = d.ns[email],
-            vs=d.ev[i]
-            debug({vs})
-        resp(j, r, a, { u: { first, last, i, fi, aed, admin, ns: n,vs, ...(j.i && { email }) } })
+            vs = d.ev[i]
+        debug({ vs })
+        resp(j, r, a, { u: { first, last, i, fi, aed, admin, ns: n, vs, ...(j.i && { email }) } })
     }
     else resp(j, r, a, { e: j }, 400)
 }
