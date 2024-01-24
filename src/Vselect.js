@@ -5,7 +5,7 @@ import { roles, sections } from './roles'
 import { ajax } from './ajax'
 
 function clear(id, aj, sec, role, ys) {
-    vr = nav.d.data.vr
+    const vr = nav.d.data.vr
     if (!id) {
         Object.keys(vr).forEach(id => {
             const r = clear(id, aj, sec, role)
@@ -34,7 +34,6 @@ class Vselect extends Html {
     constructor(p, name) {
         super(p, name)
         this.id = 'vselect'
-        this.vs = this.vNames()
     }
     form = () => {
         return {
@@ -43,7 +42,7 @@ class Vselect extends Html {
         }
     }
     link = (n) => {
-        if (n === 'close') return { class: 'close', tip: 'close', click: () => this.popup.close() }
+        if (n === 'close') return { class: 'close', tip: 'close', click: () => this.close() }
         else if (n === 'new') return { tip: 'check existing first' }
         else if (n === 'request') return { tip: 'click to request', click: this.request }
         else if (n.charAt(0) === '_') return { theme: 'light', tip: () => this.tip(n.substring(1)), click: () => this.setid(n.substring(1)) }
@@ -63,17 +62,11 @@ class Vselect extends Html {
             t = { a: 'Adult', j: 'Junior', s: '', f: '' }
         const data = { subject: 'Role Request', message: `Request: ${t[aj]}, ${sec}, ${role}`, to: 52 }
         req({ req: 'send', data })
-            .then(r => this.confirm(r))
-            .catch(e => this.error(e))
-    }
-    confirm = (r) => {
-        this.innerHTML = '<div class="message">Role Requested</div>'
-        setTimeout(this.popup.close, 3000)
-    }
-    error = (e) => {
-        debug({ e })
-        this.innerHTML = `<div class="message error">Request Error</div>`
-        setTimeout(this.popup.close, 3000)
+            .then(r => this.close('Role Requested'))
+            .catch(e => {
+                error({ e })
+                this.close('<div class="red">Error</div>')
+            })
     }
     var = (n) => {
         const name = this.name
@@ -92,7 +85,7 @@ class Vselect extends Html {
         }
     }
     nameSort = (a, b) => {
-        const vs = this._vs
+        const vs = nav.d.data.vs
         const { last: al, first: af } = vs[a], { last: bl, first: bf } = vs[b]
         if (al < bl) return -1
         if (al > bl) return 1
@@ -101,26 +94,16 @@ class Vselect extends Html {
         return 0
     }
     filter = (id) => {
-        const f = this._form, vs = this._vs, v = vs[id], y = v && v.year, vy = y && y[year]
+        const f = this._form, d=nav.d.data, v = d.vs[id], vr=d.vr[id]
         if (f && f.name) {
             const name = v.first + ' ' + v.last
             return name.toLowerCase().indexOf(f.name.toLowerCase()) > -1
         }
-        else return vy && ((vy.adult && (!vy.arole || vy.arole === 'Role')) || (vy.junior && (!vy.jrole || vy.jrole === 'Role')))
-    }
-    vNames = () => {
-        const vs = nav.d.data.vs, es = nav.d.data.es, ns = {}
-        Object.keys(vs).filter(id => vs[id].i).forEach(id => {
-            ns[id] = vs[id]
-            const v = ns[id], u = es[v.i]
-            v.first = v.first || u.first
-            v.last = v.last || u.last
-        })
-        this._vs = ns
+        else return vr && ((vr.adult && (!vr.arole || vr.arole === 'Role')) || (vr.junior && (!vr.jrole || vr.jrole === 'Role')))
     }
     vol_names = () => {
-        const vs = this._vs,
-            vols = Object.keys(vs).filter(this.filter).sort(this.nameSort),
+        const d=nav.d.data,vs=d.vs,
+            vols = Object.keys(d.vr).filter(this.filter).sort(this.nameSort),
             html = vols.slice(0, 10).map(id => `<div>{link._${id}.${_s(vs[id].first)}_${_s(vs[id].last)}}</div>`)
                 .join(' ')
         const f = this._form, name = f && f.name
@@ -135,17 +118,17 @@ class Vselect extends Html {
         const name = this.name,
             [, aj, s, r] = name.match(/([sajf])_(\d{1,2})r_(\d{1,2})/),
             sec = sections[s], rs = roles(sec), role = rs[r],
-            vs = this._vs,
+            d=nav.d.data,
             ys = []
         clear(null, aj, sec, role, ys)
-        const v = vs && vs[id], vy = v.year[year] || {}
+        const v = d.vs[id], vy = d.vr[id]
         if (aj !== 'a') { vy.jsection = sec, vy.jrole = role, vy.junior = true, vy.none = false }
         if (aj !== 'j') { vy.asection = sec, vy.arole = role, vy.adult = true, vy.none = false }
         ajax({ req: 'save', vol: v.id, year, roles: vy, ys }).then(r => {
-            this.popup.close('<div class="green">updated</div>', 'vs')
+            this.close('<div class="green">updated</div>', 'vs')
         }).catch(e => {
             error({ e })
-            this.popup.close('<div class="red">Error</div>')
+            this.close('<div class="red">Error</div>')
         })
     }
     input = () => {

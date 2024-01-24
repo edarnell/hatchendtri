@@ -661,22 +661,36 @@ function options(el, opts) {
     })
 }
 
-function selectSection(p, sn, rn) {
-    const r = p.fe(rn),
+function selectSection(p, sn) {
+    const r = p.fe(sn.charAt(0) + 'role'),
         s = p.fe(sn)
     options(r, ['Role'].concat(roles(s.value)))
     r.value = 'Role'
 }
-function selectRole(p, sn, rn) {
-    const s = p.fe(sn)
+function selectRole(p, rn) {
+    const s = p.fe(rn.charAt(0) + 'section')
     if (s.value === 'Section') {
         const r = p.fe(rn),
             v = r.value,
             i = r.selectedIndex,
             so = roleMap[i - 1]
         s.value = so.section
-        options(r, ['Role'].concat(roles(so.section)))
+        options(r, ['Role'].concat(roles(s.value)))
         r.value = v
     }
 }
-export { section, sections, roles, selectSection, selectRole }
+function setVol(p, v) {
+    ['a', 'j'].forEach(aj => {
+    const cn=aj==='a'?'adult':'junior',c=p.fe(cn),
+        sn=aj+'section',
+        rn=aj+'role'
+    c.checked = v[cn]         
+    if (v[cn] && v[sn] && v[rn]) {
+        const s = p.fe(sn),r = p.fe(rn)
+        s.value = v[sn]
+        options(r, ['Role'].concat(roles(s.value)))
+        r.value = v[rn]
+    }
+})
+}
+export { section, sections, roles, selectSection, selectRole,setVol }

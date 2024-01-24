@@ -157,7 +157,6 @@ class TT {
             p.id = id
             p.close = this.close
             p.render(p)
-            debug({ popdiv: this, popup, p, l, link })
             if (link.popup) this.pop = createPopper(l, popup, {
                 placement: link.placement || 'top',
                 strategy: link.strategy || 'absolute',

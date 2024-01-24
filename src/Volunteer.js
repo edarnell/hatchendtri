@@ -30,12 +30,12 @@ class Volunteer extends Html {
     this.reload()
   }
   rendered = () => {
-    const vs = nav.d.data.vs, u = vs && nav._user
+    const u = nav._user, v = u && u.vs && u.vs[0]
     if (u && u.admin) {
       const n = this.fe('New')
       if (n) n.classList.remove('hidden')
     }
-    if (u && this.color() === 'grey') {
+    if (u && this.color(v) === 'grey') {
       const l = this.q(`[id="TT_n_greet_0"]`)
       if (l) l.click()
     }
@@ -51,7 +51,7 @@ class Volunteer extends Html {
   link = (n) => {
     if (n === 'n') {
       const u = nav._user, v = u.vs && u.vs[0], c = this.color(v)
-      return { tip: () => this.utip(), class: this.color(), popup: `{Vol.n}` }
+      return { tip: () => this.utip(), class: c, popup: `{Vol.${v||'u'}}` }
     }
     else {
       const id = n.substring(1), vs = nav.d.data.vs, vol = vs[id]
@@ -81,20 +81,20 @@ class Volunteer extends Html {
       n = v && v.none,
       r = v && (v.adult || v.junior),
       rb = r && ((v.adult && !v.arole) || (v.junior && !v.jrole))
-    const ret = r ? (rb && id) ? 'blue' : 'green' : n ? 'red' : 'grey'
+    const ret = r ? rb ? 'blue' : 'green' : n ? 'red' : 'grey'
     return ret
   }
   utip = () => {
     const u = nav._user, v = u.vs && u.vs[0], c = this.color(v)
     if (c === 'grey') return '<div class="grey">click to set availability</div>'
-    else return this.vtip(vid).replace(/\?/g, '✓')
+    else return this.vtip(v).replace(/\?/g, '✓')
   }
   vtip = (id) => {
     const vr = nav.d.data.vr, v = vr && vr[id], cl = this.color(id)
     if (v) {
-      const r = (vy.adult || vy.junior || vy.none),
-        ar = vy.adult ? vy.arole ? (vy.asection + ' ' + vy.arole) : '?' : r ? '✗' : '?',
-        jr = vy.junior ? vy.jrole ? (vy.jsection + ' ' + vy.jrole) : '?' : r ? '✗' : '?'
+      const r = (v.adult || v.junior || v.none),
+        ar = v.adult ? v.arole ? (v.asection + ' ' + v.arole) : '?' : r ? '✗' : '?',
+        jr = v.junior ? v.jrole ? (v.jsection + ' ' + v.jrole) : '?' : r ? '✗' : '?'
       return `<div class=${cl}>${year} ${ar}, ${jr}</div>`
     }
     else return `<div class=${cl}>${year} ?</div>`
@@ -107,7 +107,7 @@ class Volunteer extends Html {
   yroles = (v, y = year) => {
     if (v && v.year && v.year[y]) {
       const vy = v.year[y]
-      return `<div>${y} ${vy.adult || '✗'}, ${vy.junio || '✗'}</div>`
+      return `<div>${y} ${vy.adult || '✗'}, ${vy.junior || '✗'}</div>`
     }
     else return ''
   }
@@ -294,6 +294,10 @@ class Vroles extends Html {
       fvs = ks && ks.filter(k => k && k.n).sort((a, b) => b.n - a.n)
     return fvs
   }
+  vname= (id) => {
+    const v = nav.d.data.vs[id]
+    return v.first + ' ' + v.last
+  }
   fill = (v, r, s) => {
     const so = section[s], vs = nav.d.data.vs,
       amin = so.role[r].qty.adult.min, amax = so.role[r].qty.adult.max,
@@ -314,8 +318,8 @@ class Vroles extends Html {
       }
       else {
         const n = v[i].n, m = v[j].n,
-          vi = `{link._${v[i].id}.${_s(name(v[i].id, true, true))}}`,
-          vj = `{link._${v[j].id}.${_s(name(v[j].id, true, true))}}`,
+          vi = `{link._${v[i].id}.${_s(this.vname(v[i].id))}}`,
+          vj = `{link._${v[j].id}.${_s(this.vname(v[j].id))}}`,
           bi = t < amin ? reqa : t < amax ? opta : '',
           bj = t < jmin ? reqj : t < jmax ? optj : ''
         if (n === 3) {
@@ -356,40 +360,6 @@ class Vroles extends Html {
     if (ul && ul.length > 1) ret = ret.filter(r => this.role_filter(r, ul))
     //debug({ ul, ret })
     return ret
-  }
-}
-
-class Greet extends Html {
-  constructor(p, name) {
-    super(p, name || 'greet')
-  }
-  html = () => {
-    let ret = ''
-    if (nav.reply) {
-      const us = nav.users()
-      if (us) us.forEach(u => {
-        const uaj = u.year[year], s = uaj && (uaj.adult || uaj.junior || uaj.none)
-        if (!s) {
-          const roles = nav.reply === 'yes' ? { adult: true, junior: true } : { none: true }
-          req({ req: 'save', vol: u.id, roles }).then(r => {
-            debug({ r })
-          }).catch(e => debug({ e }))
-        } else {
-          req({
-            req: 'send', data: {
-              subject: `volunteer ${nav.reply}`,
-              message: `current adult:${uaj.adult} junior:${uaj.junior} none:${uaj.none}\n` +
-                `arole:${uaj.asection},${uaj.arole} jrole:${uaj.jsection},${uaj.jrole}`
-            }
-          })
-        }
-      })
-      ret = nav.reply === 'yes' ? greetY : greetN
-    }
-    else {
-      ret = greet
-    }
-    return `<div id="greet">${ret}</div>`
   }
 }
 

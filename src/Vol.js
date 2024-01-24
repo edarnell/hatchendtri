@@ -1,5 +1,5 @@
 import Html, { debug, nav, _s, error } from './Html'
-import { sections, roles, selectSection, selectRole } from './roles'
+import { sections, roles, selectSection, selectRole, setVol } from './roles'
 import html from './html/Vol.html'
 import volD from './html/volD.html'
 import volE from './html/volE.html'
@@ -111,18 +111,7 @@ class Vol extends Html {
             const vr = nav.d.data.vr, vy = vr && vr[v.id] || {}
             if (vy) {
                 if (vy.none) this.fe('none').checked = true
-                else {
-                    if (vy.adult) {
-                        this.fe('adult').checked = true
-                        if (vy.asection) selectSection(this, vy.asection, 'arole')
-                        if (vy.arole) selectRole(this, 'asection', vy.arole)
-                    }
-                    if (vy.junior) {
-                        this.fe('junior').checked = true
-                        if (vy.jsection) selectSection(this, vy.jsection, 'jrole')
-                        if (vy.jrole) selectRole(this, 'jsection', vy.jrole)
-                    }
-                }
+                else setVol(this, vy)
                 if (vy.notes) this.fe('notes').value = vy.notes
                 this.hidden()
             }
@@ -149,8 +138,8 @@ class Vol extends Html {
             js.classList.add('hidden')
             ar.classList.add('hidden')
             jr.classList.add('hidden')
-            selectSection(this, 'asection', 'arole')
-            selectSection(this, 'jsection', 'jrole')
+            //selectSection(this, 'asection', 'arole')
+            //selectSection(this, 'jsection', 'jrole')
         }
         else if (race === 'adult' || race === 'junior') {
             const x = race === 'adult' ? a : j,
@@ -167,7 +156,7 @@ class Vol extends Html {
             else {
                 s.classList.add('hidden')
                 r.classList.add('hidden')
-                selectSection(this, c + 'section', c + 'role')
+                //selectSection(this, c + 'section', c + 'role')
             }
         }
     }
@@ -195,8 +184,8 @@ class Vol extends Html {
     }
     input = (e, o) => {
         const name = o.name
-        if (name === 'asection' || name === 'jsection') selectSection(this, name, name.charAt(0) + 'role')
-        else if (name === 'arole' || name === 'jrole') selectRole(this, name.charAt(0) + 'section', name)
+        if (name === 'asection' || name === 'jsection') selectSection(this, name)
+        else if (name === 'arole' || name === 'jrole') selectRole(this, name)
         else if (name === 'adult' || name === 'junior' || name === 'none') this.hidden(name)
     }
 }
