@@ -66,7 +66,7 @@ class Contact extends Html {
             .then(r => this.close('<div class="success">Message sent.</div>'))
             .catch(e => {
                 error({ e })
-                this.close('<div class="red">Error Sending.</div>')
+                this.close('<div class="error">Error Sending.</div>')
             })
     }
     checkForm = () => {

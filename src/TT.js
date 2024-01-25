@@ -93,7 +93,7 @@ class TT {
     }
     click = (e) => {
         const lk = this.lk
-        //debug({ TTclick: this, lk })
+        debug({ TTclick: this, lk })
         if (lk) {
             e.preventDefault()
             if (this.tt) this.timer = setTimeout(this.ttremove, lk.tip === 'close' ? 100 : 1000)

@@ -1,11 +1,21 @@
 import puppeteer from 'puppeteer'
 import fs from 'fs/promises'
 import path from 'path'
+import jwt from 'jsonwebtoken'
+
 const debug = console.log.bind(console)
 const url = 'http:localhost:3000',
     dir = path.join(__dirname, 'html'),
     cssDir = path.join(__dirname, '..', 'src', 'css'),
-    nodeDir = path.join(__dirname, '..', 'node', 'test')
+    nodeDir = path.join(__dirname, '..', 'node', 'test'),
+    confDir = path.join(__dirname, '..', 'node')
+let config
+async function conf() {
+    if (!config) {
+        const cf = await fs.readFile(path.join(confDir, 'config.json'), 'utf-8')
+        config = JSON.parse(cf)
+    }
+}
 
 describe('HTML Fragment Test', () => {
     let browser, page
@@ -59,6 +69,7 @@ describe('HTML Fragment Test', () => {
         const nav = ['details', 'results', 'home']
         for (const link of nav) {
             await page.click(`a[href="${link}"]`)
+            await page.waitForFunction(() => !document.querySelector('#loading'))
             await page.waitForFunction(v => document.querySelector('#nav_page').innerText === v, {}, uc1(link))
             const pg = await page.$eval('#root', h => h.innerHTML)
             await scp(link, pg)
@@ -125,6 +136,22 @@ describe('HTML Fragment Test', () => {
         expect(txt).toBe('Login link emailed.')
         const email = await fs.readFile(path.join(nodeDir, 'Login.email'), 'utf-8')
         await scp('Login', email, '.email')
+    })
+
+    test.only('Unsub', async () => {
+        if (!config) await conf()
+        const email = 'epdarnell+test@gmail.com',
+            tok = jwt.sign({ email, ts: Date.now() }, config.key)
+        await page.goto(url + '/unsubscribe#' + tok)
+        await page.waitForSelector('#unsub')
+        await hover('IN_unsub', 'Confirm Unsubscribe', 'primary')
+        await page.type('[id^="IN_reason"]', 'Pupeteer test')
+        await page.click('[id^="IN_unsub"]')
+        await page.waitForSelector('[id^="tip_TT_user"]')
+        const txt = await page.$eval('[id^="tip_TT_user"]', el => el.textContent)
+        expect(txt).toBe('Unsubscribed.')
+        const unsub = await fs.readFile(path.join(nodeDir, 'Unsubscribe.email'), 'utf-8')
+        await scp('Unsubscribe', unsub, '.email')
     })
 
 })

@@ -29,6 +29,8 @@ class Nav extends Html {
             const H = new m.default()
             this.O = H.O
             nav = this
+            nav._sub = this.path === 'subscribe'
+            nav._unsub = this.path === 'unsubscribe'
             this.d.user().then(r => {
                 this._user = r
                 this.render(this, 'root')
@@ -50,8 +52,12 @@ class Nav extends Html {
         this.i = (this.i + 1) % 3
     }
     rendered = () => {
-        this.userIcon(this._user)
         this.load()
+        if (this._sub || this._unsub) {
+            const l = this.q(`[id*="TT_user_nav"]`)
+            l.click()
+        }
+        else this.userIcon(this._user)
     }
     wrap = () => {
         // not sure this is needed now
@@ -77,8 +83,6 @@ class Nav extends Html {
         else if (!p.hide) error({ toggle: { active, page, l } })
     }
     load = (pg) => {
-        const unsub = this.path === 'unsubscribe',
-            sub = this.path === 'subscribe'
         if (!this.pages[this.path]) this.path = 'home'
         if (pg && pg !== this.path && this.pages[pg]) {
             this.toggle(false, this.path)
@@ -92,8 +96,6 @@ class Nav extends Html {
         history.pushState(null, null, this.path === 'home' ? '/' : `/${this.path}`);
         this.image()
         if (pg) this.checkUser()
-        else if (unsub) this.unsubscribe()
-        else if (sub) this.subscribe()
     }
     userIcon = (set) => {
         if (set !== undefined) {
@@ -102,7 +104,7 @@ class Nav extends Html {
             l.src = (this._user) ? icons['user'].active : l.src = icons['user'].default
         }
         const lo = this.q(`[id*="TT_user_nav"]`), o = lo && this.tt[lo.id]
-        if (o && o.pdiv) o.close()
+        if (!this._unsub && o && o.pdiv) o.close()
     }
     checkUser() { // check for logout/login elsewhere
         return new Promise((s, f) => {
@@ -125,18 +127,8 @@ class Nav extends Html {
         localStorage.removeItem('HEtoken')
         this.userIcon(false)
         debug({ page: this.page, path: this.path })
-        if (this.path = 'volunteer') this.page.popclose('vol_avail') // safe to call if not open
+        if (this.path === 'volunteer') this.page.popclose('vol_avail') // safe to call if not open
         this.load('home')
-    }
-    unsubscribe = () => {
-        const l = this.q(`[id*="TT_user_nav"]`)
-        this.pages.user.pop = 'Unsub'
-        l.click()
-    }
-    subscribe = () => {
-        const l = this.q(`[id*="TT_user_nav"]`)
-        this.pages.user.pop = 'Sub'
-        l.click()
     }
     close = (m, u) => {
         this.popclose(u || u === false ? 'nav_sub' : 'nav_unsub')

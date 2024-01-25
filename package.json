@@ -52,6 +52,7 @@
     "@floating-ui/dom": "^1.2.3",
     "@popperjs/core": "^2.11.6",
     "buffer": "^6.0.3",
+    "jsonwebtoken": "^9.0.2",
     "jszip": "^3.10.1",
     "pako": "^2.1.0"
   }

@@ -1,18 +1,15 @@
 // credentials in config.json
 import { STSClient, GetSessionTokenCommand } from '@aws-sdk/client-sts'
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
-import { f } from './zip.mjs'
-import fs from 'fs'
 import jwt from 'jsonwebtoken'
 import { log } from './hatchend.mjs'
 import { d, saveF } from './files.mjs'
-
-const config = f('config.json', true).data
-const mail = f('mail.html', true).data
-const aws = config.aws
+import fs from 'fs' // for testing - write of email files
 
 function send_list(m) {
-    const { subject, list } = m, length = list.length
+    const aws = { ...d.config.aws },
+        { subject, list } = m,
+        length = list.length
     log.info({ sending: length })
     aws.clientDefault = { outputFormat: 'json' }
     const sts = new STSClient(aws)
@@ -72,14 +69,14 @@ const _footer = '{het} is organised and run by {jet}<br/><br/>',
         + 'You can reply to this email or {unsubscribe} at any time.',
     _sub = 'Your email is not currently subscribed. You can reply to this email, {subscribe} or {unsubscribe} at any time.'
 function email(p) {
-    var html = mail.slice()
+    var html = d.mail // a copy as it is a string
     const m = {},
-        email = p.v ? d._vs[p.v].email : config.admin_to,
+        to_email = p.to_email || (p.v ? d._vs[p.v].email : d.config.admin_to),
         u = p.i && d.es[p.i],
-        from = u ? d.ei[u.i] : config.admin_to,
-        token = jwt.sign({ email, ts: Date.now() }, config.key),
-        test = email === 'epdarnell+test@gmail.com'
-    m.to = p.v ? d.vs[p.v].first : "Race Organiser"
+        from = p.email || (u ? d.ei[u.i] : d.config.admin_to),
+        token = jwt.sign({ to_email, ts: Date.now() }, d.config.key),
+        test = [from, to_email].includes('epdarnell+test@gmail.com')
+    m.to = p.to || (p.v ? d.vs[p.v].first : "Race Organiser")
     m.footer = (p.footer || _footer) + (p.unsub ? _unsub : '') + (p.sub ? _sub : '')
     m.from = u ? u.first + ' ' + u.last : p.name || 'Ed Darnell<br>Race Organiser'
     m.message = p.message && p.message.replace(/\n/g, "<br />\r\n") || ''
@@ -95,14 +92,14 @@ function email(p) {
     html = html.replace(/\{url\}/g, '<a href="{host}">hatchendtri.com</a>')
     html = html.replace(/\{atw\}/g, '<a href="https://www.atwevents.co.uk/e/hatch-end-harrow-triathlon-10671">ATW</a>')
     html = html.replace(/\{token\}/g, '#' + token)
-    html = html.replace(/\{host\}/g, p.live ? 'https://hatchendtri.com' : config.host)
+    html = html.replace(/\{host\}/g, p.live ? 'https://hatchendtri.com' : d.config.host)
     const text = "Dear " + m.to + "\r\n"
         + html_text(m.message) + "\r\n"
         + html_text(m.from) + "\r\n"
         + html_text(m.footer) + "\r\n"
     const ps = {
         Destination: {
-            ToAddresses: [((p.live || config.live || test) && email) || config.admin_to],
+            ToAddresses: [((p.live || d.config.live || test) && to_email) || d.config.admin_to],
         },
         Message: {
             Body: {
@@ -120,15 +117,17 @@ function email(p) {
                 Data: "Hatch End Triathlon - " + (p.subject || "Message"),
             },
         },
-        Source: config.admin_to,
+        Source: d.config.admin_to,
         ReplyToAddresses: [from],
     }
-    if (!config.live && test) fs.writeFileSync('test/' + p.subject + '.email', JSON.stringify(ps, null, 2))
+    if (!d.config.live && test) fs.writeFileSync('test/' + p.subject + '.email', JSON.stringify(ps, null, 2))
     return ps
 }
 
-function send(p) {
+function send(m) {
     return new Promise((s, f) => {
+        const aws = { ...d.config.aws },
+            l = saveF('ml', m)
         aws.clientDefault = { outputFormat: 'json' }
         const sts = new STSClient(aws)
         const stsCommand = new GetSessionTokenCommand({ DurationSeconds: 900 })
@@ -142,8 +141,19 @@ function send(p) {
                     sessionToken: r.Credentials.SessionToken
                 }
             })
-            ses.send(new SendEmailCommand(email(p))).then(r => s(r)).catch(e => f(e))
-        }).catch(e => f(e))
+            ses.send(new SendEmailCommand(email(m))).then(r => {
+                saveF('ml', l, r)
+                s(r)
+            }).catch(e => {
+                log.error({ e })
+                saveF('ml', l, e)
+                f(e)
+            })
+        }).catch(e => {
+            log.error({ e })
+            saveF('ml', l, e)
+            f(e)
+        })
     })
 }
 

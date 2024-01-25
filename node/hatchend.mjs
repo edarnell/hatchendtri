@@ -71,28 +71,23 @@ function datesReq(j, r, a) {
 
 function loginReq(j, r, a) {
     if (j.email) {
-        const email = j.email, u = d.emails[email]
-        if (!u) send({
-            to: 'Competitor/Volunteer', sub: true, email: email, subject: 'Login',
-            message: 'Your email is not registered with {het} but you can {subscribe}.\n\n' +
-                'You may safetly ignore this email if someone else has mistakenly entered your email address.'
-        }).then(s => resp(j, r, a, { sent: s }))
-        else send({
-            to: u.first, email: email, unsub: true, subject: 'Login',
-            message: 'You will be automatically logged in by the following {results}, {competitor} or {volunteer} links.'
-        }).then(s => resp(j, r, u, { sent: s }))
+        const email = j.email, u = d.emails[email], i = u && u.i,
+            msg = i ? `You will be automatically logged in by the following {results}, {competitor} or {volunteer} links.` :
+                'Your email is not registered with {het} but you can {subscribe}.' +
+                'You may safetly ignore this email if someone else has mistakenly entered your email address.',
+            m = { subject: 'Login', message: msg, to_email: email, ...i ? { to: u.first, unsub: true } : { to: 'Competitor/Volunteer', sub: true } }
+        send(m)
+            .then(s => resp(j, r, u, { sent: s }))
+            .catch(e => resp(j, r, u, { e: 'send failed' }, 400))
     } else resp(j, r, a, { message: 'no email' }, 400)
 }
 
 function sendReq(j, r, a) {
     const { v, name, email, subject, message } = j, i = a && a.i,
-        m = { v, subject, message, ...i ? { i } : { name, email } },
-        l = saveF('ml', m)
+        m = { v, subject, message, ...i ? { i } : { name, email } }
     if (subject && message && (i || email)) send(m)
-        .then(s => {
-            saveF('ml', l, s)
-            resp(j, r, a, { sent: s })
-        })
+        .then(s => resp(j, r, a, { sent: s }))
+        .catch(e => resp(j, r, a, { e: 'send failed' }, 400))
     else resp(j, r, a, { e: 'no message' }, 400)
 }
 
@@ -236,18 +231,19 @@ function saveReq(j, r, a) {
 function unsubReq(j, r, a) {
     const tok = j.tok, auth = tok && jwt.verify(tok, d.config.key),
         ae = ue(auth.email)
-    if (a && a.i !== ae.i) log.info({ unsub: { a: a.i, ae: ae.i } })
+    if (a && ae && a.i !== ae.i) log.info({ unsub: { ai: a.i, ae: ae.i } })
     if (ae && j.u) resp(j, r, a, { u: ae }) // get unsub user details
     else if (ae && j.i == ae.i) {
         const reason = j.reason || '', { first, last } = ae,
-            unsub = fs.existsSync(`gz/_unsub.gz`) ? fz('gz/_unsub.gz') : {}
-        unsub[ae.i] = { i: ae.i, first, last, reason, date: new Date().toISOString().slice(0, 10) }
-        save('_unsub', unsub)
-        send({
-            from_email: ae.email, subject: 'Unsubscibe',
+            un = { i: ae.i, first, last, reason, date: new Date().toISOString() }
+        saveF('unsub', un)
+        const m = {
+            i: ae.i,
+            subject: 'Unsubscribe',
             message: `${first} ${last} ${ae.i} unsubscribed\n Reason: ${reason}\n` +
                 `${a && a.i !== ae.i ? `${ae.i}(${ae.email}) !== ${a.i}(${a.email})\n` : ''}`
-        })
+        }
+        send(m)
         resp(j, r, a, { unsub: true })
     } else resp(j, r, a, { e: 'data error' }, 400)
 }

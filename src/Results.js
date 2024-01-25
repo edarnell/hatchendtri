@@ -208,13 +208,14 @@ class Results extends Html {
     return `<div id="results_${year}"><h5>{link.year.${year}}</h5>{table.results_year.${year}}</div>`
   }
   results_all = () => {
-    const r = nav.d.data.results, years = r && Object.keys(r).reverse()
+    const r = nav.d.data.results, ps = nav.d.data.ps, years = r && Object.keys(r).reverse()
     let n = 0
-    if (r) return years.map(year => {
+    if (r && ps) return years.map(year => {
       let rows = n < 100 ? this.filter(year) : []
       n += rows.length
       return (rows.length > 0) ? `{div.results_${year}}` : ''
     }).join('')
+    else return '<div id="loading">Loading...</div>'
   }
 }
 

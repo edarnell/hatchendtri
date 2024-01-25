@@ -17,6 +17,7 @@ function load() {
     fns['es'] = f_es()
     fns['ml'] = fv('ml')
     fns['results'] = f('gz/results.gz')
+    d.mail = fs.readFileSync('mail.html').toString()
     return fns
 }
 
@@ -25,6 +26,7 @@ function saveF(n, d, k) {
     else if (n === 'es') return saveE(d)
     else if (n === 'ml') return saveMl(d, k)
     else if (n === 'ps') return savePs(d, k)
+    else if (n === 'unsub') return saveUnsub(d)
 }
 
 function savePs(y, n) {
@@ -37,9 +39,18 @@ function savePs(y, n) {
     return p
 }
 
+function saveUnsub(u) {
+    d.unsub[u.i] = u
+    save('_unsub', d.unsub)
+    d.fns['es'] = f_es()
+}
+
 function saveMl(m, r) {
     const ts = r ? m : new Date().toISOString()
-    if (r) d.ml[ts].sent = r.MessageId
+    if (r) {
+        if (r.MessageId) d.ml[ts].sent = r.MessageId
+        else d.ml[ts].error = r
+    }
     else d.ml[ts] = m
     save('_ml', d.ml)
     d.fns['ml'] = f('gz/_ml.gz')
@@ -166,8 +177,11 @@ function f_es() {
         bts = fs.existsSync(`gz/_bounce.gz`) && fs.statSync(`gz/_bounce.gz`).mtime,
         ts = new Date(Math.max(ets.getTime(), uts ? uts.getTime() : 0, bts ? bts.getTime() : 0))
     d.es = {}
+    d.unsub = unsub
+    d.bounce = bounce
     let n = 0
     Object.values(d.emails).forEach(u => {
+        if (!u.fi) u.fi = {}
         const { i, first, last, fi, admin } = u
         if (unsub[i]) fi.unsub = unsub[i].date
         if (bounce[i]) fi.bounce = bounce[i].mail.timestamp
