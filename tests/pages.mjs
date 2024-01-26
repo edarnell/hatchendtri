@@ -150,8 +150,26 @@ describe('HTML Fragment Test', () => {
         await page.waitForSelector('[id^="tip_TT_user"]')
         const txt = await page.$eval('[id^="tip_TT_user"]', el => el.textContent)
         expect(txt).toBe('Unsubscribed.')
-        const unsub = await fs.readFile(path.join(nodeDir, 'Unsubscribe.email'), 'utf-8')
-        await scp('Unsubscribe', unsub, '.email')
+        waitForFile(path.join(nodeDir, 'Unsubscribe.email')).then(async unsub => {
+            await scp('Unsubscribe', unsub, '.email')
+        })
     })
 
 })
+
+function waitForFile(fn, i = 100, t = 1000) {
+    return new Promise((s, f) => {
+        const t = setInterval(() => {
+            fs.access(fn, fs.constants.F_OK, e => {
+                if (!e) {
+                    clearInterval(t)
+                    fs.readFile(f, 'utf-8').then(r => s(r)).catch(e => f(e))
+                }
+            })
+        }, i)
+        setTimeout(() => {
+            clearInterval(t)
+            f(new Error(`File timeout: ${f} ${t}ms`));
+        }, t)
+    })
+}
