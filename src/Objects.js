@@ -8,7 +8,7 @@ import Competitor from './Competitor'
 import Details from './Details'
 import Results from './Results'
 import Contact from './Contact'
-import User, { Login } from './User'
+import User from './User'
 import Home from './Home'
 import CSV from './CSV'
 import Photos, { PhotosP } from './Photos'
@@ -27,8 +27,7 @@ const cs = {
     Photos,
     PhotosP,
     Vselect,
-    Vol,
-    Login
+    Vol
 }
 class H {
     O = (n, ...args) => {

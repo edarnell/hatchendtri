@@ -7,28 +7,6 @@ class Data {
         this.data = {}
         this.dates = {}
     }
-    user = () => {
-        return new Promise((s, f) => {
-            const token = localStorage.getItem('HEtoken')
-            if (token) ajax({ req: 'user' }).then(r => {
-                const user = r.u
-                s(user) // user or null (no vol or comp)
-            }).catch(e => {
-                debug({ e })
-                f(e)
-            })
-            else {
-                s(false) // undefined (no token)
-            }
-        })
-    }
-    admin = (ed) => {
-        const u = nav._user, vs = u && u.vol
-        let ret
-        if (vs) ret = Object.values(vs).some(u => u.admin === true)
-        if (ret && ed) ret = Object.values(vs).some(u => u.email === 'ed@darnell.org.uk')
-        return ret
-    }
     check = async (req) => {
         if (Array.isArray(req.data)) return req.every(r => this.data[r])
         else return this.data[req && req.data]

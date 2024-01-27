@@ -5,6 +5,7 @@ import html from './html/Nav.html'
 import { icons } from './icons'
 import Data from './Data.js'
 import { apage } from './Admin'
+import { ajax } from './ajax'
 
 const images = ['url("swim.jpg")', 'url("bike.jpg")', 'url("run.jpg")']
 var nav
@@ -23,23 +24,30 @@ class Nav extends Html {
         }
         this.d = new Data(this)
         this.id = 'nav'
-        this.i = Math.floor(Math.random() * 3)
         this.init(css, favicon)
         import('./Objects.js').then(m => {
             const H = new m.default()
             this.O = H.O
             nav = this
-            nav._sub = this.path === 'subscribe'
-            nav._unsub = this.path === 'unsubscribe'
-            this.d.user().then(r => {
-                this._user = r
-                this.render(this, 'root')
-            }).catch(e => {
-                debug({ e })
-                this._user = false
-                this.render(this, 'root')
-            })
+            this.path()
+            this.i = Math.floor(Math.random() * 3)
+            this.render(this, 'root')
         })
+    }
+    path = () => {
+        const t = localStorage.getItem('HEtoken'), d = localStorage.getItem('HEdate')
+        if (!d) { // tidy up old storage - can add or d<date
+            localStorage.clear()
+            localStorage.setItem('HEdate', new Date().toISOString())
+            if (t) localStorage.setItem('HEtoken', t) // keep user token
+        }
+        const hash = window.location.hash, token = hash && hash.substring(1)
+        window.location.hash = ''
+        this.path = window.location.pathname.replace('/', '')
+        if (token && token.length > 10) {
+            if (['home', 'unsubscribe', 'register'].includes(this.path)) localStorage.setItem('HEtok', token)
+            else localStorage.setItem('HEtoken', token)
+        }
     }
     html = (n) => {
         // ${this.path === 'admin' ? '{select.admin}' : ''}
@@ -52,12 +60,17 @@ class Nav extends Html {
         this.i = (this.i + 1) % 3
     }
     rendered = () => {
-        this.load()
-        if (this._sub || this._unsub) {
+        debug({ nav: this })
+        if (this.path === 'register' || this.path === 'unsubscribe') {
+            this._path = this.path
             const l = this.q(`[id*="TT_user_nav"]`)
             l.click()
+            this.load()
         }
-        else this.userIcon(this._user)
+        else this.user().then(r => {
+            this.userIcon(r)
+            this.load()
+        })
     }
     wrap = () => {
         // not sure this is needed now
@@ -67,7 +80,6 @@ class Nav extends Html {
     }
     toggle = (active, path) => {
         const p = this.pages[path], l = this.q(`[id*="TT_${path}_nav"]`)
-        this.userIcon()
         if (l) {
             if (!active) {
                 l.classList.remove('active')
@@ -95,31 +107,30 @@ class Nav extends Html {
         this.render(this.page, 'page')
         history.pushState(null, null, this.path === 'home' ? '/' : `/${this.path}`);
         this.image()
-        if (pg) this.checkUser()
+        if (pg) this.user().then(r => this.userIcon(r))
     }
     userIcon = (set) => {
         if (set !== undefined) {
             this._user = set
             const l = this.q(`[id*="icon_TT_user_nav"]`)
             l.src = (this._user) ? icons['user'].active : l.src = icons['user'].default
+            // TODO - should ideally refresh tt if hovered
         }
         const lo = this.q(`[id*="TT_user_nav"]`), o = lo && this.tt[lo.id]
         if (!this._unsub && o && o.pdiv) o.close()
     }
-    checkUser() { // check for logout/login elsewhere
+    user = () => {
         return new Promise((s, f) => {
             const token = localStorage.getItem('HEtoken')
-            if (this._user !== false && !token) {
-                this.logout() // logout elsewhere
-                s()
-            }
-            else if (token) {
-                this.d.user().then(r => {
-                    this.userIcon(r)
-                }).catch(e => {
-                    debug({ e })
-                    this.userIcon(false)
-                })
+            if (token) ajax({ req: 'user' }).then(r => {
+                s(r.u) // user or null (no vol or comp)
+            }).catch(e => {
+                debug({ e })
+                localStorage.removeItem('HEtoken')
+                f(e)
+            })
+            else {
+                s(false) // undefined (no token)
             }
         })
     }
@@ -130,31 +141,14 @@ class Nav extends Html {
         if (this.path === 'volunteer') this.page.popclose('vol_avail') // safe to call if not open
         this.load('home')
     }
-    close = (m, u) => {
-        this.popclose(u || u === false ? 'nav_sub' : 'nav_unsub')
-        if (u) {
-            const token = localStorage.getItem('HEtok')
-            localStorage.setItem('HEtoken', token)
-            this._user = u
-        }
-        if (m) {
-            const tt = this.tt.TT_user_nav_5
-            tt.tooltip(null, m)
-            tt.timer = setTimeout(() => {
-                tt.ttremove()
-                tt.listen(true)
-                if (m === 'Unsubscribed') this.logout()
-            }, 2000)
-        }
-    }
     ctt = () => {
-        this.checkUser()
+        this.user().then(r => this.userIcon(r))
         return 'contact us'
     }
     tt = () => {
-        this.checkUser()
+        this.user().then(r => this.userIcon(r))
         const u = this._user, name = u ? u.first + ' ' + u.last : '', a = u && u.aed
-        return a ? `<span class='red'>${name}</span>` : name || 'login'
+        return a ? `<span class='red'>${name}</span>` : name || 'login or register'
     }
 }
 export default Nav

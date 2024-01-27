@@ -93,7 +93,6 @@ class TT {
     }
     click = (e) => {
         const lk = this.lk
-        debug({ TTclick: this, lk })
         if (lk) {
             e.preventDefault()
             if (this.tt) this.timer = setTimeout(this.ttremove, lk.tip === 'close' ? 100 : 1000)
@@ -171,7 +170,7 @@ class TT {
             if (this.pop) this.pop.destroy()
             this.pO = this.pop = this.pdiv = null
             this.listen(true)
-            if (d) this.p.checkData()
+            if (d) this.p.checkData(d)
             if (m) {
                 this.tooltip(null, m)
                 this.timer = setTimeout(() => {

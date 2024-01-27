@@ -73,9 +73,9 @@ function loginReq(j, r, a) {
     if (j.email) {
         const email = j.email, u = d.emails[email], i = u && u.i,
             msg = i ? `You will be automatically logged in by the following {results}, {competitor} or {volunteer} links.` :
-                'Your email is not registered with {het} but you can {subscribe}.' +
+                'Your email is not registered with {het} but you can {register}.\r\n' +
                 'You may safetly ignore this email if someone else has mistakenly entered your email address.',
-            m = { subject: 'Login', message: msg, to_email: email, ...i ? { to: u.first, unsub: true } : { to: 'Competitor/Volunteer', sub: true } }
+            m = { subject: 'Login', message: msg, to_email: email, ...i ? { to: u.first, unsub: true } : { to: 'Competitor/Volunteer', reg: true } }
         send(m)
             .then(s => resp(j, r, u, { sent: s }))
             .catch(e => resp(j, r, u, { e: 'send failed' }, 400))
@@ -245,24 +245,17 @@ function unsubReq(j, r, a) {
         }
         send(m)
         resp(j, r, a, { unsub: true })
-    } else resp(j, r, a, { e: 'data error' }, 400)
+    } else {
+        debug({ unsub: { j, a, ae, auth } })
+        resp(j, r, a, { e: 'data error' }, 400)
+    }
 }
 
 function subReq(j, r, a) {
-    const tok = j.tok, auth = tok && jwt.verify(tok, d.config.key),
-        email = auth.email,
-        { first, last } = j.details || {},
-        ae = ue(email)
-    if (ae) {
-        log.info({ subReq: { ae: ae.i } })
-        resp(j, r, a, { u: ae })
-    } else if (first && last && email) {
-        debug({ subReq: { first, last, email } })
-        const i = Math.max(...Object.values(d.emails).map(x => x.i)) + 1
-        d.emails[email] = { first, last, email, i }
-        save('_emails', emails)
-        d.fns['es'] = f_es()
-        resp(j, r, a, { u: { first, last, i }, es: fns['es'] })
+    const u = a && d.emails[a.email], un = u && u.fi && u.fi.unsub
+    if (un) {
+        saveF('unsub', u, 'sub')
+        userReq(j, r, a)
     } else resp(j, r, a, { e: 'data error' }, 400)
 }
 
@@ -272,8 +265,18 @@ function userReq(j, r, a) {
         const { first, last, i, admin, fi } = u, aed = a.aed && !j.i,
             n = d.ns[email],
             vs = d.ev[i]
-        debug({ vs })
         resp(j, r, a, { u: { first, last, i, fi, aed, admin, ns: n, vs, ...(j.i && { email }) } })
+    }
+    else resp(j, r, a, { e: j }, 400)
+}
+
+function regReq(j, r, a) {
+    const { first, last, email } = j, u = d.emails[email],
+        tok = j.tok, auth = tok && jwt.verify(tok, d.config.key)
+    if (!u && first && last && email) {
+        saveF('es', { first, last, email })
+        if (auth && auth.email === email) userReq(j, r, { email })
+        else loginReq({ email }, r)
     }
     else resp(j, r, a, { e: j }, 400)
 }
@@ -359,8 +362,8 @@ function photoReq(j, r, a) {
 
 app.post(d.config.url, auth(async (j, r, a) => {
     const reqF = {
-        anon: { filesReq, datesReq, loginReq, sendReq, unsubReq, subReq },
-        auth: { userReq, volReq, compReq, saveReq, photoReq, bulksendReq }
+        anon: { filesReq, datesReq, loginReq, sendReq, unsubReq, regReq },
+        auth: { userReq, volReq, compReq, subReq, saveReq, photoReq, bulksendReq }
     }
     log.info('req->', j.req, a ? a.i : '')
     if (reqF.anon[j.req + 'Req']) reqF.anon[j.req + 'Req'](j, r, a)

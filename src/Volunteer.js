@@ -1,8 +1,6 @@
-import Html, { debug, error, nav, _s } from './Html'
+import Html, { debug, error, _s } from './Html'
+import { nav } from './Nav'
 import html from './html/Volunteer.html'
-import greet from './html/greet.html'
-import greetY from './html/greetY.html'
-import greetN from './html/greetN.html'
 import { sections, section, roles, selectSection, selectRole } from './roles'
 
 const year = 2024
@@ -13,8 +11,9 @@ class Volunteer extends Html {
     this.data = ['vs', 'vr']
   }
   greet = () => {
-    const u = nav._user, v = u.vs && u.vs[0], c = this.color(v)
-    return u ? `Welcome {link.n.${u.first}_${u.last}} ` + (c === 'grey' ? 'please confirm availability.' :
+    const u = nav._user, v = u && u.vs && u.vs[0], c = this.color(v)
+    debug({ u, v, c })
+    return u ? `Welcome {link.u.${_s(u.first)}_${_s(u.last)}} ` + (c === 'grey' ? 'please confirm availability.' :
       c === 'red' ? 'thank you for confirming you are unable to help this year.' : 'thank you for volunteering.')
       : 'We need a large volunteer team please {nav.contact} if you can help. All help is greatly appreciated.'
   }
@@ -36,7 +35,7 @@ class Volunteer extends Html {
       if (n) n.classList.remove('hidden')
     }
     if (u && this.color(v) === 'grey') {
-      const l = this.q(`[id="TT_n_greet_0"]`)
+      const l = this.q(`[id="TT_u_greet_0"]`)
       if (l) l.click()
     }
   }
@@ -49,9 +48,9 @@ class Volunteer extends Html {
     }
   }
   link = (n) => {
-    if (n === 'n') {
+    if (n === 'u') {
       const u = nav._user, v = u.vs && u.vs[0], c = this.color(v)
-      return { tip: () => this.utip(), class: c, popup: `{Vol.${v||'u'}}` }
+      return { tip: () => this.utip(), class: c, popup: `{Vol.${v || 'u'}}` }
     }
     else {
       const id = n.substring(1), vs = nav.d.data.vs, vol = vs[id]
@@ -294,7 +293,7 @@ class Vroles extends Html {
       fvs = ks && ks.filter(k => k && k.n).sort((a, b) => b.n - a.n)
     return fvs
   }
-  vname= (id) => {
+  vname = (id) => {
     const v = nav.d.data.vs[id]
     return v.first + ' ' + v.last
   }

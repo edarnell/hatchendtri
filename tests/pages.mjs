@@ -89,6 +89,7 @@ describe('HTML Fragment Test', () => {
     }
 
     test('Contact', async () => {
+        rm(path.join(nodeDir, 'Contact.email'))
         await page.goto(url)
         await hover('TT_contact', 'contact us')
         await page.click('[id^="TT_contact"]')
@@ -109,13 +110,14 @@ describe('HTML Fragment Test', () => {
         await page.waitForSelector('[id^="tip_TT_contact"]')
         const txt = await page.$eval('[id^="tip_TT_contact"]', el => el.textContent)
         expect(txt).toBe('Message sent.')
-        const email = await fs.readFile(path.join(nodeDir, 'Contact.email'), 'utf-8')
+        const email = await waitForFile(path.join(nodeDir, 'Contact.email'))
         await scp('Contact', email, '.email')
     })
 
     test('Login', async () => {
+        rm(path.join(nodeDir, 'Login.email'))
         await page.goto(url)
-        await hover('TT_user', 'login')
+        await hover('TT_user', 'login or register')
         await page.click('[id^="TT_user"]')
         await page.waitForSelector('#login_form')
         await hover('TT_close', 'close')
@@ -134,14 +136,32 @@ describe('HTML Fragment Test', () => {
         await page.waitForSelector('[id^="tip_TT_user"]')
         const txt = await page.$eval('[id^="tip_TT_user"]', el => el.textContent)
         expect(txt).toBe('Login link emailed.')
-        const email = await fs.readFile(path.join(nodeDir, 'Login.email'), 'utf-8')
+        const email = await waitForFile(path.join(nodeDir, 'Login.email'))
         await scp('Login', email, '.email')
+    })
+
+    test('LoginU', async () => {
+        rm(path.join(nodeDir, 'Login.email'))
+        rm(path.join(nodeDir, 'LoginU.email'))
+        await page.goto(url)
+        await page.click('[id^="TT_user"]')
+        await page.waitForSelector('#login_form')
+        await page.type('[id^="IN_email"]', 'epdarnell+anon@gmail.com')
+        await page.click('[id^="IN_spam2"]')
+        await page.click('[id^="IN_send"]')
+        await page.waitForSelector('[id^="tip_TT_user"]')
+        const txt = await page.$eval('[id^="tip_TT_user"]', el => el.textContent)
+        expect(txt).toBe('Login link emailed.')
+        const email = await waitForFile(path.join(nodeDir, 'Login.email'))
+        await fs.rename(path.join(nodeDir, 'Login.email'), path.join(nodeDir, 'LoginU.email'));
+        await scp('LoginU', email, '.email')
     })
 
     test('Unsub', async () => {
         if (!config) await conf()
         const email = 'epdarnell+test@gmail.com',
-            tok = jwt.sign({ email, ts: Date.now() }, config.key)
+            tok = jwt.sign({ email }, config.key)
+        rm(path.join(nodeDir, 'Unsubscribe.email'))
         await page.goto(url + '/unsubscribe#' + tok)
         await page.waitForSelector('#unsub')
         await hover('IN_unsub', 'Confirm Unsubscribe', 'primary')
@@ -150,26 +170,32 @@ describe('HTML Fragment Test', () => {
         await page.waitForSelector('[id^="tip_TT_user"]')
         const txt = await page.$eval('[id^="tip_TT_user"]', el => el.textContent)
         expect(txt).toBe('Unsubscribed.')
-        waitForFile(path.join(nodeDir, 'Unsubscribe.email')).then(async unsub => {
-            await scp('Unsubscribe', unsub, '.email')
-        })
+        const unsub = await waitForFile(path.join(nodeDir, 'Unsubscribe.email'))
+        await scp('Unsubscribe', unsub, '.email')
     })
-
 })
+
+async function rm(f) {
+    try {
+        await fs.unlink(f)
+    } catch (e) {
+        if (e.code !== 'ENOENT') throw e // Rethrow if it's an error other than "No such file or directory"
+    }
+}
 
 function waitForFile(fn, i = 100, t = 1000) {
     return new Promise((s, f) => {
         let to
         const ti = setInterval(() => {
-            fs.access(fn).then(()=>{
+            fs.access(fn).then(() => {
                 clearTimeout(to)
                 clearInterval(ti)
                 fs.readFile(fn, 'utf-8').then(r => {
                     s(r)
                 }).catch(e => f(e))
             }
-            ).catch(e => debug(e))
-        })
+            ).catch(e => debug(`waiting: ${fn}`))
+        }, i)
         to = setTimeout(() => {
             clearInterval(ti)
             f(new Error(`File timeout: ${f} ${t}ms`));

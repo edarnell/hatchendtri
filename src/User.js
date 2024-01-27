@@ -1,7 +1,8 @@
 import { debug, error, _s } from './Html'
 import user from './html/user.html'
 import unsub from './html/unsub.html'
-import sub from './html/sub.html'
+import subscribe from './html/subscribe.html'
+import register from './html/register.html'
 import login from './html/login.html'
 import Contact from './Contact'
 import { nav } from './Nav'
@@ -10,27 +11,34 @@ import { ajax } from './ajax'
 class User extends Contact {
     constructor() {
         super()
-        if (nav._unsub) ajax({ req: 'unsub', tok: localStorage.getItem('HEtok'), u: true }).then(r => {
+        if (nav._path === 'unsubscribe') ajax({ req: 'unsub', tok: localStorage.getItem('HEtok'), u: true }).then(r => {
             this.u = r.u
             this.reload('unsub_name')
         }).catch(e => this.close('Unsubscribed.'))
+        if (nav._path === 'unsubscribe' || nav._path === 'register') this.input = () => this._f = this.getForm()
         else if (!nav._user) this.spam = Math.floor(Math.random() * 3)
-        if (nav._sub || nav._unsub) this.input=()=>{}
     }
     form = () => {
         let f = {}
-        if (nav._unsub) f = {
+        if (nav._path === 'unsubscribe') f = {
             reason: { placeholder: 'reason (optional)', type: 'text' },
             unsub: { tip: 'Confirm Unsubscribe', class: 'form primary', click: this.unsub },
         }
-        else if (nav._sub) {
+        else if (nav._path === 'register') {
             f = {
                 first: { placeholder: 'First name', type: 'text' },
                 last: { placeholder: 'Last name', type: 'text' },
-                sub: { tip: 'Subscribe', class: 'form primary', click: this.sub },
+                email: { placeholder: 'email', type: 'email', required: true },
+                reg: { tip: 'register', class: 'form primary', click: this.reg },
             }
         }
-        else if (!nav._user) {
+        else if (nav._user) {
+            const u = nav._user, un = u.fi && u.fi.unsub
+            f = un ? {
+                sub: { tip: 'subscribe', class: 'form primary', click: this.sub },
+            } : {}
+        }
+        else {
             f = {
                 email: { placeholder: 'email', type: 'email', required: true },
                 send: { class: 'form disabled', click: 'submit', tip: this.spamtt },
@@ -42,22 +50,48 @@ class User extends Contact {
     html = (n, p) => {
         if (n === 'unsub_name') return `<span id='unsub_name' class="bold">${this.u ? this.u.first + ' ' + this.u.last : ''}</span>`
         else {
-            if (nav._unsub) return `<div id='unsub'>${unsub}</div>`
-            else if (nav._sub) return `<div id='unsub'>${sub}</div>`
-            else if (nav._user) return `<div id='user'>${user}</div>`
-            else return `<div id='login'>${login}</div>`
+            if (nav._path === 'unsubscribe') return `<div id="unsub">${unsub}</div>`
+            else if (nav._path === 'register') return `<div id="register">${register}</div>`
+            else if (nav._user) {
+                const u = nav._user, un = u.fi && u.fi.unsub
+                return un ? `<div id="subscribe">${subscribe}</div>` : `<div id="user">${user}</div>`
+            }
+            else return `<div id="login">${login}</div>`
         }
     }
     unsubscribe = () => {
         this.u = nav._user
-        nav._unsub = true
+        nav._path = 'unsubscribe'
+        this.reload()
+    }
+    register = () => {
+        nav._path = 'register'
         this.reload()
     }
     unsub = () => {
-        const f = this.getForm()
+        const f = this._f || {}
+        nav._path = null
         ajax({ req: 'unsub', i: this.u.i, tok: localStorage.getItem('HEtok'), reason: f.reason })
             .then(r => {
-                this.close('Unsubscribed.', 'unsub')
+                this.close('Unsubscribed.')
+                nav.logout()
+            })
+            .catch(e => {
+                error({ e })
+                this.close('<div class="error">Error.</div>')
+            })
+    }
+    reg = () => {
+        const f = this._f || {}, tok = localStorage.getItem('HEtok')
+        nav._path = null
+        ajax({ req: 'register', tok, details: f })
+            .then(r => {
+                if (r.u) {
+                    nav._user = r.u
+                    localStorage.removeItem('HEtok')
+                    localStorage.setItem('HEtoken', tok)
+                }
+                this.close('<div class="success">Registered.</div>')
             })
             .catch(e => {
                 error({ e })
@@ -65,10 +99,11 @@ class User extends Contact {
             })
     }
     sub = () => {
-        const f = this.getForm()
-        ajax({ req: 'sub', tok: localStorage.getItem('HEtok'), details: f })
+        const f = this._f || {}
+        ajax({ req: 'sub' })
             .then(r => {
-                this.close('<div class="success">Subscribed.</div>', 'sub')
+                nav._user = r.u
+                this.close('<div class="success">Subscribed.</div>')
             })
             .catch(e => {
                 error({ e })
@@ -76,7 +111,7 @@ class User extends Contact {
             })
     }
     send = () => {
-        const f = this._form
+        const f = this._form // set in Contact.js
         ajax({ req: 'login', email: f.email })
             .then(r => this.close('<div class="success">Login link emailed.</div>'))
             .catch(e => {
@@ -84,27 +119,23 @@ class User extends Contact {
                 this.close('<div class="error">Error.</div>')
             })
     }
-    var = (name) => {
-        if (name === 'title') return nav._user ? 'Switch User' : 'Login'
-        else if (name === 'admin' && nav._user.aed) return "{link.admin}"
-        else if (name === 'spam') return nav._user ? '' : "<div class=\"small\">I'm not a robot</div>{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} "
+    var = (n) => {
+        if (n === 'title') return nav._user ? 'Switch User' : 'Login or {link.register.Register}'
+        else if (n === 'name' && nav._user) return `${nav._user.first} ${nav._user.last}`
+        else if (n === 'admin' && nav._user.aed) return "{link.admin}"
+        else if (n === 'spam') return nav._user ? '' : "<div class=\"small\">I'm not a robot</div>{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} "
         else return ''
     }
-    link = (name, param) => {
-        if (name === 'menu') return { icon: 'menu', tip: '' }
-        else if (name === 'unsubscribe') return { tip: 'unsubscribe', click: this.unsubscribe }
-        else if (name === 'logout') return { tip: 'logout', click: nav.logout }
+    clear = () => {
+        nav._path = null
+        this.close()
+    }
+    link = (n) => {
+        if (n === 'menu') return { icon: 'menu', tip: '' }
+        else if (n === 'unsubscribe') return { tip: 'unsubscribe', click: this.unsubscribe }
+        else if (n === 'register') return { tip: 'register', click: this.register }
+        else if (n === 'logout') return { tip: 'logout', click: nav.logout }
+        else if ((nav._path === 'unsubscribe' || nav._path === 'register') && n === 'close') return { tip: 'cancel', class: 'close', click: this.clear }
     }
 }
-
-class Login extends User {
-    constructor() {
-        super()
-    }
-    html = (n, p) => {
-        return login
-    }
-}
-
-export { Login }
 export default User

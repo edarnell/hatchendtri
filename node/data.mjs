@@ -9,9 +9,10 @@ if (!f) {
     console.error('f arg required - gz/_{f}.gz')
     process.exit(1)
 }
-if (!k) console.log('2nd arg optional - filter by string')
 
 const o = fz(`gz/_${f}.gz`)
-const r = Object.entries(o).filter(([_, v]) => !k || JSON.stringify(v).includes(k))
+const n = k && parseInt(k)
+const r = Object.entries(o).filter(([_, v]) => (n || !k) || JSON.stringify(v).includes(k))
 
-d(u.inspect(r.slice(0, 10), { depth: null }))
+d(u.inspect(n === 0 ? r : r.slice(0, n || 10), { depth: null }))
+if (!k) console.log('2nd arg optional - filter by string - or n(0=all default 10) for n entries')

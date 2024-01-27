@@ -119,7 +119,6 @@ class Html {
             return
         }
         const data = (o || this)._p('data'), loaded = (o || this)._p('loaded')
-        debug({ checkData: (o || this), data, loaded })
         if (data) nav.d.get(data).then(loaded)
     }
     replace = (o, html) => {
@@ -225,19 +224,6 @@ class Html {
         const style = document.createElement('style')
         style.innerHTML = css
         document.head.appendChild(style)
-        const t = localStorage.getItem('HEtoken'), d = localStorage.getItem('HEdate')
-        if (!d) { // tidy up old storage - can add or d<date
-            localStorage.clear()
-            localStorage.setItem('HEdate', new Date().toISOString())
-            if (t) localStorage.setItem('HEtoken', t) // keep user token
-        }
-        const hash = window.location.hash, token = hash && hash.substring(1)
-        window.location.hash = ''
-        this.path = window.location.pathname.replace('/', '')
-        if (token && token.length > 10) {
-            if (['home', 'unsubscribe', 'subscribe'].includes(this.path)) localStorage.setItem('HEtok', token)
-            else localStorage.setItem('HEtoken', token)
-        }
     }
     setForm = (vs) => {
         const f = this._p('form'), fm = f && f()

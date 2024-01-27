@@ -11,6 +11,13 @@ class Results extends Html {
     debug({ loaded: r, data: nav.d.data })
     if (r) this.refresh()
   }
+  updated = (r) => {
+    debug({ updated: r, data: nav.d.data })
+    if (r) this.refresh()
+  }
+  rendered = () => {
+    this.form_data = this.getForm()
+  }
   form = () => {
     const form = {
       filter: { tip: 'filter by name or club', placeholder: 'name,name,...', width: '50rem' },
@@ -33,55 +40,47 @@ class Results extends Html {
     this.form_data = this.getForm()
     this.refresh()
   }
-  updated = (r) => {
-    debug({ updated: r, data: nav.d.data })
-    if (r) this.refresh()
-  }
-  rendered = () => {
-    this.form_data = this.getForm()
-  }
-  html = (name, param) => {
-    let match
-    if (name === 'results_all') return `<div id="results_all">${this.results_all()}</div>`
-    else if (typeof name === 'string' && name.startsWith('results_')) return this.results_year(name.split('_')[1])
+  html = (n) => {
+    if (n === 'results_all') return `<div id="results_all">${this.results_all()}</div>`
+    else if (typeof n === 'string' && n.startsWith('results_')) return this.results_year(n.split('_')[1])
     else return html
   }
   own = (y, n) => {
     const u = nav._user, ns = u && u.ns, l = ns && ns[y], a = l ? l.includes(n + '') : false
     return a
   }
-  link = (name, param) => {
-    if (name === 'year') return { tip: `${param.replace(/_/g, " ")} all results`, click: this.year }
-    else if (name === 'name') return { tip: `${param.replace(/_/g, " ")} all results`, click: this.name }
-    else if (name === 'photos') {
-      const [y, n] = param.split('_'), ps = nav.d.data.ps, yp = ps && ps[y], p = yp && yp[n],
+  link = (n, k) => {
+    if (n === 'year') return { tip: `${k.replace(/_/g, " ")} all results`, click: this.year }
+    else if (n === 'name') return { tip: `${k.replace(/_/g, " ")} all results`, click: this.name }
+    else if (n === 'photos') {
+      const [y, n] = k.split('_'), ps = nav.d.data.ps, yp = ps && ps[y], p = yp && yp[n],
         o = this.own(y, n), u = nav._user,
         r = {
-          id: `TT_photos_${param}`, active: p.p, placement: 'auto', icon: 'photo', tip: `${p.p} of ${p.t} photos`,
-          ...(o ? { drag: `{Photos.${y}.${n}}` } : u && p.p ? { drag: `{Photos.${y}.${n}}` } : { popup: 'Login' })
+          id: `TT_photos_${k}`, active: p.p, placement: 'auto', icon: 'photo', tip: `${p.p} of ${p.t} photos`,
+          ...(o ? { drag: `{Photos.${y}.${n}}` } : u && p.p ? { drag: `{Photos.${y}.${n}}` } : { popup: 'User' })
         }
       return r
     }
-    else if (['close', 'Pinner_Camera_Club'].indexOf(name) === -1) debug({ link: { name, param } })
+    //else if (['close', 'Pinner_Camera_Club'].indexOf(n) === -1) debug({ link: { n, param } })
   }
-  ths = (name, param) => {
-    if (name === 'results_year') {
-      const year = param, th = ['Pos', 'Name', 'MF', 'Cat', 'Total', 'Swim', 'T1', 'Bike', 'T2', 'Run', 'Club'],
+  ths = (n, p) => {
+    if (n === 'results_year') {
+      const year = p, th = ['Pos', 'Name', 'MF', 'Cat', 'Total', 'Swim', 'T1', 'Bike', 'T2', 'Run', 'Club'],
         cs = this.cols(year),
         ths = th.filter(x => cs[x] !== undefined)
       return ths
-    } else debug({ ths: { name, param } })
+    } else debug({ ths: { n, p } })
   }
-  trs = (name, param) => {
-    if (name === 'results_year') {
-      const year = param, th = ['Pos', 'Name', 'MF', 'Cat', 'Total', 'Swim', 'T1', 'Bike', 'T2', 'Run', 'Club'],
+  trs = (n, p) => {
+    if (n === 'results_year') {
+      const year = p, th = ['Pos', 'Name', 'MF', 'Cat', 'Total', 'Swim', 'T1', 'Bike', 'T2', 'Run', 'Club'],
         cs = this.cols(year),
         ths = th.filter(x => cs[x] !== undefined),
         ns = ths.map(th => cs[th]),
         rs = this.filter(year),
         trs = rs.map(r => ns.map((n, i) => i === 1 ? `{link.name.${r[n].replace(/\s+/g, '_')}}` : r[n]))
       return trs
-    } else debug({ trs: { name, param } })
+    } else debug({ trs: { n, p } })
   }
   toggle = (o) => {
     const { name, type, param } = o && o.attr(),

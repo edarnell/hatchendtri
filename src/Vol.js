@@ -32,12 +32,13 @@ class Vol extends Html {
     constructor(p, n) {
         super(p, n)
         const vs = nav.d.data.vs
-        if (n === 'n') this.v = this.user()
+        if (n === 'u') this.v = this.user()
         else this.v = (vs && vs[n]) || { id: 0 }
+        debug({ n, v: this.v })
     }
     user = () => {
-        const u = nav._user, vs = nav.d.data.vs, vi = Object.values(vs).filter(v => v.i == u.i)
-        return vi.length ? vi[0] : { id: -1, i: u.i }
+        const u = nav._user, { i, first, last, vs } = u
+        return vs ? vs[0] : { id: -1, i, first, last }
     }
     form = () => {
         if (this.edit) return volForm
