@@ -15,6 +15,7 @@ class User extends Contact {
             this.reload('unsub_name')
         }).catch(e => this.close('Unsubscribed.'))
         else if (!nav._user) this.spam = Math.floor(Math.random() * 3)
+        if (nav._sub || nav._unsub) this.input=()=>{}
     }
     form = () => {
         let f = {}
@@ -37,9 +38,6 @@ class User extends Contact {
             }
         }
         return f
-    }
-    input = () => {
-        // do nothing
     }
     html = (n, p) => {
         if (n === 'unsub_name') return `<span id='unsub_name' class="bold">${this.u ? this.u.first + ' ' + this.u.last : ''}</span>`

@@ -138,7 +138,7 @@ describe('HTML Fragment Test', () => {
         await scp('Login', email, '.email')
     })
 
-    test.only('Unsub', async () => {
+    test('Unsub', async () => {
         if (!config) await conf()
         const email = 'epdarnell+test@gmail.com',
             tok = jwt.sign({ email, ts: Date.now() }, config.key)
@@ -159,16 +159,19 @@ describe('HTML Fragment Test', () => {
 
 function waitForFile(fn, i = 100, t = 1000) {
     return new Promise((s, f) => {
-        const t = setInterval(() => {
-            fs.access(fn, fs.constants.F_OK, e => {
-                if (!e) {
-                    clearInterval(t)
-                    fs.readFile(f, 'utf-8').then(r => s(r)).catch(e => f(e))
-                }
-            })
-        }, i)
-        setTimeout(() => {
-            clearInterval(t)
+        let to
+        const ti = setInterval(() => {
+            fs.access(fn).then(()=>{
+                clearTimeout(to)
+                clearInterval(ti)
+                fs.readFile(fn, 'utf-8').then(r => {
+                    s(r)
+                }).catch(e => f(e))
+            }
+            ).catch(e => debug(e))
+        })
+        to = setTimeout(() => {
+            clearInterval(ti)
             f(new Error(`File timeout: ${f} ${t}ms`));
         }, t)
     })

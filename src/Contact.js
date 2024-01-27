@@ -71,9 +71,9 @@ class Contact extends Html {
     }
     checkForm = () => {
         const form = this.form(), data = this._form = this.getForm(),
-            nav = {}, user = nav._user && (nav._user.vol || nav._user.comp)
+            nav = {}, u = nav._user
         let complete = true
-        if (user) return data.message && data.subject
+        if (u) return data.message && data.subject
         else Object.keys(form).forEach(k => {
             const f = form[k]
             if (f.required && !data[k]) complete = false
@@ -91,7 +91,7 @@ class Contact extends Html {
     }
     sendtt = () => {
         const complete = this.checkForm(),
-            user = nav._user && (nav._user.vol || nav._user.comp)
+            user = nav._user
         if (complete) {
             const b = ['left', 'middle', 'right'], s = b[this.spam]
             const spam = this.checkSpam()
