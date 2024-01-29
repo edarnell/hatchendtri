@@ -1,24 +1,26 @@
 const debug = console.log.bind(console)
-import { f, fz, save, zip } from './zip.mjs'
 import fs from 'fs'
-import { log } from './hatchend.mjs'
+import { f, fz, save, zip } from './zip.mjs'
+import log4js from "log4js"
 // aims to be a single source of truth for all data
-
-const config = f('config.json', true).data
-// can refine by having one const d object with all the vars in it
-const d = { config }
-function load() {
-    const fns = d.fns = {}
-    fns['ps'] = photoN() // also sets ns and pp 
-    fns['vs'] = f_vs() // also sets ei, vs, _vs, emails, vr
-    fns['ds'] = f_('ds')
-    fns['cs'] = f_('cs')
-    fns['vr'] = fv('vr')
-    fns['es'] = f_es()
-    fns['ml'] = fv('ml')
-    fns['results'] = f('gz/results.gz')
+let d = {},log
+function load(reload) {
+    if (d.config && !reset) return d
+    const config = f('config.json', true).data
+    log4js.configure(config.log4js)
+    log=log4js.getLogger()
+    log.info({load:reload?'reload':'initial'})
+    d = { config,fns:{},log}
+    d.fns['ps'] = photoN() // also sets ns and pp 
+    d.fns['vs'] = f_vs() // also sets ei, vs, _vs, _es, vr
+    d.fns['ds'] = f_('ds')
+    d.fns['cs'] = f_('cs')
+    d.fns['vr'] = fv('vr')
+    d.fns['es'] = f_es()
+    d.fns['ml'] = fv('ml')
+    d.fns['results'] = f('gz/results.gz')
     d.mail = fs.readFileSync('mail.html').toString()
-    return fns
+    return d
 }
 
 function saveF(n, d, k) {
@@ -42,7 +44,7 @@ function savePs(y, n) {
 function saveUnsub(u, k) {
     if (k === 'sub') {
         delete d.unsub[u.i]
-        delete d.emails[d.ei[u.i]].fi.unsub
+        delete d._es[d.ei[u.i]].fi.unsub
     }
     else d.unsub[u.i] = u
     save('unsub', d.unsub)
@@ -64,7 +66,7 @@ function saveMl(m, r) {
 function newV(jv) {
     const id = Math.max(...Object.keys(d.vs)) + 1,
         email = d.ei[jv.i],
-        u = d.emails[email],
+        u = d._es[email],
         { first, last } = u
     if (jv.first !== first || jv.last !== last) log.error({ first, last, jv })
     d._vs[id] = { id, first, last, email }
@@ -86,7 +88,7 @@ function saveV(jv, jr) {
         d.vs[v.id] = v
         save('vs', d.vs)
         d.fns['vs'] = f_vs() // could be more efficient
-        const u = d.emails[d.ei[v.i]]
+        const u = d._es[d.ei[v.i]]
         if (u.updated) saveE(u)
     }
     return v && d.vs[v.id]
@@ -111,10 +113,10 @@ function saveE(u) {
     if (u && !u.i) {
         const i = Math.max(...Object.keys(d.ei).filter(x => isNaN(x) === false)) + 1
         u.i = i
-        d.emails[u.email.toLowerCase()] = u
+        d._es[u.email.toLowerCase()] = u
     }
     else if (u) {
-        const o = u.i ? d.emails[d.ei[u.i]] : {}
+        const o = u.i ? d._es[d.ei[u.i]] : {}
         o.first = u.first
         o.last = u.last
         o.admin = u.admin
@@ -122,16 +124,16 @@ function saveE(u) {
         if (u.unsub && !o.fi.unsub) o.fi.unsub = new Date()
         else if (o.fi.unsub && !u.unsub) delete o.fi.unsub
     }
-    save('emails', d.emails)
+    save('es', d._es)
     d.fns['es'] = f_es() // could be more efficient
-    if (u) return d.emails[d.ei[u.i]]
+    if (u) return d._es[d.ei[u.i]]
 }
 
 function f_vs() {
-    d.emails = fs.existsSync(`gz/emails.gz`) ? fz('gz/emails.gz') : {}
+    d._es = fs.existsSync(`gz/es.gz`) ? fz('gz/es.gz') : {}
     if (!d.ei) {
         d.ei = {}
-        Object.keys(d.emails).forEach(e => d.ei[d.emails[e].i] = e)
+        Object.keys(d._es).forEach(e => d.ei[d._es[e].i] = e)
     }
     const f = fs.existsSync(`gz/vs.gz`), ts = f ? fs.statSync(`gz/vs.gz`).mtime : new Date()
     d._vs = f ? fz('gz/vs.gz') : {}
@@ -139,7 +141,7 @@ function f_vs() {
     d.ev = {}, d.vs = {}
     for (let v in d._vs) {
         n++
-        const o = d._vs[v], u = o.email && d.emails[o.email.toLowerCase()]
+        const o = d._vs[v], u = o.email && d._es[o.email.toLowerCase()]
         if (u) {
             const i = u.i, { id, first, last, year, mobile } = o
             d.vs[v] = { id, first, last, i, year }
@@ -173,10 +175,10 @@ function f_(fn) {
         r = {}
     let h = 0, n = 0, e = 0
     for (let k in j) {
-        const o = j[k], { first, last, cat, mf, club, ag, swim } = o,
+        if (j[k].email) {
+            const o = j[k], { first, last, cat, mf, club, ag, swim } = o,
             email = o.email.toLowerCase(),
-            u = d.emails[email]
-        if (email) {
+            u = d._es[email]
             let i = u ? u.i : d.ei.length
             if (u) {
                 u.fi[fn] = u.fi[fn] || []
@@ -186,37 +188,37 @@ function f_(fn) {
                 }
             }
             else {
-                const m = Math.max(...Object.values(emails).map(x => x.i)) + 1
+                const m = Math.max(...Object.values(d._es).map(x => x.i)) + 1
                 if (i !== m) {
                     log.error({ i: { i, m } })
                     i = m
                 }
-                d.emails[email] = { i, first, last, fi: { [fn]: [k] } }
+                d._es[email] = { i, first, last, fi: { [fn]: [k] } }
                 d.ei[i] = email
                 n++
             }
             r[k] = { first, last, cat, mf, club, ag, email: i, swim, n }
         }
         else {
-            log.error({ error: o })
+            log.error({ k,o:j[k] })
             e++
         }
     }
     const rn = Object.keys(r).length
     log.info({ [fn]: { h, n, rn, e } })
-    if (n || h) save('emails', emails)
+    if (n || h) save('es', d._es)
     return { date: ts, data: zip(r, false, true) }
 }
 function f_es() {
     const unsub = d.unsub = fs.existsSync(`gz/unsub.gz`) ? fz(`gz/unsub.gz`) : {},
         bounce = d.bounce = fs.existsSync(`gz/bounce.gz`) ? fz(`gz/bounce.gz`) : {},
-        ets = fs.statSync(`gz/emails.gz`).mtime,
+        ets = fs.statSync(`gz/es.gz`).mtime,
         uts = fs.existsSync(`gz/unsub.gz`) && fs.statSync(`gz/unsub.gz`).mtime,
         bts = fs.existsSync(`gz/bounce.gz`) && fs.statSync(`gz/bounce.gz`).mtime,
         ts = new Date(Math.max(ets.getTime(), uts ? uts.getTime() : 0, bts ? bts.getTime() : 0))
     d.es = {}
     let n = 0
-    Object.values(d.emails).forEach(u => {
+    Object.values(d._es).forEach(u => {
         if (!u.fi) u.fi = {}
         const { i, first, last, fi, admin } = u
         if (unsub[i]) fi.unsub = unsub[i].date
@@ -244,4 +246,4 @@ function photoN() {
     return { date: ts, data: zip(d.pp, false, true) }
 }
 
-export { load, saveF, d }
+export { load, saveF, d, log }

@@ -2,8 +2,7 @@
 import { STSClient, GetSessionTokenCommand } from '@aws-sdk/client-sts'
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
 import jwt from 'jsonwebtoken'
-import { log } from './hatchend.mjs'
-import { d, saveF } from './files.mjs'
+import { d, log, saveF } from './files.mjs'
 import fs from 'fs' // for testing - write of email files
 
 function send_list(m) {

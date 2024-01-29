@@ -37,11 +37,12 @@ describe('HTML Fragment Test', () => {
     })
 
     function tok(t) {
-        return t.replace(/href=\\"([^#]+)#([^\\]+)\\"/g, 'href=\\"$1#{token}\\"')
+        return t.replace(/href=\\"([^#]+)#([^\\]+)\\"/g, 'href=\\"$1#{token}\\"').replace(/\r\n/g, '\n') 
     }
     async function scp(name, s, t) {
         const n = name + (t ? t : '.html'),
-            c = (t ? '' : '<link rel="stylesheet" href="combined.css"></link>') + (t === '.email' ? tok(s) : s)
+            c = (t ? '' : '<link rel="stylesheet" href="combined.css"></link>') 
+            + (t === '.email' ? tok(s) : s)
         try {
             const old = await fs.readFile(path.join(dir, n), 'utf-8')
             if (old !== c) await fs.writeFile(path.join(dir, '_' + n), c)

@@ -1,16 +1,11 @@
 // npm install @aws-sdk/client-ses
 const debug = console.log.bind(console)
 import express from 'express'
-import log4js from "log4js"
 import jwt from 'jsonwebtoken'
 import { send, send_list } from './mail.mjs'
-import { load, saveF, d } from './files.mjs'
+import { load, saveF, log, d} from './files.mjs'
 
-log4js.configure(d.config.log4js)
-const log = log4js.getLogger()
-const fns = load()
-log.info("Started")
-
+load()
 const app = express()
 app.use(express.json())
 
@@ -28,7 +23,7 @@ function resp(j, r, a, rj, status) {
 
 function get_vol(id, email) {
     debug({ get_vol: { id, email } })
-    const u = d.emails[email]
+    const u = d._es[email]
     if (id * 1 === -1) {
         return { id, name: `${u.first} ${u.last}`, email, mobile: '' }
     }
@@ -48,10 +43,13 @@ function filesReq(j, r, a) {
         //log.info('req->', req, files)
         let ok = true
         files.forEach(fn => {
-            if (fns[fn]) zips[fn] = fns[fn]
+            if (d.fns[fn]) zips[fn] = d.fns[fn]
             else error.push(fn)
         })
-        if (!error.length) resp(j, r, a, { zips })
+        if (!error.length) {
+            log.info(Object.entries(zips).map(([n,z]) => `${n}:${z.data.length}`))
+            resp(j, r, a, { zips })
+        }
         else resp(j, r, a, { error }, 400)
     } else resp(j, r, a, { message: 'no files' }, 400)
 }
@@ -61,7 +59,7 @@ function datesReq(j, r, a) {
         const { files } = j, date = {}, e = []
         //log.info('req->', req, files)
         files.forEach(fn => {
-            if (fns[fn]) date[fn] = fns[fn].date
+            if (d.fns[fn]) date[fn] = d.fns[fn].date
             else e.push(fn)
         })
         if (!e.length) resp(j, r, a, { date })
@@ -71,7 +69,7 @@ function datesReq(j, r, a) {
 
 function loginReq(j, r, a) {
     if (j.email) {
-        const email = j.email, u = d.emails[email], i = u && u.i,
+        const email = j.email, u = d._es[email], i = u && u.i,
             msg = i ? `You will be automatically logged in by the following {results}, {competitor} or {volunteer} links.` :
                 'Your email is not registered with {het} but you can {register}.\r\n' +
                 'You may safetly ignore this email if someone else has mistakenly entered your email address.',
@@ -92,7 +90,7 @@ function sendReq(j, r, a) {
 }
 
 function saveU(j, r, a) {
-    const u2 = j.u, u = d.emails[u2.email]
+    const u2 = j.u, u = d._es[u2.email]
     if (!a.aed) resp(j, r, a, { e: 'Unauthorized' }, 401)
     if (!u && u2.email) {
         const u2 = new_user(d)
@@ -105,7 +103,7 @@ function saveU(j, r, a) {
             resp(j, r, a, { e: 'u.i mismatch' }, 400)
         }
         else {
-            const old = d.ei[u2.i], x = d.emails[old], unsub = u.fi.unsub
+            const old = d.ei[u2.i], x = d._es[old], unsub = u.fi.unsub
             u.fi = { ...u.fi, ...x.fi }
             if (!unsub && u.fi.unsub) delete u.fi.unsub
             if (!x.fi.unsub) x.fi.unsub = new Date()
@@ -182,7 +180,7 @@ function unsubReq(j, r, a) {
 }
 
 function subReq(j, r, a) {
-    const u = a && d.emails[a.email], un = u && u.fi && u.fi.unsub
+    const u = a && d._es[a.email], un = u && u.fi && u.fi.unsub
     if (un) {
         saveF('unsub', u, 'sub')
         userReq(j, r, a)
@@ -190,7 +188,7 @@ function subReq(j, r, a) {
 }
 
 function userReq(j, r, a) {
-    const email = d.ei[a.aed && j.i] || a.email, u = d.emails[email]
+    const email = d.ei[a.aed && j.i] || a.email, u = d._es[email]
     if (u) {
         const { first, last, i, admin, fi } = u, aed = a.aed && !j.i,
             n = d.ns[email],
@@ -201,7 +199,7 @@ function userReq(j, r, a) {
 }
 
 function regReq(j, r, a) {
-    const { first, last, email } = j, u = d.emails[email],
+    const { first, last, email } = j, u = d._es[email],
         tok = j.tok, auth = tok && jwt.verify(tok, d.config.key)
     if (!u && first && last && email) {
         saveF('es', { first, last, email })
@@ -213,7 +211,7 @@ function regReq(j, r, a) {
 
 function volReq(j, r, a) {
     if (j.v && a) {
-        const v = d._vs[j.v], u = d.emails[a.email]
+        const v = d._vs[j.v], u = d._es[a.email]
         if (a.email === v.email.toLowerCase()) v.i = u.i
         if (v && (u.admin || u.i === v.i)) {
             resp(j, r, a, { v })
@@ -305,7 +303,7 @@ app.post(d.config.url, auth(async (j, r, a) => {
 }))
 
 function ue(email) {
-    const u = email && d.emails[email],
+    const u = email && d._es[email],
         aed = email && email === 'ed@darnell.org.uk',
         i = u && u.i,
         { first, last } = u || {}
