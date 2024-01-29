@@ -138,7 +138,7 @@ class Nav extends Html {
         localStorage.removeItem('HEtoken')
         this.userIcon(false)
         debug({ page: this.page, path: this.path })
-        if (this.path === 'volunteer') this.page.popclose('vol_avail') // safe to call if not open
+        // work out tests and ten add a tt & popup close method.
         this.load('home')
     }
     ctt = () => {

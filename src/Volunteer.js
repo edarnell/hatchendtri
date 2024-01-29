@@ -12,10 +12,10 @@ class Volunteer extends Html {
   }
   greet = () => {
     const u = nav._user, v = u && u.vs && u.vs[0], c = this.color(v)
-    debug({ u, v, c })
-    return u ? `Welcome {link.u.${_s(u.first)}_${_s(u.last)}} ` + (c === 'grey' ? 'please confirm availability.' :
+    if (u.aed) return `Welcome <span class="red">${u.first} ${u.last}</span> be careful.`
+    else return u ? `Welcome {link.u.${_s(u.first)}_${_s(u.last)}} ` + (c === 'grey' ? 'please confirm availability.' :
       c === 'red' ? 'thank you for confirming you are unable to help this year.' : 'thank you for volunteering.')
-      : 'We need a large volunteer team please {nav.contact} if you can help. All help is greatly appreciated.'
+      : 'We need a large volunteer team please {link.register} if you can help. All help is greatly appreciated.'
   }
   var = (n) => {
     if (n === 'year') return '' + year
@@ -34,7 +34,7 @@ class Volunteer extends Html {
       const n = this.fe('New')
       if (n) n.classList.remove('hidden')
     }
-    if (u && this.color(v) === 'grey') {
+    if (u && !u.aed && this.color(v) === 'grey') {
       const l = this.q(`[id="TT_u_greet_0"]`)
       if (l) l.click()
     }
@@ -53,13 +53,13 @@ class Volunteer extends Html {
       return { tip: () => this.utip(), class: c, popup: `{Vol.${v || 'u'}}` }
     }
     else {
-      const id = n.substring(1), vs = nav.d.data.vs, v = vs[id]
-      if (v) {
+      const id = n.substring(1), vs = nav.d.data.vs, v = vs[id], u = nav._user
+      if (v && u) {
         if (n.charAt(0) === 'v') return { tip: () => this.tip(id, 2024), theme: 'light', class: 'span ' + this.color(id), popup: `{Vol.${id}}` }
-        else return nav._user.admin ? { tip: () => this.tip(id), theme: 'light', class: this.color(id), popup: `{Vol.${id}}` }
+        else return u.admin ? { tip: () => this.tip(id), theme: 'light', class: this.color(id), popup: `{Vol.${id}}` }
           : { tip: `contact ${v.first} ${v.last}`, class: this.color(id), theme: 'light', popup: `{Contact.${id}}` }
       }
-      else error({ link: n, id, v })
+      else return { tip: 'login or register', class: this.color(id), theme: 'light', popup: 'User' } // not logged in
     }
   }
   html = (n) => {

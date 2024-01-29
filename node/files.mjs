@@ -3,14 +3,14 @@ import fs from 'fs'
 import { f, fz, save, zip } from './zip.mjs'
 import log4js from "log4js"
 // aims to be a single source of truth for all data
-let d = {},log
+let d = {}, log
 function load(reload) {
     if (d.config && !reset) return d
     const config = f('config.json', true).data
     log4js.configure(config.log4js)
-    log=log4js.getLogger()
-    log.info({load:reload?'reload':'initial'})
-    d = { config,fns:{},log}
+    log = log4js.getLogger()
+    log.info({ load: reload ? 'reload' : 'initial' })
+    d = { config, fns: {}, log }
     d.fns['ps'] = photoN() // also sets ns and pp 
     d.fns['vs'] = f_vs() // also sets ei, vs, _vs, _es, vr
     d.fns['ds'] = f_('ds')
@@ -131,6 +131,7 @@ function saveE(u) {
 
 function f_vs() {
     d._es = fs.existsSync(`gz/es.gz`) ? fz('gz/es.gz') : {}
+    d._es['ed@hatchendtri.com'] = { i: -1, first: 'Ed', last: 'Darnell', aed: true }
     if (!d.ei) {
         d.ei = {}
         Object.keys(d._es).forEach(e => d.ei[d._es[e].i] = e)
@@ -177,8 +178,8 @@ function f_(fn) {
     for (let k in j) {
         if (j[k].email) {
             const o = j[k], { first, last, cat, mf, club, ag, swim } = o,
-            email = o.email.toLowerCase(),
-            u = d._es[email]
+                email = o.email.toLowerCase(),
+                u = d._es[email]
             let i = u ? u.i : d.ei.length
             if (u) {
                 u.fi[fn] = u.fi[fn] || []
@@ -200,7 +201,7 @@ function f_(fn) {
             r[k] = { first, last, cat, mf, club, ag, email: i, swim, n }
         }
         else {
-            log.error({ k,o:j[k] })
+            log.error({ k, o: j[k] })
             e++
         }
     }

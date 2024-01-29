@@ -3,7 +3,7 @@ const debug = console.log.bind(console)
 import express from 'express'
 import jwt from 'jsonwebtoken'
 import { send, send_list } from './mail.mjs'
-import { load, saveF, log, d} from './files.mjs'
+import { load, saveF, log, d } from './files.mjs'
 
 load()
 const app = express()
@@ -21,22 +21,6 @@ function resp(j, r, a, rj, status) {
     _resp = true
 }
 
-function get_vol(id, email) {
-    debug({ get_vol: { id, email } })
-    const u = d._es[email]
-    if (id * 1 === -1) {
-        return { id, name: `${u.first} ${u.last}`, email, mobile: '' }
-    }
-    const v = d.vs[id], i = v && v.i, self = i === u.i
-    if (self || email === 'ed@darnell.org.uk') {
-        const { first, last, mobile, notes } = v,
-            r = { id, first: first || u.first, last: last || u.last, email, mobile, notes, i }
-        debug({ get_vol: { self, r } })
-        return r
-    }
-    else return null
-}
-
 function filesReq(j, r, a) {
     if (j.files) {
         const { files } = j, zips = {}, error = []
@@ -47,7 +31,7 @@ function filesReq(j, r, a) {
             else error.push(fn)
         })
         if (!error.length) {
-            log.info(Object.entries(zips).map(([n,z]) => `${n}:${z.data.length}`))
+            log.info(Object.entries(zips).map(([n, z]) => `${n}:${z.data.length}`))
             resp(j, r, a, { zips })
         }
         else resp(j, r, a, { error }, 400)
@@ -304,9 +288,7 @@ app.post(d.config.url, auth(async (j, r, a) => {
 
 function ue(email) {
     const u = email && d._es[email],
-        aed = email && email === 'ed@darnell.org.uk',
-        i = u && u.i,
-        { first, last } = u || {}
+        { first, last, aed, i } = u || {}
     return i ? { i, aed, first, last, email } : null
 }
 
