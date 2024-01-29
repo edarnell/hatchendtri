@@ -7,7 +7,8 @@ class Contact extends Html {
     constructor(p, id) {
         super()
         this._v = id
-        this.spam = Math.floor(Math.random() * 3)
+        this._fid = '#contact_form'
+        this._submit = 'send'
     }
     form = () => {
         let form = {
@@ -16,9 +17,10 @@ class Contact extends Html {
             send: { class: 'form disabled', click: 'submit', tip: this.spamtt }
         }
         if (!nav._user) {
+            if (this.spam === undefined) this.spam = Math.floor(Math.random() * 3)
             const extra = {
-                name: { placeholder: 'name', required: !nav._user },
-                email: { placeholder: 'email', type: 'email', required: !nav._user },
+                name: { placeholder: 'name', required: true },
+                email: { placeholder: 'email', type: 'email', required: true },
                 spam1: { tip: this.spamtt }, spam2: { tip: this.spamtt }, spam3: { tip: this.spamtt }
             }
             form = { ...form, ...extra }
@@ -36,33 +38,41 @@ class Contact extends Html {
         return to || 'Hatch End Triathlon'
     }
     spamtt = () => {
-        const complete = this.checkForm(), m = this.form().message
-        if (complete) {
-            const b = ['left', 'middle', 'right'], s = b[this.spam]
-            const spam = this.checkSpam()
-            if (spam) return `please tick the ${s} box`
-            else return m ? 'send message' : 'login by email'
-        }
-        else return m ? 'complete the form' : 'enter your email'
-    }
-    input = (e, o) => {
-        const complete = this.checkForm(),
-            spam = this.checkSpam(),
-            sendButton = this.fe('send')
-        if (complete && !spam) {
-            sendButton.classList.remove('disabled')
-            sendButton.classList.add('primary')
+        const f = this.q(this._fid), c = f.checkValidity(),
+            fm = this.form(), s = fm[this._submit], m = s && s.m, e = s && s.e
+        if (c) {
+            if (this.spam !== undefined) {
+                const b = ['left', 'middle', 'right'], s = b[this.spam]
+                const spam = this.checkSpam()
+                if (spam) return `please tick the ${s} box`
+                else return m || this._submit
+            }
+            else return m || this._submit
         }
         else {
-            sendButton.classList.remove('primary')
-            sendButton.classList.add('disabled')
+            //f.reportValidity()
+            return e || 'complete the form'
         }
-        if (o.name === 'send' && complete && !spam) {
-            this.send()
+    }
+    input = (e, o) => {
+        const f = this.q(this._fid), c = f.checkValidity(),
+            s = this.checkSpam(),
+            b = this.fe(this._submit)
+        if (c && !s) {
+            b.classList.remove('disabled')
+            b.classList.add('primary')
+        }
+        else {
+            b.classList.remove('primary')
+            b.classList.add('disabled')
+        }
+        if (o.name === this._submit) {
+            if (c && !s) this[this._submit]()
+            else if (!c) f.reportValidity()
         }
     }
     send = () => {
-        const { subject, message, name, email } = this._form, v = this._v
+        const { subject, message, name, email } = this._f, v = this._v
         ajax({ req: 'send', subject, message, name, email, v })
             .then(r => this.close('<div class="success">Message sent.</div>'))
             .catch(e => {
@@ -70,44 +80,13 @@ class Contact extends Html {
                 this.close('<div class="error">Error Sending.</div>')
             })
     }
-    checkForm = () => {
-        const form = this.form(), data = this._form = this.getForm(),
-            nav = {}, u = nav._user
-        let complete = true
-        if (u) return data.message && data.subject
-        else Object.keys(form).forEach(k => {
-            const f = form[k]
-            if (f.required && !data[k]) complete = false
-        })
-        if (data.email && !data.email.match(/^[^@]+@[^@]+$/)) complete = false
-        return complete
-    }
     checkSpam = () => {
-        const data = this._form, user = nav._user
+        this._f = this.getForm()
         let spam = false
-        if (!user) ['spam1', 'spam2', 'spam3'].forEach((k, i) => {
-            spam = spam || data[k] !== (i === this.spam)
+        if (this.spam !== undefined) ['spam1', 'spam2', 'spam3'].forEach((k, i) => {
+            spam = spam || this._f[k] !== (i === this.spam)
         })
         return spam
     }
-    sendtt = () => {
-        const complete = this.checkForm(),
-            user = nav._user
-        if (complete) {
-            const b = ['left', 'middle', 'right'], s = b[this.spam]
-            const spam = this.checkSpam()
-            if (spam) return `please tick the ${s} box`
-            else return 'send email'
-        }
-        else if (user) return 'complete the form'
-        else {
-            const data = this.getForm()
-            if (data.email && !data.email.match(/^[^@]+@[^@]+$/)) return 'invalid email address'
-            else return 'complete the form'
-        }
-    }
-
-
-
 }
 export default Contact

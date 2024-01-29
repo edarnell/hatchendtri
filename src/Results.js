@@ -187,6 +187,7 @@ class Results extends Html {
       if (rr) {
         const ps = nav.d.data.ps, y = ps && ps[yr], nm = r[c['#']], p = y && y[nm]
         if (p) r[c.Pos] = `${_n} {link.photos.${yr}_${nm}}`
+        rr = rr.map(x => x.length && x.includes(':') ? x.replace(/^0+:?0?/, '') : x)
         filtered.push(rr)
       }
     })
