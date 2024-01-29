@@ -22,7 +22,7 @@ function load() {
 }
 
 function saveF(n, d, k) {
-    if (n === 'vs') saveV(d, k)
+    if (n === 'vs') return saveV(d, k)
     else if (n === 'es') return saveE(d)
     else if (n === 'ml') return saveMl(d, k)
     else if (n === 'ps') return savePs(d, k)
@@ -30,9 +30,9 @@ function saveF(n, d, k) {
 }
 
 function savePs(y, n) {
-    save('_ps', d.ps)
+    save('ps', d.ps)
     const pu = d.ps[y][n], p = pu ? pu.length : 0, t = d.pp[y][n].t,
-        ts = fs.statSync(`gz/_ps.gz`).mtime
+        ts = fs.statSync(`gz/ps.gz`).mtime
     d.pp[y][n] = { p, t }
     d.fns['ps'] = { date: ts, data: zip(d.pp, false, true) }
     debug({ savePs: y, n, p })
@@ -45,7 +45,7 @@ function saveUnsub(u, k) {
         delete d.emails[d.ei[u.i]].fi.unsub
     }
     else d.unsub[u.i] = u
-    save('_unsub', d.unsub)
+    save('unsub', d.unsub)
     d.fns['es'] = f_es()
 }
 
@@ -56,26 +56,55 @@ function saveMl(m, r) {
         else d.ml[ts].error = r
     }
     else d.ml[ts] = m
-    save('_ml', d.ml)
-    d.fns['ml'] = f('gz/_ml.gz')
+    save('ml', d.ml)
+    d.fns['ml'] = f('gz/ml.gz')
     return ts
 }
 
-function saveV(v, r, ys) {
-    if (r) {
-        if (ys && ys.length) ys.forEach(v => d.vr[v.id] = v.r)
-        d.vr[v.id] = r
+function newV(jv) {
+    const id = Math.max(...Object.keys(d.vs)) + 1,
+        email = d.ei[jv.i],
+        u = d.emails[email],
+        { first, last } = u
+    if (jv.first !== first || jv.last !== last) log.error({ first, last, jv })
+    d._vs[id] = { id, first, last, email }
+    save('vs', d._vs)
+    d.fns['vs'] = f_vs()
+    return d._vs[id]
+}
+
+function saveV(jv, jr) {
+    let v
+    if (jr) {
+        v = jv.id ? d._vs[jv.id] : newV(jv)
+        clearVr(jr)
+        d.vr[v.id] = jr
         save('vr', d.vr)
         d.fns['vr'] = { date: fs.statSync(`gz/vr.gz`).mtime, data: zip(d.vr, false, true) }
     }
     else {
         d.vs[v.id] = v
-        save('_vs', d.vs)
+        save('vs', d.vs)
         d.fns['vs'] = f_vs() // could be more efficient
         const u = d.emails[d.ei[v.i]]
         if (u.updated) saveE(u)
     }
-    return d.vs[v.id]
+    return v && d.vs[v.id]
+}
+
+function clearVr(r) {
+    const f = { a: 'adult', j: 'junior' };
+    ['a', 'j'].forEach(aj => {
+        if (r[f[aj]] && r[aj + 'role']) {
+            Object.keys(d.vr).forEach(v => {
+                const o = d.vr[v]
+                if (o[f[aj]] && o[aj + 'role'] === r[aj + 'role']) {
+                    delete o[aj + 'role']
+                    delete o[aj + 'section']
+                }
+            })
+        }
+    })
 }
 
 function saveE(u) {
@@ -93,19 +122,19 @@ function saveE(u) {
         if (u.unsub && !o.fi.unsub) o.fi.unsub = new Date()
         else if (o.fi.unsub && !u.unsub) delete o.fi.unsub
     }
-    save('_emails', d.emails)
-    fns['es'] = f_es() // could be more efficient
+    save('emails', d.emails)
+    d.fns['es'] = f_es() // could be more efficient
     if (u) return d.emails[d.ei[u.i]]
 }
 
 function f_vs() {
-    d.emails = fs.existsSync(`gz/_emails.gz`) ? fz('gz/_emails.gz') : {}
+    d.emails = fs.existsSync(`gz/emails.gz`) ? fz('gz/emails.gz') : {}
     if (!d.ei) {
         d.ei = {}
         Object.keys(d.emails).forEach(e => d.ei[d.emails[e].i] = e)
     }
-    const f = fs.existsSync(`gz/_vs.gz`), ts = f ? fs.statSync(`gz/_vs.gz`).mtime : new Date()
-    d._vs = f ? fz('gz/_vs.gz') : {}
+    const f = fs.existsSync(`gz/vs.gz`), ts = f ? fs.statSync(`gz/vs.gz`).mtime : new Date()
+    d._vs = f ? fz('gz/vs.gz') : {}
     let n = 0, m = 0, p = 0, e = 0
     d.ev = {}, d.vs = {}
     for (let v in d._vs) {
@@ -113,7 +142,7 @@ function f_vs() {
         const o = d._vs[v], u = o.email && d.emails[o.email.toLowerCase()]
         if (u) {
             const i = u.i, { id, first, last, year, mobile } = o
-            d.vs[v] = { id, first, last, mobile, i, year }
+            d.vs[v] = { id, first, last, i, year }
             if (!d.ev[i]) d.ev[i] = []
             if (first === u.first && last === u.last) {
                 d.ev[i].unshift(v)
@@ -131,16 +160,16 @@ function f_vs() {
 }
 
 function fv(fn) {
-    const fe = fs.existsSync(`gz/_${fn}.gz`)
-    d[fn] = fe ? fz(`gz/_${fn}.gz`) : {}
+    const fe = fs.existsSync(`gz/${fn}.gz`)
+    d[fn] = fe ? fz(`gz/${fn}.gz`) : {}
     log.info({ [fn]: Object.keys(d[fn]).length })
-    return fe ? f(`gz/_${fn}.gz`) : { date: new Date(), data: zip({}, false, true) }
+    return fe ? f(`gz/${fn}.gz`) : { date: new Date(), data: zip({}, false, true) }
 }
 
 function f_(fn) {
-    const fe = fs.existsSync(`gz/_${fn}.gz`),
-        j = fe ? fz(`gz/_${fn}.gz`) : {},
-        ts = fe ? fs.statSync(`gz/_${fn}.gz`).mtime : new Date(),
+    const fe = fs.existsSync(`gz/${fn}.gz`),
+        j = fe ? fz(`gz/${fn}.gz`) : {},
+        ts = fe ? fs.statSync(`gz/${fn}.gz`).mtime : new Date(),
         r = {}
     let h = 0, n = 0, e = 0
     for (let k in j) {
@@ -175,15 +204,15 @@ function f_(fn) {
     }
     const rn = Object.keys(r).length
     log.info({ [fn]: { h, n, rn, e } })
-    if (n || h) save('_emails', emails)
+    if (n || h) save('emails', emails)
     return { date: ts, data: zip(r, false, true) }
 }
 function f_es() {
-    const unsub = d.unsub = fs.existsSync(`gz/_unsub.gz`) ? fz(`gz/_unsub.gz`) : {},
-        bounce = d.bounce = fs.existsSync(`gz/_bounce.gz`) ? fz(`gz/_bounce.gz`) : {},
-        ets = fs.statSync(`gz/_emails.gz`).mtime,
-        uts = fs.existsSync(`gz/_unsub.gz`) && fs.statSync(`gz/_unsub.gz`).mtime,
-        bts = fs.existsSync(`gz/_bounce.gz`) && fs.statSync(`gz/_bounce.gz`).mtime,
+    const unsub = d.unsub = fs.existsSync(`gz/unsub.gz`) ? fz(`gz/unsub.gz`) : {},
+        bounce = d.bounce = fs.existsSync(`gz/bounce.gz`) ? fz(`gz/bounce.gz`) : {},
+        ets = fs.statSync(`gz/emails.gz`).mtime,
+        uts = fs.existsSync(`gz/unsub.gz`) && fs.statSync(`gz/unsub.gz`).mtime,
+        bts = fs.existsSync(`gz/bounce.gz`) && fs.statSync(`gz/bounce.gz`).mtime,
         ts = new Date(Math.max(ets.getTime(), uts ? uts.getTime() : 0, bts ? bts.getTime() : 0))
     d.es = {}
     let n = 0
@@ -199,10 +228,10 @@ function f_es() {
     return { date: ts, data: zip(d.es, false, true) }
 }
 function photoN() {
-    d.photos = fs.existsSync(`gz/_photos.gz`) ? fz('gz/_photos.gz') : {} // number to photos mapping
-    d.ns = fs.existsSync(`gz/_ns.gz`) ? fz('gz/_ns.gz') : {} // email to number mapping - used for permissions
-    const pf = fs.existsSync(`gz/_ps.gz`), ts = pf ? fs.statSync(`gz/_ps.gz`).mtime : new Date()
-    d.ps = pf ? fz('gz/_ps.gz') : {}, d.pp = {}
+    d.photos = fs.existsSync(`gz/photos.gz`) ? fz('gz/photos.gz') : {} // number to photos mapping
+    d.ns = fs.existsSync(`gz/ns.gz`) ? fz('gz/ns.gz') : {} // email to number mapping - used for permissions
+    const pf = fs.existsSync(`gz/ps.gz`), ts = pf ? fs.statSync(`gz/ps.gz`).mtime : new Date()
+    d.ps = pf ? fz('gz/ps.gz') : {}, d.pp = {}
     Object.keys(d.photos).forEach(y => {
         d.pp[y] = {}
         Object.keys(d.photos[y]).forEach(n => {

@@ -4,9 +4,9 @@ import { ajax } from './ajax'
 import { nav } from './Nav'
 
 class Contact extends Html {
-    constructor(p, uid) {
+    constructor(p, id) {
         super()
-        if (uid && nav.d.data.vs[uid]) this._to = uid
+        this._v = id
         this.spam = Math.floor(Math.random() * 3)
     }
     form = () => {
@@ -29,7 +29,8 @@ class Contact extends Html {
         return html
     }
     var = (n) => {
-        const user = nav._user, to = this._to && name(this._to, true, true)
+        const user = nav._user, vs = nav.d.data.vs, v = this._v && vs[this._v],
+            to = v && `${v.first} ${v.last}`
         if (n === 'name_email') return `${user ? '' : '{input.name}<br />{input.email}<br />'}`
         if (n === 'spam') return `${user ? '' : "<div class=\"small\">I'm not a robot</div>{checkbox.spam1} {checkbox.spam2} {checkbox.spam3} "}`
         return to || 'Hatch End Triathlon'
@@ -61,7 +62,7 @@ class Contact extends Html {
         }
     }
     send = () => {
-        const { subject, message, name, email } = this._form, v = this._to
+        const { subject, message, name, email } = this._form, v = this._v
         ajax({ req: 'send', subject, message, name, email, v })
             .then(r => this.close('<div class="success">Message sent.</div>'))
             .catch(e => {

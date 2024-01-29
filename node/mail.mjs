@@ -75,7 +75,7 @@ function email(p) {
         u = p.i && d.es[p.i],
         from = p.email || (u ? d.ei[u.i] : d.config.admin_to),
         token = jwt.sign({ email: to_email }, d.config.key),
-        test = from.includes('epdarnell+') || to_email.includes('epdarnell+')
+        test = from.includes('epdarnell') || to_email.includes('epdarnell')
     m.to = p.to || (p.v ? d.vs[p.v].first : "Race Organiser")
     m.footer = (p.footer || _footer) + (p.unsub ? _unsub : '') + (p.reg ? _reg : '')
     m.from = u ? u.first + ' ' + u.last : p.name || 'Ed Darnell<br>Race Organiser'

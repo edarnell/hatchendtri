@@ -119,6 +119,7 @@ class Html {
             return
         }
         const data = (o || this)._p('data'), loaded = (o || this)._p('loaded')
+        nav.user().then(r => nav.userIcon(r))
         if (data) nav.d.get(data).then(loaded)
     }
     replace = (o, html) => {

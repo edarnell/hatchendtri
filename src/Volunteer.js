@@ -53,13 +53,13 @@ class Volunteer extends Html {
       return { tip: () => this.utip(), class: c, popup: `{Vol.${v || 'u'}}` }
     }
     else {
-      const id = n.substring(1), vs = nav.d.data.vs, vol = vs[id]
-      if (vol) {
+      const id = n.substring(1), vs = nav.d.data.vs, v = vs[id]
+      if (v) {
         if (n.charAt(0) === 'v') return { tip: () => this.tip(id, 2024), theme: 'light', class: 'span ' + this.color(id), popup: `{Vol.${id}}` }
         else return nav._user.admin ? { tip: () => this.tip(id), theme: 'light', class: this.color(id), popup: `{Vol.${id}}` }
-          : { tip: `contact ${name(id)}`, class: this.color(id), theme: 'light', popup: `{Contact.${id}}` }
+          : { tip: `contact ${v.first} ${v.last}`, class: this.color(id), theme: 'light', popup: `{Contact.${id}}` }
       }
-      else error({ link: n, id, vol })
+      else error({ link: n, id, v })
     }
   }
   html = (n) => {
@@ -251,8 +251,8 @@ class Vroles extends Html {
       if (vol) return { tip: () => this.tip(id), theme: 'light', class: this.p.color(id) }
     }
     else if (n.charAt(1) === '_') {
-      const f = { a: 'adult', j: 'junior', s: 'both', f: 'both' }, ajs = f[n.charAt(0)]
-      return { tip: `fill ${ajs}`, popup: `{Vselect.${n}}` }
+      const u = nav._user, admin = u && u.admin, f = { a: 'adult', j: 'junior', s: 'both', f: 'both' }, ajs = f[n.charAt(0)]
+      return { tip: admin ? `fill ${ajs}` : 'role details', popup: `{Vselect.${n}}` }
     }
     else return this.plink(n, param)
   }

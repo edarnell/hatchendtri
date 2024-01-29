@@ -6,7 +6,7 @@ class AdminEmail extends Html {
     constructor() {
         super()
         this.id = 'AdminEmail'
-        this.data = ['es', 'mailLog', 'cs', 'ds']
+        this.data = ['es', 'ml', 'cs', 'ds']
     }
     //             save: { tip: `save emails_`, class: 'form danger', click: this.save },
     form = () => {
@@ -64,7 +64,7 @@ class AdminEmail extends Html {
         else return ''
     }
     ml = () => {
-        const d = nav.d.data, ml = d && d.mailLog, e = d && d.es, eml = {}
+        const d = nav.d.data, ml = d && d.ml, e = d && d.es, eml = {}
         if (ml && e) {
             let last = ''
             const opt = Object.keys(ml).filter(dt => ml[dt].req === 'bulksend' && ml[dt].live).reverse().map(dt => {
@@ -148,7 +148,7 @@ class AdminEmail extends Html {
         }
     }
     to = (dt, i) => {
-        const d = nav.d.data, ml = d && d.mailLog, m = ml && ml[dt],
+        const d = nav.d.data, ml = d && d.ml, m = ml && ml[dt],
             to = m.list.filter(r => r.to.email + '' === i + '')[0].to,
             n = m.list.length - 1
         //debug({ m, to }) // ${to.name} 
@@ -281,7 +281,7 @@ class Email extends Html {
 class Send extends Html {
     constructor(p, name, param) {
         super(p, name, param)
-        const d = nav.d.data, ml = d && d.mailLog
+        const d = nav.d.data, ml = d && d.ml
         this.m = ml && ml[param]
         this.dt = this.m && param.replace(/^(\d{2})(\d{2})(\d{2})(\d{2}).*$/, '$4/$3/$2')
     }
@@ -320,7 +320,7 @@ class Send extends Html {
     input = (e, o) => {
         const f = this.f = this.getForm()
         if (o.name === 'load') {
-            const d = nav.d.data, ml = d && d.mailLog
+            const d = nav.d.data, ml = d && d.ml
             this.m = ml && ml[f.load]
             this.fe('subject', this.m.subject)
             this.fe('message', this.m.message)
@@ -333,8 +333,6 @@ class Send extends Html {
             list = rows.map(email => (emails[email] && { to: { name: emails[email].first, email } })).filter(r => r),
             { subject, message, unsub, time } = fm
         if (list.length) ajax({ req: 'bulksend', subject, message, unsub, time, list, live }).then(r => {
-            if (r.mailLog) nav.d.saveZip('mailLog', r.mailLog)
-            this.p.ml()
             this.p.reload('emails')
             debug({ r })
         }).catch(e => error(e, o))

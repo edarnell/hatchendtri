@@ -91,62 +91,6 @@ function sendReq(j, r, a) {
     else resp(j, r, a, { e: 'no message' }, 400)
 }
 
-function vName(id) {
-    const v = d.vs[id], u = d.emails[d.ei[v.i]], first = v.first || u.first, last = v.last || u.last
-    return `${first} ${last}`
-}
-
-function update_v(v, details) {
-    const { first, last, mobile, notes, email } = details,
-        { i, id } = v, u = d.emails[email]
-    if (v.first) v = { first, last, mobile, notes, email, i, id }
-    else if (v.last) v = { last, mobile, notes, email, i, id }
-    else {
-        if (u.first !== first || u.last !== last) {
-            u.first = first
-            u.last = last
-            u.pdated = true
-        }
-        v = { mobile, notes, email, i, id }
-    }
-    return v
-}
-
-function new_user(u, v) {
-    const { first, last, email } = u, ts = new Date()
-    let i = Math.max(...Object.keys(d.emails).filter(x => isNaN(x) === false)) + 1
-    d.emails[email] = { first, last, email, i, files: { ts }, ...v && { updated: true, vs: [v.id] } }
-    d.ei[i] = email
-    return d.emails[email]
-}
-
-function switch_v(v, details) {
-    const { first, last, mobile, notes, email } = details,
-        uv = d.emails[d.ei[v.i]], u = d.emails[email] || new_user(details, v)
-    if (uv.vs && uv.vs.includes(v.id)) {
-        uv.vs.splice(uv.vs.indexOf(v.id), 1)
-        d.emails[ei[v.i]] = uv
-        d.emails[ei[v.i]].updated = true
-    }
-    v = { i: u.i, id: v.id }
-    if (!u.vs) u.vs = [v.id]
-    else u.vs.push(v.id)
-    u.updated = true
-    v = update_v(v, details)
-    return v
-}
-
-function update_vuser(v, details) {
-    const email = details.email,
-        uv = d.emails[d.ei[v.i]],
-        ue = d.emails[email],
-        u = (uv && ue) && uv.i === ue.i && uv
-    if (!uv) v = null
-    else if (u) v = update_v(v, details)
-    else v = switch_v(v, details)
-    return v
-}
-
 function saveU(j, r, a) {
     const u2 = j.u, u = d.emails[u2.email]
     if (!a.aed) resp(j, r, a, { e: 'Unauthorized' }, 401)
@@ -174,36 +118,22 @@ function saveU(j, r, a) {
 }
 
 function saveVol(j, r, a) {
-    let v
-    const { vol, roles, year, details, ys } = j
-    if (vol === -1) {
-        const u = d.emails[a.email], i = u && u.i,
-            id = Math.max(...Object.keys(vs).filter(x => isNaN(x) === false)) + 1
-        v = d.vs[id] = { i, id }
-    }
-    else if (vol) v = d.vs[vol]
-    else if (details) {
-        id = Math.max(...Object.keys(vs).filter(x => isNaN(x) === false)) + 1
-        v = d.vs[id] = { id }
-    }
-    if (v) {
-        if (details) {
-            v = update_vuser(v, details)
-            saveF('vs', v)
-        }
-        if (roles) saveF('vs', v, roles, ys)
+    if (j.v) {
+        let v
+        if (j.roles) v = saveF('vs', j.v, j.roles)
+        else v = saveF('vs', j.v)
         resp(j, r, a, { v })
-        const email = d.ei[v.i]
-        send({
-            from_email: email, uEmail: email, subject: `vol update ${v.id}`,
-            message: `{volunteer} ${v.id} ${vName(v.id)}\n` +
+        const roles = d.vr[v.id], m = {
+            i: a.i,
+            subject: `vol update ${v.id}`,
+            message: `{volunteer} ${v.id} ${v.first} ${v.last}\n` +
                 (roles && (roles.adult || roles.junior || roles.none) ? `adult: ${roles && roles.adult ? roles.arole ? `${roles.asection},${roles.arole}` : 'yes' : 'no'}\n` +
                     `junior: ${roles && roles.junior ? roles.jrole ? `${roles.jsection},${roles.jrole}` : 'yes' : 'no'}\n` +
                     `${roles && roles.notes ? `notes: ${roles.notes}\n` : ''}`
                     : `${details ? JSON.stringify(details) : ''}`)
-        })
-    } else resp(j, r, a, { e: 'no vol or details' }, 400)
-
+        }
+        send(m)
+    } else resp(j, r, a, { e: 'no vol' }, 400)
 }
 
 function saveComp(j, r, a) {
@@ -222,7 +152,7 @@ function saveComp(j, r, a) {
 }
 
 function saveReq(j, r, a) {
-    if (j.vol) saveVol(j, r, a)
+    if (j.v) saveVol(j, r, a)
     else if (j.comp) saveComp(j, r, a)
     else if (j.u) saveU(j, r, a)
     else resp(j, r, a, { e: 'no data' }, 400)
@@ -282,11 +212,11 @@ function regReq(j, r, a) {
 }
 
 function volReq(j, r, a) {
-    if (j.vol && a) {
-        const vol = get_vol(j.vol, a.email)
-        if (vol) {
-            //log.info('req->', req, { id: json.vol, name: vol.name })
-            resp(j, r, a, { vol })
+    if (j.v && a) {
+        const v = d._vs[j.v], u = d.emails[a.email]
+        if (a.email === v.email.toLowerCase()) v.i = u.i
+        if (v && (u.admin || u.i === v.i)) {
+            resp(j, r, a, { v })
         } else resp(j, r, a, { e: 'Unauthorized' }, 401)
     } else resp(j, r, a, { e: 'no vol' }, 400)
 }
@@ -385,7 +315,7 @@ function ue(email) {
 function authH(h) {
     const token = h && h.startsWith('Bearer ') ? h.substring(7) : null,
         auth = token ? jwt.verify(token, d.config.key) : null,
-        u = auth ? ue(auth.email) : null
+        u = auth ? ue(auth.email.toLowerCase()) : null
     return u
 }
 

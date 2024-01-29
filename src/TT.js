@@ -170,7 +170,7 @@ class TT {
             if (this.pop) this.pop.destroy()
             this.pO = this.pop = this.pdiv = null
             this.listen(true)
-            if (d) this.p.checkData(d)
+            if (d) this.p.checkData()
             if (m) {
                 this.tooltip(null, m)
                 this.timer = setTimeout(() => {

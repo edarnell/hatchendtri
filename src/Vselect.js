@@ -4,31 +4,6 @@ import selectV from './html/selectV.html'
 import { roles, sections } from './roles'
 import { ajax } from './ajax'
 
-function clear(id, aj, sec, role, ys) {
-    const vr = nav.d.data.vr
-    if (!id) {
-        Object.keys(vr).forEach(id => {
-            const r = clear(id, aj, sec, role)
-            if (r) ys.push(r)
-        })
-        return ys
-    }
-    let ret
-    if (aj !== 'a' && aj !== 'j') {
-        let r1 = clear(id, 'a', sec, role), r2 = clear(id, 'j', sec, role)
-        ret = r2 || r1
-    }
-    else {
-        const r = vr[id]
-        if (r && r[aj + 'section'] === sec && r[aj + 'role'] === role) {
-            r[aj + 'section'] = '', r[aj + 'role'] = ''
-            ret = { id, r }
-        }
-        else ret = false
-    }
-    return ret
-}
-
 const year = 2024
 class Vselect extends Html {
     constructor(p, name) {
@@ -38,7 +13,7 @@ class Vselect extends Html {
     form = () => {
         return {
             name: { placeholder: 'name', width: '50rem' },
-            new: { class: "form green hidden", popup: 'Vol' }
+            new: { class: "form green hidden", popup: `{Vol.n}` }
         }
     }
     link = (n) => {
@@ -94,7 +69,7 @@ class Vselect extends Html {
         return 0
     }
     filter = (id) => {
-        const f = this._form, d=nav.d.data, v = d.vs[id], vr=d.vr[id]
+        const f = this._form, d = nav.d.data, v = d.vs[id], vr = d.vr[id]
         if (f && f.name) {
             const name = v.first + ' ' + v.last
             return name.toLowerCase().indexOf(f.name.toLowerCase()) > -1
@@ -102,7 +77,7 @@ class Vselect extends Html {
         else return vr && ((vr.adult && (!vr.arole || vr.arole === 'Role')) || (vr.junior && (!vr.jrole || vr.jrole === 'Role')))
     }
     vol_names = () => {
-        const d=nav.d.data,vs=d.vs,
+        const d = nav.d.data, vs = d.vs,
             vols = Object.keys(d.vr).filter(this.filter).sort(this.nameSort),
             html = vols.slice(0, 10).map(id => `<div>{link._${id}.${_s(vs[id].first)}_${_s(vs[id].last)}}</div>`)
                 .join(' ')
@@ -118,13 +93,18 @@ class Vselect extends Html {
         const name = this.name,
             [, aj, s, r] = name.match(/([sajf])_(\d{1,2})r_(\d{1,2})/),
             sec = sections[s], rs = roles(sec), role = rs[r],
-            d=nav.d.data,
-            ys = []
-        clear(null, aj, sec, role, ys)
-        const v = d.vs[id], vy = d.vr[id]
-        if (aj !== 'a') { vy.jsection = sec, vy.jrole = role, vy.junior = true, vy.none = false }
-        if (aj !== 'j') { vy.asection = sec, vy.arole = role, vy.adult = true, vy.none = false }
-        ajax({ req: 'save', vol: v.id, year, roles: vy, ys }).then(r => {
+            d = nav.d.data, v = d.vs[id], vy = d.vr[id] || {}
+        if (aj !== 'j') {
+            vy.adult = true
+            vy.asection = sec
+            vy.arole = role
+        }
+        if (aj !== 'a') {
+            vy.junior = true
+            vy.jsection = sec
+            vy.jrole = role
+        }
+        ajax({ req: 'save', v, roles: vy }).then(r => {
             this.close('<div class="green">updated</div>', 'vs')
         }).catch(e => {
             error({ e })
@@ -136,5 +116,4 @@ class Vselect extends Html {
         this.reload('names')
     }
 }
-export { clear }
 export default Vselect
