@@ -60,16 +60,17 @@ class Nav extends Html {
         this.i = (this.i + 1) % 3
     }
     rendered = () => {
-        debug({ nav: this })
         if (this.path === 'register' || this.path === 'unsubscribe') {
             this._path = this.path
             const l = this.q(`[id*="TT_user_nav"]`)
             l.click()
             this.load()
+            debug({ nav_reg_unsub: this.path })
         }
         else this.user().then(r => {
-            this.userIcon(r)
+            this.userIcon(r, true)
             this.load()
+            debug({ nav: this.path })
         })
     }
     wrap = () => {
@@ -109,7 +110,7 @@ class Nav extends Html {
         this.image()
         if (pg) this.user().then(r => this.userIcon(r))
     }
-    userIcon = (set) => {
+    userIcon = (set, init) => {
         if (set !== undefined) {
             this._user = set
             const l = this.q(`[id*="icon_TT_user_nav"]`)
@@ -117,7 +118,7 @@ class Nav extends Html {
             // TODO - should ideally refresh tt if hovered
         }
         const lo = this.q(`[id*="TT_user_nav"]`), o = lo && this.tt[lo.id]
-        if (!this._unsub && o && o.pdiv) o.close()
+        if (!init && o && o.pdiv) o.close()
     }
     user = () => {
         return new Promise((s, f) => {

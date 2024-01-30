@@ -16,7 +16,10 @@
       "^.+\\.m?js$": "babel-jest"
     },
     "testMatch": [
-      "**/tests/**/*.mjs"
+      "<rootDir>/tests/*.mjs"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/tests/utils.mjs"
     ]
   },
   "devDependencies": {

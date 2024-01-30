@@ -643,6 +643,24 @@ label {
     object-fit: contain;
 }
 
+.menu a,
+.menu .link {
+    color: #333;
+    text-decoration: none;
+    font-size: 1.1rem;
+    /*top right bottom left*/
+}
+
+.menu a:hover,
+.menu .link:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+.menu .link {
+    cursor: pointer;
+}
+
 @media print {
     @page {
         margin: 19mm 0 0 0;

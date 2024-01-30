@@ -59,7 +59,11 @@ class TT {
             else if (this.fm) l.removeEventListener("input", this.input)
         }
     }
-    el = () => document.querySelector(`#${this.id}`)
+    el = () => {
+        const l = document.querySelector(`#${this.id}`)
+        //debug({ el: this.id, l })
+        return l
+    }
     html = () => {
         const { p, type, name, param } = this,
             k = name.toLowerCase(), l = p._p('link'),
@@ -132,7 +136,7 @@ class TT {
         arrow.setAttribute('data-popper-arrow', true)
         tt.appendChild(arrow)
         document.body.appendChild(tt)
-        this.tip = createPopper(document.querySelector(`#${id}`), tt, {
+        this.tip = createPopper(this.el(), tt, {
             placement: link.placement || 'top',
             modifiers: [{ name: 'offset', options: { offset: [0, 8], }, },],
         })
@@ -140,7 +144,7 @@ class TT {
     }
     popdiv = (e) => {
         this.remove(null, true, false)
-        const l = this.el(), link = this.lk,
+        const link = this.lk,
             p = this.pO = typeof (link.popup || link.drag) === 'function' ? link.popup ? link.popup() : link.drag() : nav.O(link.popup || link.drag, this.p)
         const popup = this.pdiv = document.createElement('div'),
             id = (link.popup ? 'popup_' : 'drag_') + this.id
@@ -156,14 +160,18 @@ class TT {
             p.id = id
             p.close = this.close
             p.render(p)
-            if (link.popup) this.pop = createPopper(l, popup, {
-                placement: link.placement || 'top',
-                strategy: link.strategy || 'absolute',
-                modifiers: [{ name: 'offset', options: { offset: [0, 8], }, },],
-            })
+            if (link.popup) {
+                this.pop = createPopper(this.el(), popup, {
+                    placement: link.placement || 'top',
+                    strategy: link.strategy || 'absolute',
+                    modifiers: [{ name: 'offset', options: { offset: [0, 8], }, },],
+                })
+                debug({ popup: id })
+            }
         }
     }
     close = (m, d) => {
+        debug({ tt: this.id, close: { m, d } })
         if (this.pdiv) {
             if (this.pO) this.pO.unload(this.pO)
             if (this.pdiv) this.pdiv.remove()

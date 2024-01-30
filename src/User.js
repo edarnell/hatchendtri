@@ -29,7 +29,7 @@ class User extends Contact {
     }
     link = (n) => {
         if (n === 'menu') return { icon: 'menu', tip: '' }
-        else if (n === 'unsubscribe') return { tip: 'unsubscribe', click: this.unsub }
+        else if (n === 'unsubscribe') return { tip: 'unsubscribe', click: this.unsubscribe }
         else if (n === 'register') return { tip: 'register', click: this.reg }
         else if (n === 'logout') return { tip: 'logout', click: nav.logout }
         else if ((nav._path === 'unsubscribe' || nav._path === 'register') && n === 'close') return { tip: 'cancel', class: 'close', click: this.clear }
@@ -57,6 +57,7 @@ class User extends Contact {
         }
         else if (nav._user) {
             const u = nav._user, un = u.fi && u.fi.unsub
+            debug({ u, un })
             f = un ? {
                 sub: { tip: 'subscribe', class: 'form primary', click: this.sub },
             } : {}
@@ -85,7 +86,7 @@ class User extends Contact {
             else return `<div id="login">${login}</div>`
         }
     }
-    unsub = () => {
+    unsubscribe = () => {
         this.u = nav._user
         nav._path = 'unsubscribe'
         this.reload()
@@ -124,7 +125,7 @@ class User extends Contact {
                 this.close('<div class="error">Error.</div>')
             })
     }
-    subscribe = () => {
+    sub = () => {
         ajax({ req: 'sub' })
             .then(r => {
                 nav._user = r.u

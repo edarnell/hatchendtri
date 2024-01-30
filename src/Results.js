@@ -8,11 +8,11 @@ class Results extends Html {
     this.data = ['results', 'ps']
   }
   loaded = (r) => {
-    debug({ loaded: r, data: nav.d.data })
+    //debug({ loaded: r, data: nav.d.data })
     if (r) this.refresh()
   }
   updated = (r) => {
-    debug({ updated: r, data: nav.d.data })
+    //debug({ updated: r, data: nav.d.data })
     if (r) this.refresh()
   }
   rendered = () => {

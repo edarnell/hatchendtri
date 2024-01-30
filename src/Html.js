@@ -109,8 +109,7 @@ class Html {
         if (e) e.innerHTML = _html
         else error({ render: this, id })
         requestAnimationFrame(() => {
-            //debug({ render: this, o, id, _html })
-            this.listen(o)
+            this.listen(o) // may need delay for pupeteer
         })
     }
     checkData = (o) => {

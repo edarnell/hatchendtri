@@ -303,8 +303,10 @@ var _resp
 function auth(rH) {
     return async (m, r) => {
         _resp = false
-        const j = m.body, h = m.headers, a = j.req ? authH(h.authorization) : null
+        const j = m.body, h = m.headers
+        let a
         try {
+            a = j.req ? authH(h.authorization) : null
             if (j.req) {
                 if (m.headers.a_hatchend !== '20230521') return resp(j.req, r, { message: 'Invalid request' }, 404)
                 else await rH(j, r, a)
