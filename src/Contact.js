@@ -1,4 +1,4 @@
-import Html, { debug, _s, error } from './Html'
+import Html, { debug, _s, error, dbg } from './Html'
 import html from './html/Contact.html'
 import { ajax } from './ajax'
 import { nav } from './Nav'
@@ -76,8 +76,9 @@ class Contact extends Html {
         ajax({ req: 'send', subject, message, name, email, v })
             .then(r => this.close('<div class="success">Message sent.</div>'))
             .catch(e => {
-                error({ e })
-                this.close('<div class="error">Error Sending.</div>')
+                if (e === 'unsubscribed') dbg({ e })
+                else error(e)
+                this.close(`<div class="error">Error Sending${e === 'unsubscribed' ? ' (unsubscribed)' : ''}.</div>`)
             })
     }
     checkSpam = () => {

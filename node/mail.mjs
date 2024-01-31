@@ -64,26 +64,30 @@ function html_text(html) {
 }
 
 const _footer = '{het} is organised and run by {jet}<br/><br/>',
-    _unsub = 'You are receiving this email because you previously entered or volunteered.<br/>'
+    _sub = 'You are receiving this email because you previously raced, registered or volunteered.<br/>'
         + 'You can reply to this email or {unsubscribe} at any time.',
-    _reg = 'Your email is not currently registered. You can reply to this email, or {register} at any time.'
+    _unsub = 'Your email is currently unsubscribed. You can reply to this email, or re-{subscribe} at any time.',
+    _unreg = 'Your email is not currently registered. You can reply to this email, or {register} at any time.'
 function email(p) {
     var html = d.mail // a copy as it is a string
     const m = {},
-        to_email = p.to_email || (p.v ? d._vs[p.v].email : d.config.admin_to),
-        u = p.i && d.es[p.i],
-        from = p.email || (u ? d.ei[u.i] : d.config.admin_to),
-        token = jwt.sign({ email: to_email }, d.config.key),
-        test = from.includes('epdarnell') || to_email.includes('epdarnell')
-    m.to = p.to || (p.v ? d.vs[p.v].first : "Race Organiser")
-    m.footer = (p.footer || _footer) + (p.unsub ? _unsub : '') + (p.reg ? _reg : '')
-    m.from = u ? u.first + ' ' + u.last : p.name || 'Ed Darnell<br>Race Organiser'
+        to = p.to_email || (p.v && d._vs[p.v].email),
+        u = to && d._es[to],
+        un = u && u.fi && u.fi.unsub,
+        ur = to && !u,
+        from = p.email || (p.i ? d.ei[p.i] : d.config.admin_to),
+        uf = from && d._es[from],
+        token = to ? jwt.sign({ email: to }, d.config.key) : '',
+        test = from.includes('epdarnell') || (to && to.includes('epdarnell'))
+    m.to = p.to || (u ? u.first : "Race Organiser")
+    m.footer = (p.footer || _footer) + (un ? _unsub : ur ? _unreg : u ? _sub : '')
+    m.from = uf ? uf.first + ' ' + uf.last : p.name || 'Ed Darnell<br>Race Organiser'
     m.message = p.message && p.message.replace(/\n/g, "<br />\r\n") || ''
         ;['to', 'message', 'from', 'footer'].forEach(k => {
             const re = new RegExp('{{' + k + '}}', 'g')
             html = html.replace(re, m[k])
         })
-    html = html.replace(/\{(volunteer|competitor|home|details|results|register|unsubscribe|yes|no)(?:\.([^\s}]+))?\}/g, (match, page, link) => {
+    html = html.replace(/\{(volunteer|competitor|home|details|results|register|subscribe|unsubscribe|yes|no)(?:\.([^\s}]+))?\}/g, (match, page, link) => {
         return `<a href="{host}/${page}{token}">${(link && link.replace(/_/g, "&nbsp;")) || page}</a>`
     })
     html = html.replace(/\{jet\}/g, '<a href="https://jetstreamtri.com">Jetstream Triathlon Club</a>')
@@ -98,7 +102,7 @@ function email(p) {
         + html_text(m.footer) + "\r\n"
     const ps = {
         Destination: {
-            ToAddresses: [((p.live || d.config.live || test) && to_email) || d.config.admin_to],
+            ToAddresses: [((p.live || d.config.live || test) && to) || d.config.admin_to],
         },
         Message: {
             Body: {

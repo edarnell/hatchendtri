@@ -53,11 +53,12 @@ function datesReq(j, r, a) {
 
 function loginReq(j, r, a) {
     if (j.email) {
-        const email = j.email, u = d._es[email], i = u && u.i,
-            msg = i ? `You will be automatically logged in by the following {results}, {competitor} or {volunteer} links.` :
-                'Your email is not registered with {het} but you can {register}.\r\n' +
+        const email = j.email, u = d._es[email], i = u && u.i, un = u && u.fi && u.fi.unsub,
+            msg = i && !un ? `You will be automatically logged in by the following {results}, {competitor} or {volunteer} links.`
+                : (un ? 'Your email is currently unsubscribed but you can re-{subscribe}.\r\n'
+                    : 'Your email is not registered with hatchendtri.com but you can {register}.\r\n') +
                 'You may safetly ignore this email if someone else has mistakenly entered your email address.',
-            m = { subject: 'Login', message: msg, to_email: email, ...i ? { to: u.first, unsub: true } : { to: 'Competitor/Volunteer', reg: true } }
+            m = { subject: 'Login', message: msg, to_email: email, ...i ? { to: u.first } : { to: 'Competitor/Volunteer' } }
         send(m)
             .then(s => resp(j, r, u, { sent: s }))
             .catch(e => resp(j, r, u, { e: 'send failed' }, 400))
@@ -66,11 +67,12 @@ function loginReq(j, r, a) {
 
 function sendReq(j, r, a) {
     const { v, name, email, subject, message } = j, i = a && a.i,
+        u = a && d._es[a.email], un = u && u.fi && u.fi.unsub,
         m = { v, subject, message, ...i ? { i } : { name, email } }
-    if (subject && message && (i || email)) send(m)
+    if (subject && message && !un && (i || email)) send(m)
         .then(s => resp(j, r, a, { sent: s }))
         .catch(e => resp(j, r, a, { e: 'send failed' }, 400))
-    else resp(j, r, a, { e: 'no message' }, 400)
+    else resp(j, r, a, { e: un ? 'unsubscribed' : 'no message' }, 400)
 }
 
 function saveU(j, r, a) {
@@ -142,21 +144,28 @@ function saveReq(j, r, a) {
 
 function unsubReq(j, r, a) {
     const tok = j.tok, auth = tok && jwt.verify(tok, d.config.key),
-        ae = ue(auth.email)
+        ae = (a && j.i === a.i) ? ue(a.email) : ue(auth.email)
     if (a && ae && a.i !== ae.i) log.info({ unsub: { ai: a.i, ae: ae.i } })
     if (ae && j.u) resp(j, r, a, { u: ae }) // get unsub user details
     else if (ae && j.i == ae.i) {
         const reason = j.reason || '', { first, last } = ae,
             un = { i: ae.i, first, last, reason, date: new Date().toISOString() }
         saveF('unsub', un)
+        resp(j, r, a, { unsub: true })
         const m = {
-            i: ae.i,
+            to_email: d.ei[ae.i],
             subject: 'Unsubscribe',
+            message: 'You have been unsubscribed from Hatch End Triathlon emails, please conatct us if you did not request this.\r\n' +
+                'You should treat any future emails which claim to be from Hatch End Triathlon with suspicion.'
+        }
+        send(m)
+        const am = {
+            i: ae.i,
+            subject: 'Unsub',
             message: `${first} ${last} ${ae.i} unsubscribed\n Reason: ${reason}\n` +
                 `${a && a.i !== ae.i ? `${ae.i}(${ae.email}) !== ${a.i}(${a.email})\n` : ''}`
         }
-        send(m)
-        resp(j, r, a, { unsub: true })
+        send(am)
     } else {
         debug({ unsub: { j, a, ae, auth } })
         resp(j, r, a, { e: 'data error' }, 400)
@@ -164,10 +173,25 @@ function unsubReq(j, r, a) {
 }
 
 function subReq(j, r, a) {
-    const u = a && d._es[a.email], un = u && u.fi && u.fi.unsub
+    const u = a && d.es[a.i], un = u && u.fi && u.fi.unsub
     if (un) {
         saveF('unsub', u, 'sub')
         userReq(j, r, a)
+        const m = {
+            to_email: d.ei[a.i],
+            subject: 'Subscribe',
+            message: 'You have been re-subscribed to Hatch End Triathlon emails, please conatct us if you did not request this.\r\n'
+                + `You will be automatically logged in by the following {results}, {competitor} or {volunteer} links.\r\n`
+        }
+        send(m)
+        const { first, last } = u
+        const am = {
+            i: a.i,
+            subject: 'Sub',
+            message: `${first} ${last} ${a.i} re-subscribed\n`
+        }
+        send(am)
+
     } else resp(j, r, a, { e: 'data error' }, 400)
 }
 

@@ -15,6 +15,14 @@ class User extends Contact {
             this.u = r.u
             this.reload('unsub_name')
         }).catch(e => this.close('Unsubscribed.'))
+        else if (nav._path === 'subscribe') {
+            nav.user().then(r => {
+                nav.userIcon(r, false)
+                const u = nav._user, un = u && u.fi && u.fi.unsub
+                if (u && !un) this.close('<div class="success">Subscribed.</div>')
+                else this.reload()
+            })
+        }
     }
     var = (n) => {
         if (n === 'title') return nav._user ? 'Switch User' : 'Login or {link.register.Register}'
@@ -38,6 +46,7 @@ class User extends Contact {
         let f = {}
         if (nav._path === 'unsubscribe') {
             this._fid = '#unsub_form'
+            this._submit = 'unsub'
             f = {
                 reason: { placeholder: 'reason (optional)', type: 'text' },
                 unsub: { tip: 'Confirm Unsubscribe', class: 'form primary', click: this.unsub },
@@ -57,7 +66,6 @@ class User extends Contact {
         }
         else if (nav._user) {
             const u = nav._user, un = u.fi && u.fi.unsub
-            debug({ u, un })
             f = un ? {
                 sub: { tip: 'subscribe', class: 'form primary', click: this.sub },
             } : {}
@@ -76,6 +84,7 @@ class User extends Contact {
     }
     html = (n, p) => {
         if (n === 'unsub_name') return `<span id='unsub_name' class="bold">${this.u ? this.u.first + ' ' + this.u.last : ''}</span>`
+        else if (n === 'subscribe') return `<div id="subscribe">${subscribe}</div>`
         else {
             if (nav._path === 'unsubscribe') return `<div id="unsub">${unsub}</div>`
             else if (nav._path === 'register') return `<div id="register">${register}</div>`
@@ -83,6 +92,7 @@ class User extends Contact {
                 const u = nav._user, un = u.fi && u.fi.unsub
                 return un ? `<div id="subscribe">${subscribe}</div>` : `<div id="user">${user}</div>`
             }
+            else if (nav._path === 'subscribe') return '<div id="subscribe"></div>'
             else return `<div id="login">${login}</div>`
         }
     }
@@ -126,6 +136,7 @@ class User extends Contact {
             })
     }
     sub = () => {
+        nav._path = null
         ajax({ req: 'sub' })
             .then(r => {
                 nav._user = r.u

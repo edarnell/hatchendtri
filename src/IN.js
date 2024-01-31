@@ -1,5 +1,4 @@
-const debug = console.log.bind(console)
-const error = console.error.bind(console)
+import { error, debug, dbg } from './Html'
 import { icons } from './icons'
 import TT from './TT'
 
@@ -9,12 +8,11 @@ class IN extends TT {
         this.id = 'IN_' + this.name + '_' + this.p.id
         const f = this.p._p('form'), form = f && f()
         this.lk = form && form[name]
-        if (!this.lk) error({ IN: this, f, form, name })
+        if (!this.lk) error({ IN: this.id })
         else (p.frm || (p.frm = {}))[name] = this
     }
     html = () => {
         const { lk, name, type, param } = this
-        //debug({ name, type, param, form })
         if (lk) switch (type) {
             case 'input':
                 return `${lk.label ? `<label for="${this.id}">${lk.label}</label>` : ''}
@@ -74,7 +72,6 @@ class IN extends TT {
         e.preventDefault()
         const ipt = this.p._p('input')
         if (ipt) ipt(e, this)
-        else debug({ Form: this, e })
     }
 }
 export default IN

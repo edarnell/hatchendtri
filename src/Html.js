@@ -1,11 +1,11 @@
-const debug = console.log.bind(console)
-const error = console.error.bind(console)
+const debug = console.log.bind(console),
+    dbg = window._test ? console.log.bind(console) : () => { },
+    error = console.error.bind(console)
 import TT from './TT'
 import IN from './IN'
 import Img from './Img'
 import Table from './Table'
 import { nav } from './Nav'
-import { createPopper } from '@popperjs/core'
 
 function _s(s, p) {
     if (p === undefined) return s && s.replace(/\s/g, "&nbsp;")
@@ -59,46 +59,11 @@ class Html {
     q = (q) => document.querySelector(q)
     fe = (n, v) => {
         const l = this.q(`[id*="IN_${n}_"]`)
-        if (!l) error({ fe: this, n })
+        if (!l) error({ fe: n, v })
         else if (v) l.value = v
         return l
     }
-    /*
-    popup = (o, id, l, placement) => {
-        if (o === 'close') this.popclose(id, l)
-        else {
-            const popup = document.createElement('div')
-            popup.id = id
-            popup.classList.add(l ? 'popup' : 'dragdiv')
-            if (!l) popup.style.top = window.scrollY
-            this.popups = this.popups || {}
-            this.popups[id] = popup
-            const p = typeof o === 'string' ? nav.O(o, this) : o
-            p.id = id
-            p.close=(m,d)=>this.popclose(id,m,d)
-            this.popups = this.popups || {}
-            document.body.appendChild(popup)
-            this.render(p)
-            this.popups[id] = popup
-            if (l) p.pop = createPopper(l, popup, {
-                placement: placement || 'top',
-                strategy: 'absolute',
-                modifiers: [{ name: 'offset', options: { offset: [0, 8], }, },],
-            })
-        }
-    }
-    popclose = (id, m, d) => {
-        //debug({ close: this, m, r })
-        const pop = this.popups[id], l = this.q(`#${id}`)
-        if (pop) {
-            this.unload(pop)
-            l.remove()
-            delete this.popups[id]
-        }
-    }
-    */
     render(o, id = o.id) {
-        //debug({ render: { o, id } })
         if (o === this) this.unload(this)
         else if (o.p && o.p.div && o.p.div[id]) {
             this.unload(o.p.div[id])
@@ -125,7 +90,6 @@ class Html {
         if (!html && o && o.data) this.checkData(o)
         const c = (html || o._p('html')(o.name, o.param)),
             _html = (typeof c === 'object') ? this.replace(c) : c
-        //debug({ replace: { o, html, _html } })
         return _html && this.rep(o, _html)
     }
     rep = (o, h) => {
@@ -135,7 +99,6 @@ class Html {
         return ms.reduce((res, m, i) => res.replace(m[0], rs[i]), h)
     }
     listen = (p) => {
-        //debug({ listen: this, p })
         if (p.div) Object.keys(p.div).forEach(d => this.listen(p.div[d]))
         if (p.tt) Object.keys(p.tt).forEach(id => p.tt[id].listen())
         if (p.frm) Object.keys(p.frm).forEach(id => p.frm[id].listen())
@@ -143,7 +106,6 @@ class Html {
         if (p.rendered) p.rendered(p.id)
     }
     unload = (p) => {
-        //debug({ unload: p.id })
         if (p.div) {
             Object.keys(p.div).forEach(d => this.unload(p.div[d]))
             p.div = {}
@@ -252,4 +214,4 @@ class Html {
     }
 }
 export default Html
-export { debug, error, _s, nav, snakeCase, jsonToHtml }
+export { debug, error, dbg, _s, nav, snakeCase, jsonToHtml }

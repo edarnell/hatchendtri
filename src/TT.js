@@ -1,7 +1,7 @@
 import { links } from './links'
 import { icons } from './icons'
 import { createPopper } from '@popperjs/core'
-import { nav, error, debug } from './Html'
+import { nav, error, debug, dbg } from './Html'
 
 class TT {
     constructor(p, type, name, param, fm) {
@@ -16,7 +16,6 @@ class TT {
         }
     }
     listen = (set = true) => {
-        //debug({ listen: this, set })
         const lk = this.lk, l = this.el()
         if (!l) error({ TT: this })
         else if (lk && set) {
@@ -42,7 +41,6 @@ class TT {
         this.timer = this.tt = this.tip = this.arrow = null
     }
     remove = (e, listeners, click = true) => {
-        //debug({ remove: this, e, listeners })
         this.ttremove()
         if (this.pO) this.pO.unload(this.pO)
         if (this.pop) this.pop.destroy()
@@ -61,7 +59,6 @@ class TT {
     }
     el = () => {
         const l = document.querySelector(`#${this.id}`)
-        //debug({ el: this.id, l })
         return l
     }
     html = () => {
@@ -75,7 +72,7 @@ class TT {
                         else error({ close: this })
                     }
                 })
-        if (!link) debug({ TT: this, type, name, param })
+        if (!link) error({ TT: this, type, name, param })
         else {
             this.lk = link
             if (link.id) this.id = link.id
@@ -96,6 +93,7 @@ class TT {
         return "?"
     }
     click = (e) => {
+        dbg({ click: this.id })
         const lk = this.lk
         if (lk) {
             e.preventDefault()
@@ -103,10 +101,7 @@ class TT {
             if (lk.popup || lk.drag) {
                 if (this.pdiv) this.close()
                 else this.popdiv(e)
-                if (typeof lk.click === 'function') {
-                    debug({ TT: this, e, lk })
-                    lk.click(e, this)
-                }
+                if (typeof lk.click === 'function') lk.click(e, this)
             }
             else if (lk.nav) {
                 nav.load(lk.href)
@@ -115,13 +110,14 @@ class TT {
             else if (lk.click) {
                 if (lk.click === 'submit') this.p.input(e, this)
                 else if (this.p.click) this.p.click(e, this)
-                else debug({ TTclick: this, e })
+                else error({ TTclick: this, e })
             }
-            else debug({ TTclick: this, e })
+            else error({ TTclick: this, e })
         }
-        else debug({ TTclick: this, e })
+        else error({ TTclick: this, e })
     }
     tooltip = (e, m) => {
+        dbg({ tooltip: this.id })
         this.ttremove()
         const tt = this.tt = document.createElement('div'),
             arrow = this.arrow = document.createElement('div'),
@@ -143,6 +139,7 @@ class TT {
         tt.setAttribute('data-show', '')
     }
     popdiv = (e) => {
+        dbg({ popdiv: this.id })
         this.remove(null, true, false)
         const link = this.lk,
             p = this.pO = typeof (link.popup || link.drag) === 'function' ? link.popup ? link.popup() : link.drag() : nav.O(link.popup || link.drag, this.p)
@@ -150,10 +147,7 @@ class TT {
             id = (link.popup ? 'popup_' : 'drag_') + this.id
         popup.classList.add(link.popup ? 'popup' : 'dragdiv')
         popup.id = id
-        if (link.drag) {
-            // debug({ document, window })
-            popup.style.top = window.scrollY
-        }
+        if (link.drag) popup.style.top = window.scrollY
         document.body.appendChild(popup)
         if (!p) error({ Popup: this, Objects: link.popup })
         else {
@@ -166,12 +160,11 @@ class TT {
                     strategy: link.strategy || 'absolute',
                     modifiers: [{ name: 'offset', options: { offset: [0, 8], }, },],
                 })
-                debug({ popup: id })
             }
         }
     }
     close = (m, d) => {
-        debug({ tt: this.id, close: { m, d } })
+        dbg({ close: this.id, m, d })
         if (this.pdiv) {
             if (this.pO) this.pO.unload(this.pO)
             if (this.pdiv) this.pdiv.remove()
@@ -179,16 +172,9 @@ class TT {
             this.pO = this.pop = this.pdiv = null
             this.listen(true)
             if (d) this.p.checkData()
-            if (m) {
-                this.tooltip(null, m)
-                this.timer = setTimeout(() => {
-                    this.ttremove
-                }, 2000)
-            }
+            if (m) this.tooltip(null, m)
         }
-        if (m) {
-            if (this.tt) this.timer = setTimeout(this.ttremove, 2000)
-        }
+        if (this.tt) this.timer = setTimeout(this.ttremove, 2000)
     }
 }
 export default TT
