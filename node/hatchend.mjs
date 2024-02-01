@@ -69,10 +69,10 @@ function sendReq(j, r, a) {
     const { v, name, email, subject, message } = j, i = a && a.i,
         u = a && d._es[a.email], un = u && u.fi && u.fi.unsub,
         m = { v, subject, message, ...i ? { i } : { name, email } }
-    if (subject && message && !un && (i || email)) send(m)
+    if (subject && message && (i || email)) send(m)
         .then(s => resp(j, r, a, { sent: s }))
         .catch(e => resp(j, r, a, { e: 'send failed' }, 400))
-    else resp(j, r, a, { e: un ? 'unsubscribed' : 'no message' }, 400)
+    else resp(j, r, a, { e: 'no message or user' }, 400)
 }
 
 function saveU(j, r, a) {
@@ -151,7 +151,7 @@ function unsubReq(j, r, a) {
         const reason = j.reason || '', { first, last } = ae,
             un = { i: ae.i, first, last, reason, date: new Date().toISOString() }
         saveF('unsub', un)
-        resp(j, r, a, { unsub: true })
+        resp(j, r, ae, { unsub: true })
         const m = {
             to_email: d.ei[ae.i],
             subject: 'Unsubscribe',
@@ -206,13 +206,29 @@ function userReq(j, r, a) {
     else resp(j, r, a, { e: j }, 400)
 }
 
-function regReq(j, r, a) {
-    const { first, last, email } = j, u = d._es[email],
-        tok = j.tok, auth = tok && jwt.verify(tok, d.config.key)
-    if (!u && first && last && email) {
-        saveF('es', { first, last, email })
-        if (auth && auth.email === email) userReq(j, r, { email })
-        else loginReq({ email }, r)
+function registerReq(j, r, a) {
+    const { first, last, email } = j, u = d._es[email]
+    if (u) loginReq(j, r, a)
+    else if (first && last && email) {
+        const m = {
+            to: first,
+            to_email: email,
+            subject: 'Registered',
+            message: 'You have been registered with Hatch End Triathlon, please conatct us if you did not request this.\r\n'
+                + 'You will be automatically logged in by the following {results}, {competitor} or {volunteer} links.'
+        }
+        send(m).then(s => {
+            const reg = saveF('es', { first, last, email })
+            const am = {
+                i: reg.i,
+                subject: 'Reg',
+                message: `${first} ${last} ${reg.i} registered\n`
+            }
+            send(am)
+            resp(j, r, reg, { reg })
+        }).catch(e => {
+            resp(j, r, a, { e: 'send failed' }, 400)
+        })
     }
     else resp(j, r, a, { e: j }, 400)
 }
@@ -296,9 +312,34 @@ function photoReq(j, r, a) {
     } else resp(j, r, a, { e: 'no photo' }, 400)
 }
 
+function testReq(j, r, a) {
+    if (d.config.live !== false) resp(j, r, a, { e: 'live' }, 401)
+    else {
+        const email = j.unsub || j.sub || j.rm,
+            u = email.includes('epdarnell+') && d._es[email]
+        if (u && j.rm) {
+            const i = u.i
+            delete d._es[email]
+            saveF('es')
+            resp(j, r, { i }, { rm: i })
+        }
+        else if (u && j.unsub) {
+            const { first, last, i } = u,
+                un = { i, first, last, reason: 'test', date: new Date().toISOString() }
+            if (!u.fi.unsub) saveF('unsub', un)
+            resp(j, r, u, { unsub: i })
+        }
+        else if (u && j.sub) {
+            if (u.fi.unsub) saveF('unsub', u, 'sub')
+            resp(j, r, u, { sub: u.i })
+        }
+        else resp(j, r, a, { e: 'no user' }, 400)
+    }
+}
+
 app.post(d.config.url, auth(async (j, r, a) => {
     const reqF = {
-        anon: { filesReq, datesReq, loginReq, sendReq, unsubReq, regReq },
+        anon: { filesReq, datesReq, loginReq, sendReq, unsubReq, registerReq, testReq },
         auth: { userReq, volReq, compReq, subReq, saveReq, photoReq, bulksendReq }
     }
     log.info('req->', j.req, a ? a.i : '')

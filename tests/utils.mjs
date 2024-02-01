@@ -10,14 +10,36 @@ const debug = console.log.bind(console),
     confDir = path.join(__dirname, '..', 'node')
 
 let page, dbg = false, _e = false
-function setDebug(s) {
-    expect(_e).toBe(false)
+function setDebug(s, e) {
+    if (e) expect(_e).toBe(false)
     dbg = s, _e = false
 }
+
+async function ajax(req) // token used when state not yet set
+{
+    const r = await fetch('http://localhost:4000/ajax', params(req))
+    const d = r.json()
+    return d
+}
+function params(data) {
+    const ret = {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+            'a_hatchend': '20230521'
+        },
+        method: 'post',
+        cache: 'no-cache',
+        body: JSON.stringify(data)
+    }
+    return ret
+}
+
 function setPage(p) {
     page = p
     page.on('console', async m => {
-        const a = await Promise.all(m.args().map(a => rC(a).catch(() => '?')))
+        const a = await Promise.all(m.args().map(a => rC(a).catch(e => e.toString())))
         const f = a.map(a => typeof a === 'object' ? JSON.stringify(a) : a).filter(x => x)
         const t = m.type() === 'error' && f.length ? _e = 'Error' : dbg && 'Debug'
         if (t) console.log(`${t}: ${f.join(' ')}`)
@@ -54,38 +76,22 @@ async function token(email) {
     return tok
 }
 
-async function unsub(email, uns) {
+async function logout(t) {
     const d = dbg
-    let c = false
-    dbg = false
-    await page.goto(url + '#' + await token(email))
+    if (!t) dbg = false
+    await page.goto(url)
     await page.waitForSelector('[id^="TT_user"]')
-    await hover('TT_user', 'EdTest Test')
     await page.click('[id^="TT_user"]')
     await page.waitForSelector('[id^="popup_TT_user"]')
-    const un = await page.$('#subscribe')
-    if (un && !uns) {
-        await page.click('[id^="IN_sub"]')
-        await tt('user', 'Subscribed.', 'success')
-        await page.click('[id^="TT_user"]')
-        await page.waitForSelector('[id^="popup_TT_user"]')
+    const u = await page.$('#user')
+    if (u) {
+        if (!t) debug('logout')
         await page.click('[id^="TT_logout"]')
-        c = true
+        await page.waitForSelector('[id^="popup_TT_user"]', { hidden: true, timeout: 500 })
     }
-    else if (!un && uns) {
-        await page.click('[id^="TT_unsubscribe"]')
-        await page.waitForSelector('#unsub')
-        await page.type('[id^="IN_reason"]', 'Puppeteer unsub()')
-        await page.click('[id^="IN_unsub"]')
-        await tt('user', 'Unsubscribed.')
-        c = true
-    }
-    else {
-        await page.click('[id^="TT_logout"]')
-    }
+    else if (t) expect(u).toBeTruthy()
     await page.goto('about:blank')
-    if (c) debug({ unsub: `${uns}=>${!uns}` })
-    dbg = d
+    if (!t) dbg = d
 }
 
 
@@ -193,4 +199,4 @@ function waitForFile(fn, i = 100, t = 1000) {
     })
 }
 
-export { setPage, setDebug, debug, token, scp, uc1, hover, tt, rm, mv, waitForFile, unsub, url }
+export { setPage, setDebug, debug, token, scp, uc1, hover, tt, rm, mv, waitForFile, url, logout, ajax }

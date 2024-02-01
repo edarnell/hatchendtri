@@ -1,4 +1,4 @@
-import { debug, error, _s } from './Html'
+import { debug, error, _s, dbg } from './Html'
 import user from './html/user.html'
 import unsub from './html/unsub.html'
 import subscribe from './html/subscribe.html'
@@ -39,8 +39,9 @@ class User extends Contact {
         if (n === 'menu') return { icon: 'menu', tip: '' }
         else if (n === 'unsubscribe') return { tip: 'unsubscribe', click: this.unsubscribe }
         else if (n === 'register') return { tip: 'register', click: this.reg }
+        else if (n === 'login') return { tip: 'login', click: this.log }
         else if (n === 'logout') return { tip: 'logout', click: nav.logout }
-        else if ((nav._path === 'unsubscribe' || nav._path === 'register') && n === 'close') return { tip: 'cancel', class: 'close', click: this.clear }
+        else if (nav._path && n === 'close') return { tip: 'cancel', class: 'close', click: this.clear }
     }
     form = () => {
         let f = {}
@@ -64,13 +65,7 @@ class User extends Contact {
                 spam1: { tip: this.spamtt }, spam2: { tip: this.spamtt }, spam3: { tip: this.spamtt }
             }
         }
-        else if (nav._user) {
-            const u = nav._user, un = u.fi && u.fi.unsub
-            f = un ? {
-                sub: { tip: 'subscribe', class: 'form primary', click: this.sub },
-            } : {}
-        }
-        else {
+        else if (nav._path === 'login' || !nav._user) {
             this._fid = '#login_form'
             this._submit = 'login'
             if (this.spam === undefined) this.spam = Math.floor(Math.random() * 3)
@@ -80,6 +75,12 @@ class User extends Contact {
                 spam1: { tip: this.spamtt }, spam2: { tip: this.spamtt }, spam3: { tip: this.spamtt }
             }
         }
+        else if (nav._user) {
+            const u = nav._user, un = u.fi && u.fi.unsub
+            f = un ? {
+                sub: { tip: 'subscribe', class: 'form primary', click: this.sub },
+            } : {}
+        }
         return f
     }
     html = (n, p) => {
@@ -87,6 +88,7 @@ class User extends Contact {
         else if (n === 'subscribe') return `<div id="subscribe">${subscribe}</div>`
         else {
             if (nav._path === 'unsubscribe') return `<div id="unsub">${unsub}</div>`
+            else if (nav._path === 'login') return `<div id="login">${login}</div>`
             else if (nav._path === 'register') return `<div id="register">${register}</div>`
             else if (nav._user) {
                 const u = nav._user, un = u.fi && u.fi.unsub
@@ -105,6 +107,10 @@ class User extends Contact {
         nav._path = 'register'
         this.reload()
     }
+    log = () => {
+        nav._path = 'login'
+        this.reload()
+    }
     unsub = () => {
         const f = this._f || {}
         nav._path = null
@@ -119,16 +125,12 @@ class User extends Contact {
             })
     }
     register = () => {
-        const f = this._f || {}, tok = localStorage.getItem('HEtok')
+        const f = this._f || {}, { first, last, email } = f
         nav._path = null
-        ajax({ req: 'register', tok, details: f })
+        ajax({ req: 'register', first, last, email })
             .then(r => {
-                if (r.u) {
-                    nav._user = r.u
-                    localStorage.removeItem('HEtok')
-                    localStorage.setItem('HEtoken', tok)
-                }
-                this.close('<div class="success">Registered.</div>')
+                dbg({ r })
+                this.close('<div class="success">Registered - email sent.</div>')
             })
             .catch(e => {
                 error({ e })
@@ -148,6 +150,7 @@ class User extends Contact {
             })
     }
     login = () => {
+        nav._path = null
         const f = this._f // set in Contact.js
         ajax({ req: 'login', email: f.email })
             .then(r => this.close('<div class="success">Login link emailed.</div>'))

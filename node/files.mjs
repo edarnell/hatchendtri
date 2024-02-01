@@ -110,19 +110,23 @@ function clearVr(r) {
 }
 
 function saveE(u) {
-    if (u && !u.i) {
+    if (u && !u.i && u.email && !d._es[u.email.toLowerCase()]) {
         const i = Math.max(...Object.keys(d.ei).filter(x => isNaN(x) === false)) + 1
+        const email = u.email.toLowerCase()
         u.i = i
-        d._es[u.email.toLowerCase()] = u
+        delete u.email
+        d._es[email] = u
+        u = d._es[email]
     }
-    else if (u) {
-        const o = u.i ? d._es[d.ei[u.i]] : {}
+    else if (u && (u.i || u.email)) {
+        const o = u.i ? d._es[d.ei[u.i]] : d._es[u.email.toLowerCase()]
         o.first = u.first
         o.last = u.last
         o.admin = u.admin
         if (o.updated) delete o.updated
         if (u.unsub && !o.fi.unsub) o.fi.unsub = new Date()
         else if (o.fi.unsub && !u.unsub) delete o.fi.unsub
+        u = o
     }
     save('es', d._es)
     d.fns['es'] = f_es() // could be more efficient
@@ -227,6 +231,8 @@ function f_es() {
         d.es[i] = { first, last, i, fi, admin }
         n++
     })
+    d.ei = {}
+    Object.keys(d._es).forEach(e => d.ei[d._es[e].i] = e)
     log.info({ es: n })
     return { date: ts, data: zip(d.es, false, true) }
 }
