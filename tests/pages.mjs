@@ -1,10 +1,13 @@
 import puppeteer from 'puppeteer'
-const email = 'epdarnell+test@gmail.com', name = 'EdTest Test',
-    anon = 'epdarnell+anon@gmail.com',
-    reg = { first: 'EdReg', last: 'Test', email: 'epdarnell+reg@gmail.com' },
-    vol = { first: 'EdVol', last: 'Test', email: 'epdarnell+vol@gmail.com' }
+const user = { first: 'User', last: 'Test', email: 'epdarnell+user@gmail.com' },
+    reg = { first: 'Reg', last: 'Test', email: 'epdarnell+reg@gmail.com' },
+    vol = { first: 'Vol', last: 'Test', email: 'epdarnell+vol@gmail.com' },
+    anon = 'epdarnell+anon@gmail.com'
 
-import { url, setPage, setDebug, scp, rm, waitForFile, uc1, tt, hover, token, unsub, logout, ajax, debug } from './utils.mjs'
+import {
+    url, setPage, setDebug, scp, rm, waitForFile, waitSel, sleep,
+    uc1, tt, hover, token, unsub, logout, login, ajax, debug, name
+} from './utils.mjs'
 
 let browser, page
 beforeAll(async () => {
@@ -13,6 +16,8 @@ beforeAll(async () => {
     page = await browser.newPage()
     setPage(page)
     setDebug(false)
+    await ajax({ req: 'test', rm: 'epdarnell+' })
+    await ajax({ req: 'test', reg: user })
     await page.evaluateOnNewDocument(() => {
         // make anti-spam and background image predictable
         Math.random = () => 0.5
@@ -58,7 +63,7 @@ describe('LoggedOut', () => {
         await hover('IN_send', 'complete the form', 'disabled')
 
         await page.type('[id^="IN_name"]', 'Puppeteer Pages')
-        await page.type('[id^="IN_email"]', email)
+        await page.type('[id^="IN_email"]', user.email)
         await page.type('[id^="IN_subject"]', 'Contact')
         await page.type('[id^="IN_message"]', 'Test message')
         await hover('IN_send', 'please tick the middle box', 'disabled')
@@ -90,7 +95,7 @@ describe('Subscribe', () => {
     afterEach(async () => setDebug(false, true))
 
     test('Login', async () => {
-        await ajax({ req: 'test', sub: email })
+        await ajax({ req: 'test', sub: user.email })
         rm('Login.email')
         await page.goto(url)
         await hover('TT_user', 'login or register')
@@ -104,7 +109,7 @@ describe('Subscribe', () => {
         const pg = await page.$eval('[id^="popup_TT_user"]', h => h.innerHTML)
         await scp('Login', pg)
         await hover('IN_login', 'enter your email', 'disabled')
-        await page.type('[id^="IN_email"]', email)
+        await page.type('[id^="IN_email"]', user.email)
         await hover('IN_login', 'please tick the middle box', 'disabled')
         await page.click('[id^="IN_spam2"]')
         await hover('IN_login', 'login by email', 'primary')
@@ -115,10 +120,10 @@ describe('Subscribe', () => {
     })
 
     test('Unsub', async () => {
-        await ajax({ req: 'test', sub: email })
+        await ajax({ req: 'test', sub: user.email })
         rm('Unsubscribe.email')
         rm('Unsub.email')
-        await page.goto(url + '/unsubscribe#' + await token(email))
+        await page.goto(url + '/unsubscribe#' + await token(user.email))
         await page.waitForSelector('#unsub')
         await hover('IN_unsub', 'Confirm Unsubscribe', 'primary')
         await page.type('[id^="IN_reason"]', 'Pupeteer test')
@@ -132,10 +137,10 @@ describe('Subscribe', () => {
     test('Sub', async () => {
         rm('Subscribe.email')
         rm('Sub.email')
-        await ajax({ req: 'test', unsub: email })
-        await page.goto(url + '#' + await token(email))
+        await ajax({ req: 'test', unsub: user.email })
+        await page.goto(url + '#' + await token(user.email))
         await page.waitForSelector('[id^="TT_user"]')
-        await hover('TT_user', name)
+        await hover('TT_user', name(user, ' '))
         await page.click('[id^="TT_user"]')
         await page.waitForSelector('#subscribe')
         await page.click('[id^="IN_sub"]')
@@ -144,13 +149,13 @@ describe('Subscribe', () => {
         await scp('Subscribe', m, '.email')
         const am = await waitForFile('Sub.email')
         await scp('Sub', am, '.email')
-        await logout(true)
+        expect(await logout()).toBe('logout')
     })
     test('UsubU', async () => {
-        await ajax({ req: 'test', sub: email })
-        await page.goto(url + '#' + await token(email))
+        await ajax({ req: 'test', sub: user.email })
+        await page.goto(url + '#' + await token(user.email))
         await page.waitForSelector('[id^="TT_user"]')
-        await hover('TT_user', name)
+        await hover('TT_user', name(user, ' '))
         await page.click('[id^="TT_user"]')
         await page.waitForSelector('[id^="popup_TT_user"]')
         await hover('TT_unsubscribe', 'unsubscribe')
@@ -164,8 +169,8 @@ describe('Subscribe', () => {
     test('SubU', async () => {
         rm('Subscribe.email')
         rm('Sub.email')
-        await ajax({ req: 'test', unsub: email })
-        await page.goto(url + '/subscribe#' + await token(email))
+        await ajax({ req: 'test', unsub: user.email })
+        await page.goto(url + '/subscribe#' + await token(user.email))
         await page.waitForSelector('#subscribe')
         await page.click('[id^="IN_sub"]')
         await tt('user', 'Subscribed.', 'success')
@@ -173,13 +178,13 @@ describe('Subscribe', () => {
         await scp('Subscribe', m, '.email')
         const am = await waitForFile('Sub.email')
         await scp('Sub', am, '.email')
-        await logout(true)
+        expect(await logout()).toBe('logout')
     })
     test('SubU2', async () => {
-        await ajax({ req: 'test', sub: email })
-        await page.goto(url + '/subscribe#' + await token(email))
+        await ajax({ req: 'test', sub: user.email })
+        await page.goto(url + '/subscribe#' + await token(user.email))
         await tt('user', 'Subscribed.', 'success')
-        await logout(true)
+        expect(await logout()).toBe('logout')
     })
 })
 
@@ -227,6 +232,7 @@ describe('Register', () => {
 
     test('Reg Login', async () => {
         // depends on previous test to create user
+        // add tests for logged in user and switch user
         rm('Login.email')
         await page.goto(url)
         await page.waitForSelector('[id^="TT_user"]')
@@ -252,47 +258,59 @@ describe('Volunteer', () => {
 
     test.only('Volunteer', async () => {
         await ajax({ req: 'test', reg: vol })
+        await page.goto(url + '/volunteer#' + await token(vol.email))
+        expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'grey')).toBeTruthy()
+        expect(await waitSel('[id^="greet"]', 'please confirm availability')).toBeTruthy()
+        expect(await page.$eval('[id^="popup_TT_u_greet"]', l => l)).toBeTruthy()
+        expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(false)
+        await hover('IN_adult', 'available for adult race')
+        expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(false)
+        await hover('IN_junior', 'available for junior race')
+        expect(await page.$eval('[id^="IN_none"]', l => l.checked)).toBe(false)
+        await hover('IN_none', 'not available in 2024')
+        await page.click('[id^="TT_close"]')
 
+        await sleep(100)
+        expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'grey')).toBeTruthy()
+        await page.click('[id^="TT_u_greet"]')
+        expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(false)
+        expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(false)
+        expect(await page.$eval('[id^="IN_none"]', l => l.checked)).toBe(false)
+        await page.click('[id^="IN_adult"]')
+        await page.click('[id^="TT_close"]')
+
+        await sleep(100)
+        expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'blue')).toBeTruthy()
+        expect(await waitSel('[id^="greet"]', 'thank you for volunteering')).toBeTruthy()
+        await page.click('[id^="TT_u_greet"]')
+        expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(true)
+        expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(false)
+        expect(await page.$eval('[id^="IN_none"]', l => l.checked)).toBe(false)
+        await page.click('[id^="IN_junior"]')
+        await page.click('[id^="TT_close"]')
+
+        await sleep(100)
+        expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'blue')).toBeTruthy()
+        expect(await waitSel('[id^="greet"]', 'thank you for volunteering')).toBeTruthy()
+        await page.click('[id^="TT_u_greet"]')
+        expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(true)
+        expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(true)
+        expect(await page.$eval('[id^="IN_none"]', l => l.checked)).toBe(false)
+        await page.click('[id^="IN_none"]')
+        await page.click('[id^="TT_close"]')
+
+        await sleep(100)
+        expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'red')).toBeTruthy()
+        expect(await waitSel('[id^="greet"]', 'thank you for confirming you are unable to help this year')).toBeTruthy()
+        await page.click('[id^="TT_u_greet"]')
+        expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(false)
+        expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(false)
+        expect(await page.$eval('[id^="IN_none"]', l => l.checked)).toBe(true)
+        await page.click('[id^="IN_none"]')
+        await page.click('[id^="TT_close"]')
+
+        await sleep(100)
+        expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'grey')).toBeTruthy()
+        expect(await waitSel('[id^="greet"]', 'please confirm availability')).toBeTruthy()
     })
-    /*
-        test('ContactUn', async () => {
-            rm('Contact.email')
-            await ajax({ req: 'test', unsub: email })
-            await page.goto(url + '#' + await token(email))
-            await page.waitForSelector('[id^="TT_contact"]')
-            await hover('TT_user', name)
-            await hover('TT_contact', 'contact us')
-            await page.click('[id^="TT_contact"]')
-            await page.waitForSelector('[id^="popup_TT_contact"]')
-            await hover('IN_send', 'complete the form', 'disabled')
-            await page.type('[id^="IN_subject"]', 'Contact')
-            await hover('IN_send', 'complete the form', 'disabled')
-            await page.type('[id^="IN_message"]', 'Test User message')
-            await hover('IN_send', 'send', 'primary')
-            await page.click('[id^="IN_send"]')
-            await tt('contact', 'Error Sending (unsubscribed).', 'error')
-            await logout(true)
-        })
-            test('ContactU', async () => {
-            rm('Contact.email')
-            await ajax({ req: 'test', sub: email })
-            await page.goto(url + '#' + await token(email))
-            await page.waitForSelector('[id^="TT_contact"]')
-            await hover('TT_user', name)
-            await hover('TT_contact', 'contact us')
-            await page.click('[id^="TT_contact"]')
-            await page.waitForSelector('[id^="popup_TT_contact"]')
-            await hover('IN_send', 'complete the form', 'disabled')
-            await page.type('[id^="IN_subject"]', 'Contact')
-            await hover('IN_send', 'complete the form', 'disabled')
-            await page.type('[id^="IN_message"]', 'Test User message')
-            await hover('IN_send', 'send', 'primary')
-            await page.click('[id^="IN_send"]')
-            await tt('contact', 'Message sent.', 'success')
-            const m = await waitForFile('Contact.email')
-            await scp('Contact', m, '.email', 'U')
-            await logout(true)
-        })
-        */
-
 })

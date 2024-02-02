@@ -4,6 +4,7 @@ import express from 'express'
 import jwt from 'jsonwebtoken'
 import { send, send_list } from './mail.mjs'
 import { load, saveF, log, d } from './files.mjs'
+import { testF } from './testing.mjs'
 
 load()
 const app = express()
@@ -312,31 +313,6 @@ function photoReq(j, r, a) {
     } else resp(j, r, a, { e: 'no photo' }, 400)
 }
 
-function testReq(j, r, a) {
-    if (d.config.live !== false) resp(j, r, a, { e: 'live' }, 401)
-    else {
-        const email = j.unsub || j.sub || j.rm,
-            u = email.includes('epdarnell+') && d._es[email]
-        if (u && j.rm) {
-            const i = u.i
-            delete d._es[email]
-            saveF('es')
-            resp(j, r, { i }, { rm: i })
-        }
-        else if (u && j.unsub) {
-            const { first, last, i } = u,
-                un = { i, first, last, reason: 'test', date: new Date().toISOString() }
-            if (!u.fi.unsub) saveF('unsub', un)
-            resp(j, r, u, { unsub: i })
-        }
-        else if (u && j.sub) {
-            if (u.fi.unsub) saveF('unsub', u, 'sub')
-            resp(j, r, u, { sub: u.i })
-        }
-        else resp(j, r, a, { e: 'no user' }, 400)
-    }
-}
-
 app.post(d.config.url, auth(async (j, r, a) => {
     const reqF = {
         anon: { filesReq, datesReq, loginReq, sendReq, unsubReq, registerReq, testReq },
@@ -398,5 +374,15 @@ function start() {
         log.info(`listening on ${d.config.url} port ${d.config.port}`)
     })
 }
+
+function testReq(j, r, a) {
+    if (d.config.live !== false) resp(j, r, a, { e: 'live' }, 401)
+    else {
+        const v = testF(j)
+        debug(v)
+        resp(j, r, a, v)
+    }
+}
+
 export { log }
 export default start

@@ -14,5 +14,5 @@ const o = fz(`gz/${f}.gz`)
 const n = k && parseInt(k)
 const r = Object.entries(o).filter(([_, v]) => !k || JSON.stringify(v).includes(k))
 
-d(u.inspect(r, { depth: null }))
+d(u.inspect(r.slice(-10), { depth: null }))
 if (!k) console.log('2nd arg optional - filter by string - or n(0=all default 10) for n entries')

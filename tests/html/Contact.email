@@ -8,11 +8,11 @@
     "Body": {
       "Html": {
         "Charset": "UTF-8",
-        "Data": "<!DOCTYPE html>\r\n<html>\r\n\r\n<head>\r\n    <title>Hatch End Triathlon</title>\r\n    <meta charset=\"UTF-8\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n    <style>\r\n        /* Style the email template */\r\n        body {\r\n            font-family: Arial, sans-serif;\r\n            font-size: 14px;\r\n            line-height: 1.5;\r\n            color: #333333;\r\n            margin-left: 20px;\r\n            margin-right: 20px;\r\n        }\r\n\r\n        h1 {\r\n            font-size: 28px;\r\n            margin-top: 0;\r\n            margin-bottom: 1em;\r\n        }\r\n\r\n        h2 {\r\n            font-size: 20px;\r\n            margin-top: 1.5em;\r\n            margin-bottom: 0.5em;\r\n        }\r\n\r\n        p {\r\n            margin-top: 0;\r\n            margin-bottom: 1.5em;\r\n        }\r\n\r\n        footer {\r\n            margin-top: 2em;\r\n            font-size: 12px;\r\n            color: #666666;\r\n        }\r\n    </style>\r\n</head>\r\n\r\n<body>\r\n    <p>Dear Race Organiser,</p>\r\n    <p>Test message</p>\r\n    <p>Regards,\r\n        <br /><br />EdTest Test\r\n    </p>\r\n    <!-- Footer -->\r\n    <footer><a href=\"http://localhost:3000\">Hatch End Triathlon</a> is organised and run by <a href=\"https://jetstreamtri.com\">Jetstream Triathlon Club</a><br/><br/></footer>\r\n</body>\r\n\r\n</html>"
+        "Data": "<!DOCTYPE html>\r\n<html>\r\n\r\n<head>\r\n    <title>Hatch End Triathlon</title>\r\n    <meta charset=\"UTF-8\">\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\r\n    <style>\r\n        /* Style the email template */\r\n        body {\r\n            font-family: Arial, sans-serif;\r\n            font-size: 14px;\r\n            line-height: 1.5;\r\n            color: #333333;\r\n            margin-left: 20px;\r\n            margin-right: 20px;\r\n        }\r\n\r\n        h1 {\r\n            font-size: 28px;\r\n            margin-top: 0;\r\n            margin-bottom: 1em;\r\n        }\r\n\r\n        h2 {\r\n            font-size: 20px;\r\n            margin-top: 1.5em;\r\n            margin-bottom: 0.5em;\r\n        }\r\n\r\n        p {\r\n            margin-top: 0;\r\n            margin-bottom: 1.5em;\r\n        }\r\n\r\n        footer {\r\n            margin-top: 2em;\r\n            font-size: 12px;\r\n            color: #666666;\r\n        }\r\n    </style>\r\n</head>\r\n\r\n<body>\r\n    <p>Dear Race Organiser,</p>\r\n    <p>Test message</p>\r\n    <p>Regards,\r\n        <br /><br />User Test\r\n    </p>\r\n    <!-- Footer -->\r\n    <footer><a href=\"http://localhost:3000\">Hatch End Triathlon</a> is organised and run by <a href=\"https://jetstreamtri.com\">Jetstream Triathlon Club</a><br/><br/></footer>\r\n</body>\r\n\r\n</html>"
       },
       "Text": {
         "Charset": "UTF-8",
-        "Data": "Dear Race Organiser\r\nTest message\r\nEdTest Test\r\n{het} is organised and run by {jet}\n\n\r\n"
+        "Data": "Dear Race Organiser\r\nTest message\r\nUser Test\r\n{het} is organised and run by {jet}\n\n\r\n"
       }
     },
     "Subject": {
@@ -22,6 +22,6 @@
   },
   "Source": "ed@hatchendtri.com",
   "ReplyToAddresses": [
-    "epdarnell+test@gmail.com"
+    "epdarnell+user@gmail.com"
   ]
 }

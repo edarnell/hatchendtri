@@ -12,7 +12,7 @@ class Volunteer extends Html {
   }
   greet = () => {
     const u = nav._user, v = u && u.vs && u.vs[0], c = this.color(v)
-    if (u.aed) return `Welcome <span class="red">${u.first} ${u.last}</span> be careful.`
+    if (u && u.aed) return `Welcome <span class="red">${u.first} ${u.last}</span> be careful.`
     else return u ? `Welcome {link.u.${_s(u.first)}_${_s(u.last)}} ` + (c === 'grey' ? 'please confirm availability.' :
       c === 'red' ? 'thank you for confirming you are unable to help this year.' : 'thank you for volunteering.')
       : 'We need a large volunteer team please {link.register} if you can help. All help is greatly appreciated.'

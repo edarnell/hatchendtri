@@ -76,24 +76,23 @@ async function token(email) {
     return tok
 }
 
-async function logout(t) {
-    const d = dbg
-    if (!t) dbg = false
-    await page.goto(url)
+async function logout(c) {
+    await page.goto(url + '/logout' + (c ? '#clear' : ''))
     await page.waitForSelector('[id^="TT_user"]')
-    await page.click('[id^="TT_user"]')
-    await page.waitForSelector('[id^="popup_TT_user"]')
-    const u = await page.$('#user')
-    if (u) {
-        if (!t) debug('logout')
-        await page.click('[id^="TT_logout"]')
-        await page.waitForSelector('[id^="popup_TT_user"]', { hidden: true, timeout: 500 })
-    }
-    else if (t) expect(u).toBeTruthy()
+    const lo = await page.$('#_logout')
     await page.goto('about:blank')
-    if (!t) dbg = d
+    return lo ? 'logout' : false
 }
 
+function name(u, s = '\u00A0') {
+    return `${u.first}${s}${u.last}`
+}
+
+async function login(u) {
+    await page.goto(url + '#' + await token(u.email))
+    await page.waitForSelector('[id^="TT_user"]')
+    await hover('TT_user', name(u))
+}
 
 function tok(s) {
     const r = s.replace(/href=\\"([^#]+)#([^\\]+)\\"/g, 'href=\\"$1#{token}\\"').replace(/\r\n/g, '\n')
@@ -152,7 +151,7 @@ async function tt(id, t, c) {
 }
 
 async function rm(fn) {
-    if (!fn.endsWith('.email')) fn = path.join(nodeDir, fn)
+    if (fn.endsWith('.email')) fn = path.join(nodeDir, fn)
     try {
         await fs.unlink(fn)
     } catch (e) {
@@ -199,4 +198,30 @@ function waitForFile(fn, i = 100, t = 1000) {
     })
 }
 
-export { setPage, setDebug, debug, token, scp, uc1, hover, tt, rm, mv, waitForFile, url, logout, ajax }
+async function waitSel(s, t, c) {
+    try {
+        const l = await page.waitForSelector(s),
+            r = (t || c) ? await page.$eval(s, (el, t, c) => {
+                const txt = el.textContent,
+                    cl = Array.from(el.classList).join(','),
+                    nbsp = txt.includes('\u00A0'),
+                    tt = !t || el.textContent.includes(t),
+                    ct = !c || el.classList.contains(c),
+                    r = tt && ct
+                return { r, txt, tt, nbsp, cl, ct }
+            }, t, c) : false
+        if (!l || (r && !r.r)) debug({ waitSel: { s, t, c, l: l ? true : false, r } })
+        return r ? r.r && l : l
+    } catch (e) {
+        const ln = new Error().stack.split('\n')[3].trim()
+        console.log(`Timeout '${s}' at ${ln}`)
+        throw e
+    }
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+export { setPage, sleep, setDebug, debug, token, scp, uc1, hover, tt, rm, mv, waitForFile, url, logout, login, ajax, name, waitSel }

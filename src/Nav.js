@@ -34,6 +34,12 @@ class Nav extends Html {
             this.render(this, 'root')
         })
     }
+    var = (n) => {
+        if (n === 'testing') {
+            if (this._logout) return '<div id="_logout" style="display: none;">logged out</div>'
+            else return ''
+        }
+    }
     path = () => {
         const t = localStorage.getItem('HEtoken'), d = localStorage.getItem('HEdate')
         if (!d) { // tidy up old storage - can add or d<date
@@ -44,6 +50,10 @@ class Nav extends Html {
         const hash = window.location.hash, token = hash && hash.substring(1)
         window.location.hash = ''
         this.path = window.location.pathname.replace('/', '')
+        if (this.path === 'logout') {
+            if (this._logout = t ? true : false) localStorage.removeItem('HEtoken')
+            if (hash === '#clear') localStorage.clear()
+        }
         if (token && token.length > 10) {
             if (['home', 'unsubscribe', 'register'].includes(this.path)) localStorage.setItem('HEtok', token)
             else localStorage.setItem('HEtoken', token)
@@ -60,12 +70,12 @@ class Nav extends Html {
         this.i = (this.i + 1) % 3
     }
     rendered = () => {
-        if (this.path === 'register' || this.path === 'unsubscribe' || this.path === 'subscribe') {
-            this._path = this.path
-            const l = this.q(`[id*="TT_user_nav"]`)
-            l.click()
-        }
-        this.load()
+        if (this.path === 'register' || this.path === 'unsubscribe' || this.path === 'subscribe') this._path = this.path
+        this.user().then(r => {
+            this.userIcon(r)
+            this.load()
+            if (this._path) this.q(`[id*="TT_user_nav"]`).click()
+        })
     }
     wrap = () => {
         // not sure this is needed now
@@ -103,7 +113,7 @@ class Nav extends Html {
         this.render(this.page, 'page')
         history.pushState(null, null, this.path === 'home' ? '/' : `/${this.path}`);
         this.image()
-        this.user().then(r => this.userIcon(r, pg))
+        if (pg) this.user().then(r => this.userIcon(r, pg))
     }
     userIcon = (set, close) => {
         if (set !== undefined) {
