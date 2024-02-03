@@ -18,10 +18,12 @@ class Vol extends Html {
             this.edit = true
         }
         else this.v = (vs && vs[n])
-        debug({ n, v: this.v })
+        nav._vol = null // prevent popup from opening again
     }
     user = () => {
-        const u = nav._user, { i, first, last, vs } = (u||{}), v = vs && vs[0]
+        const d = nav.d.data, u = nav._user, { i, first, last, vs } = (u || {}), id = nav._vol,
+            v = (id && u.admin && d.vs[id] && id) || (vs && vs[0])
+        debug({ v, vs, id, u, d })
         if (v) ajax({ req: 'vol', v: v.id }).then(r => {
             this.v = r.v
         })
@@ -184,7 +186,8 @@ class Vol extends Html {
     save = () => {
         debug({ save: this })
         const r24 = this.roleRem(this.getForm()), v = this.v, vr = nav.d.data.vr, vy = v.id && vr && vr[v.id] || {},
-            roles = (JSON.stringify(r24) !== JSON.stringify(vy)) && r24
+            { upd, ...vp } = vy,
+            roles = (JSON.stringify(r24) !== JSON.stringify(vp)) && r24
         debug({ roles, r24, vy })
         if (roles) {
             ajax({ req: 'save', v, roles }).then(r => {

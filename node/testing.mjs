@@ -1,5 +1,25 @@
 import { saveF, d } from './files.mjs'
 
+function rmV(m, rm) {
+    for (const id in d._vs) {
+        if (d._vs[id].email === m) {
+            rm.push(id)
+            delete d._vs[id]
+            if (d.vr[id]) delete d.vr[id]
+        }
+    }
+}
+
+function rmU(m, rm, vrm) {
+    const u = d._es[m]
+    if (u) {
+        rm.push(u.i)
+        delete d._es[m]
+        rmV(m, vrm)
+    }
+}
+
+
 function testF(j) {
     const cmds = ['unsub', 'sub', 'rm', 'reg'],
         f = cmds.find(cmd => j[cmd]),
@@ -7,30 +27,28 @@ function testF(j) {
         a = typeof p === 'string' && p.includes('epdarnell+'),
         u = a && d._es[p]
     if (j.rm && (u || p === 'epdarnell+')) {
-        let i = []
+        let i = [], vrm = []
         if (p === 'epdarnell+') {
             for (const k in d._es) {
-                if (k.includes('epdarnell+')) {
-                    i.push(d._es[k].i)
-                    delete d._es[k]
-                }
+                if (k.includes('epdarnell+')) rmU(k, i, vrm)
             }
         }
-        else {
-            i.push(u.i)
-            delete d._es[p]
-        }
-        saveF('es')
-        return { rm: i }
+        else rmU(p, i, vrm)
+        if (i.length) saveF('es')
+        if (vrm.length) saveF('vs')
+        return { rm: i, vrm }
     }
     if (j.reg && p) {
         let u // beware of shadowing
-        const { first, last, email } = p,
+        const { first, last, email, vol } = p,
             c = first && last && email && email.includes('epdarnell+')
         u = c && d._es[email]
         const added = !u && c ? true : false
         if (added) u = saveF('es', p)
-        return { reg: email, i: u && u.i, added }
+        let vrm = []
+        if (vol === 'rm') rmV(email, vrm)
+        if (vrm.length) saveF('vs')
+        return { reg: email, i: u && u.i, added, vrm }
     }
     else if (u && j.unsub) {
         const { first, last, i } = u,

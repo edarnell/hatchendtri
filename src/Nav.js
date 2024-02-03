@@ -54,10 +54,12 @@ class Nav extends Html {
             if (this._logout = t ? true : false) localStorage.removeItem('HEtoken')
             if (hash === '#clear') localStorage.clear()
         }
+        if (this.path === 'register' || this.path === 'unsubscribe' || this.path === 'subscribe') this._path = this.path
         if (token && token.length > 10) {
             if (['home', 'unsubscribe', 'register'].includes(this.path)) localStorage.setItem('HEtok', token)
             else localStorage.setItem('HEtoken', token)
         }
+        else if (token && this.path === 'volunteer') nav._vol = token
     }
     html = (n) => {
         // ${this.path === 'admin' ? '{select.admin}' : ''}
@@ -70,7 +72,6 @@ class Nav extends Html {
         this.i = (this.i + 1) % 3
     }
     rendered = () => {
-        if (this.path === 'register' || this.path === 'unsubscribe' || this.path === 'subscribe') this._path = this.path
         this.user().then(r => {
             this.userIcon(r)
             this.load()

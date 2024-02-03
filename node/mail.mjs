@@ -90,6 +90,7 @@ function email(p) {
     html = html.replace(/\{(volunteer|competitor|home|details|results|register|subscribe|unsubscribe|yes|no)(?:\.([^\s}]+))?\}/g, (match, page, link) => {
         return `<a href="{host}/${page}{token}">${(link && link.replace(/_/g, "&nbsp;")) || page}</a>`
     })
+    html = html.replace(/\{vol\.(\d+)\}/g, '<a href="{host}/volunteer#$1">volunteer</a>')
     html = html.replace(/\{jet\}/g, '<a href="https://jetstreamtri.com">Jetstream Triathlon Club</a>')
     html = html.replace(/\{het\}/g, '<a href="{host}">Hatch End Triathlon</a>')
     html = html.replace(/\{url\}/g, '<a href="{host}">hatchendtri.com</a>')

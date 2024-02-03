@@ -1,9 +1,4 @@
 import puppeteer from 'puppeteer'
-const user = { first: 'User', last: 'Test', email: 'epdarnell+user@gmail.com' },
-    reg = { first: 'Reg', last: 'Test', email: 'epdarnell+reg@gmail.com' },
-    vol = { first: 'Vol', last: 'Test', email: 'epdarnell+vol@gmail.com' },
-    anon = 'epdarnell+anon@gmail.com'
-
 import {
     url, setPage, setDebug, scp, rm, waitForFile, waitSel, sleep,
     uc1, tt, hover, token, unsub, logout, login, ajax, debug, name
@@ -24,11 +19,13 @@ beforeAll(async () => {
         window._test = true
     })
 })
-
 afterAll(async () => {
     await jest.restoreAllMocks()
     await browser.close()
 })
+
+const user = { first: 'User', last: 'Test', email: 'epdarnell+user@gmail.com' },
+    anon = 'epdarnell+anon@gmail.com'
 
 describe('LoggedOut', () => {
     //beforeEach(async () => await page.goto('about:blank'))
@@ -189,6 +186,7 @@ describe('Subscribe', () => {
 })
 
 describe('Register', () => {
+    const reg = { first: 'Reg', last: 'Test', email: 'epdarnell+reg@gmail.com' }
     beforeEach(async () => await logout())
     afterEach(async () => setDebug(false, true))
 
@@ -253,6 +251,13 @@ describe('Register', () => {
 })
 
 describe('Volunteer', () => {
+    const vol = { first: 'Vol', last: 'Test', email: 'epdarnell+vol@gmail.com', vol: 'rm' },
+        lead = { first: 'Lead', last: 'Test', email: 'epdarnell+lead@gmail.com', vol: 'lead' },
+        coord = { first: 'Coord', last: 'Test', email: 'epdarnell+coord@gmail.com', vol: 'coord' },
+        va = { first: 'Va', last: 'Test', email: 'epdarnell+va@gmail.com', vol: 'a' },
+        vaj = { first: 'Vaj', last: 'Test', email: 'epdarnell+vaj@gmail.com', vol: 'aj' },
+        vn = { first: 'Vn', last: 'Test', email: 'epdarnell+vn@gmail.com', vol: 'n' }
+
     beforeEach(async () => await logout())
     afterEach(async () => setDebug(false, true))
 
@@ -279,7 +284,7 @@ describe('Volunteer', () => {
         await page.click('[id^="IN_adult"]')
         await page.click('[id^="TT_close"]')
 
-        await sleep(100)
+        await sleep(200)
         expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'blue')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'thank you for volunteering')).toBeTruthy()
         await page.click('[id^="TT_u_greet"]')

@@ -110,14 +110,14 @@ function saveVol(j, r, a) {
         resp(j, r, a, { v })
         const roles = d.vr[v.id], m = {
             i: a.i,
-            subject: `vol update ${v.id}`,
-            message: `{volunteer} ${v.id} ${v.first} ${v.last}\n`
-            + `${roles? (!(roles.adult||roles.junior||roles.none)?'availability: ? - unset\n'
-            : (roles.none ? 'not available\n' 
-            :(`adult: ${roles.adult ? roles.arole ? `${roles.asection},${roles.arole}` : 'yes' : 'no'}\n` 
-            +`junior: ${roles.junior ? roles.jrole ? `${roles.jsection},${roles.jrole}` : 'yes' : 'no'}\n`
-            ) ) )+`notes: ${roles.notes||''}\n` 
-            : 'unset\n'}`
+            subject: `volunteer update - ${v.first} ${v.last}`,
+            message: `{vol.${v.id}} ${v.first} ${v.last}\n`
+                + `${roles ? (!(roles.adult || roles.junior || roles.none) ? 'availability: ? - unset\n'
+                    : (roles.none ? 'not available\n'
+                        : (`adult: ${roles.adult ? roles.arole ? `${roles.asection},${roles.arole}` : 'yes' : 'no'}\n`
+                            + `junior: ${roles.junior ? roles.jrole ? `${roles.jsection},${roles.jrole}` : 'yes' : 'no'}\n`
+                        ))) + `notes: ${roles.notes || ''}\n`
+                    : 'unset\n'}`
         }
         send(m)
     } else resp(j, r, a, { e: 'no vol' }, 400)

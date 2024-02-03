@@ -9,6 +9,7 @@ class Volunteer extends Html {
     super()
     this.id = 'volunteer'
     this.data = ['vs', 'vr']
+    nav._vol = nav._vol || true
   }
   greet = () => {
     const u = nav._user, v = u && u.vs && u.vs[0], c = this.color(v)
@@ -21,7 +22,6 @@ class Volunteer extends Html {
     if (n === 'year') return '' + year
   }
   loaded = (r) => {
-    debug({ loaded: this, r })
     if (r) this.reload(false)
   }
   volClose = () => this.updated()
@@ -34,7 +34,8 @@ class Volunteer extends Html {
       const n = this.fe('New')
       if (n) n.classList.remove('hidden')
     }
-    if (u && !u.aed && this.color(v) === 'grey') {
+    const d = nav.d.data, vid = u && d.vs && u.admin && d.vs[nav._vol]
+    if (u && ((nav._vol && this.color() === 'grey') || vid)) {
       const l = this.q(`[id="TT_u_greet_0"]`)
       if (l) l.click()
     }
@@ -48,10 +49,7 @@ class Volunteer extends Html {
     }
   }
   link = (n) => {
-    if (n === 'u') {
-      const u = nav._user, v = u.vs && u.vs[0], c = this.color(v)
-      return { tip: () => this.utip(), class: c, popup: `{Vol.${v || 'u'}}` }
-    }
+    if (n === 'u') return { tip: () => this.utip(), class: this.color(), popup: `{Vol.u}` }
     else {
       const id = n.substring(1), vs = nav.d.data.vs, v = vs[id], u = nav._user
       if (v && u) {
@@ -74,9 +72,10 @@ class Volunteer extends Html {
     else if (n === 'vRoles') return new Vroles(this.div['nr'], n)
     else if (n === 'vNames') return new Vnames(this.div['nr'], n)
   }
-  color = (id) => {
-    const vr = nav.d.data.vr,
-      v = vr&&vr[id],
+  color = (vid) => {
+    const u = nav._user, id = vid || (u && u.vs && u.vs[0]),
+      vr = nav.d.data.vr,
+      v = vr && vr[id],
       n = v && v.none,
       r = v && (v.adult || v.junior),
       rb = r && ((v.adult && !v.arole) || (v.junior && !v.jrole))
@@ -94,7 +93,7 @@ class Volunteer extends Html {
       const r = (v.adult || v.junior || v.none),
         ar = v.adult ? v.arole ? (v.asection + ' ' + v.arole) : '?' : r ? '✗' : '?',
         jr = v.junior ? v.jrole ? (v.jsection + ' ' + v.jrole) : '?' : r ? '✗' : '?'
-      return `<div class=${cl}>${year} ${ar}, ${jr}</div>`
+      return `<div class=${cl}>${year} adult:${ar} junior:${jr}</div>`
     }
     else return `<div class=${cl}>${year} ?</div>`
   }

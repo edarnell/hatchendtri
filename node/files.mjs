@@ -76,20 +76,26 @@ function newV(jv) {
 }
 
 function saveV(jv, jr) {
-    let v
-    if (jr) {
-        v = jv.id ? d._vs[jv.id] : newV(jv)
+    let v = jv ? jv.id ? d._vs[jv.id] : newV(jv) : null
+    if (v && jr) {
         clearVr(jr)
         d.vr[v.id] = jr
+        d.vr[v.id].upd = new Date().toISOString()
         save('vr', d.vr)
         d.fns['vr'] = { date: fs.statSync(`gz/vr.gz`).mtime, data: zip(d.vr, false, true) }
     }
-    else {
-        d.vs[v.id] = v
-        save('vs', d.vs)
+    else if (v) {
+        d._vs[v.id] = { v, ...jv }
+        save('vs', d._vs)
         d.fns['vs'] = f_vs() // could be more efficient
         const u = d._es[d.ei[v.i]]
-        if (u.updated) saveE(u)
+        if (u.updated) saveE(u) // needs more work
+    }
+    else { // only used in testing
+        save('vs', d._vs)
+        d.fns['vs'] = f_vs()
+        save('vr', d.vr)
+        d.fns['vr'] = { date: fs.statSync(`gz/vr.gz`).mtime, data: zip(d.vr, false, true) }
     }
     return v && d.vs[v.id]
 }
