@@ -21,7 +21,7 @@ class Vol extends Html {
         debug({ n, v: this.v })
     }
     user = () => {
-        const u = nav._user, { i, first, last, vs } = u, v = vs && vs[0]
+        const u = nav._user, { i, first, last, vs } = (u||{}), v = vs && vs[0]
         if (v) ajax({ req: 'vol', v: v.id }).then(r => {
             this.v = r.v
         })

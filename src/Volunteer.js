@@ -76,7 +76,7 @@ class Volunteer extends Html {
   }
   color = (id) => {
     const vr = nav.d.data.vr,
-      v = vr[id],
+      v = vr&&vr[id],
       n = v && v.none,
       r = v && (v.adult || v.junior),
       rb = r && ((v.adult && !v.arole) || (v.junior && !v.jrole))
