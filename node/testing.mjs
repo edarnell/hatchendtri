@@ -21,12 +21,16 @@ function rmU(m, rm, vrm) {
 
 
 function testF(j) {
-    const cmds = ['unsub', 'sub', 'rm', 'reg'],
-        f = cmds.find(cmd => j[cmd]),
+    const cmds = ['unsub', 'sub', 'rm', 'reg', 'debug'],
+        f = cmds.find(cmd => j[cmd]), // only 1 command
         p = f && j[f],
         a = typeof p === 'string' && p.includes('epdarnell+'),
         u = a && d._es[p]
-    if (j.rm && (u || p === 'epdarnell+')) {
+    if (j.debug && j.debug === 'email') {
+        saveF('debug', { email: true })
+        return { debug: d.debug }
+    }
+    else if (j.rm && (u || p === 'epdarnell+')) {
         let i = [], vrm = []
         if (p === 'epdarnell+') {
             for (const k in d._es) {
@@ -47,6 +51,12 @@ function testF(j) {
         if (added) u = saveF('es', p)
         let vrm = []
         if (vol === 'rm') rmV(email, vrm)
+        if (vol === 'lead') {
+            const vid = u && u.vs && u.vs[0], vr = vid && d.vr[vid]
+            if (!vr || !vr.arole || vr.arole !== 'Lead') {
+                saveF('vs', u, { adult: true, asection: 'Race Control', junior: true, arole: 'Lead', jsection: 'Race Control', jrole: 'Lead' })
+            }
+        }
         if (vrm.length) saveF('vs')
         return { reg: email, i: u && u.i, added, vrm }
     }

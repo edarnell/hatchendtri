@@ -21,13 +21,8 @@ class Vol extends Html {
         nav._vol = null // prevent popup from opening again
     }
     user = () => {
-        const d = nav.d.data, u = nav._user, { i, first, last, vs } = (u || {}), id = nav._vol,
-            v = (id && u.admin && d.vs[id] && id) || (vs && vs[0])
-        debug({ v, vs, id, u, d })
-        if (v) ajax({ req: 'vol', v: v.id }).then(r => {
-            this.v = r.v
-        })
-        return v ? v : { i, first, last }
+        const d = nav.d.data, u = nav._user, { i, first, last, vs } = u, id = nav._vol || (vs && vs[0])
+        return id ? d.vs[id] : { i, first, last }
     }
     form = () => {
         if (this.edit) return { // section and options populated on load
@@ -41,10 +36,10 @@ class Vol extends Html {
             adult: { class: 'bold', label: 'Adult', tip: 'available for adult race' },
             junior: { class: 'bold', label: 'Junior', tip: 'available for junior race' },
             none: { class: 'bold', label: 'None', tip: `not available in ${year}` },
-            asection: { class: "form hidden", options: ['Section'].concat(sections) },
-            arole: { class: "form hidden", options: ['Role'].concat(roles()) },
-            jsection: { class: "form hidden", options: ['Section'].concat(sections) },
-            jrole: { class: "form hidden", options: ['Role'].concat(roles()) },
+            asection: { class: 'form hidden', options: ['Section'].concat(sections) },
+            arole: { class: 'form hidden', options: ['Role'].concat(roles()) },
+            jsection: { class: 'form hidden', options: ['Section'].concat(sections) },
+            jrole: { class: 'form hidden', options: ['Role'].concat(roles()) },
             notes: { placeholder: 'role preference?', rows: 1, cols: 20 }
         }
     }
@@ -94,12 +89,6 @@ class Vol extends Html {
             let upd = false
             if (upd) ajax({ req: 'save', vol: this.v.id, details: f }).then(r => {
                 this.edit = false
-                nav.d.saveZip('vs', r.vs)
-                if (this.v.id < 0) {
-                    this.v = r.v
-                    this.name = r.v.id
-                    nav._user.vol = { [r.v.id]: r.v }
-                }
                 this.reload()
             })
             else {
@@ -163,7 +152,7 @@ class Vol extends Html {
                 c = race.charAt(0)
             if (x.checked) {
                 n.checked = false
-                if (nav._user.aed) {
+                if (nav._user.admin) {
                     s.classList.remove('hidden')
                     r.classList.remove('hidden')
                 }
@@ -184,7 +173,6 @@ class Vol extends Html {
         return o
     }
     save = () => {
-        debug({ save: this })
         const r24 = this.roleRem(this.getForm()), v = this.v, vr = nav.d.data.vr, vy = v.id && vr && vr[v.id] || {},
             { upd, ...vp } = vy,
             roles = (JSON.stringify(r24) !== JSON.stringify(vp)) && r24

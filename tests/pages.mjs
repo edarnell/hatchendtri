@@ -4,6 +4,9 @@ import {
     uc1, tt, hover, token, unsub, logout, login, ajax, debug, name
 } from './utils.mjs'
 
+const user = { first: 'User', last: 'Test', email: 'epdarnell+user@gmail.com' },
+    anon = 'epdarnell+anon@gmail.com'
+
 let browser, page
 beforeAll(async () => {
     //browser = await puppeteer.launch({ headless: false })
@@ -11,6 +14,7 @@ beforeAll(async () => {
     page = await browser.newPage()
     setPage(page)
     setDebug(false)
+    await ajax({ req: 'test', debug: 'email' })
     await ajax({ req: 'test', rm: 'epdarnell+' })
     await ajax({ req: 'test', reg: user })
     await page.evaluateOnNewDocument(() => {
@@ -23,9 +27,6 @@ afterAll(async () => {
     await jest.restoreAllMocks()
     await browser.close()
 })
-
-const user = { first: 'User', last: 'Test', email: 'epdarnell+user@gmail.com' },
-    anon = 'epdarnell+anon@gmail.com'
 
 describe('LoggedOut', () => {
     //beforeEach(async () => await page.goto('about:blank'))
@@ -115,7 +116,6 @@ describe('Subscribe', () => {
         const m = await waitForFile('Login.email')
         await scp('Login', m, '.email')
     })
-
     test('Unsub', async () => {
         await ajax({ req: 'test', sub: user.email })
         rm('Unsubscribe.email')
@@ -252,7 +252,7 @@ describe('Register', () => {
 
 describe('Volunteer', () => {
     const vol = { first: 'Vol', last: 'Test', email: 'epdarnell+vol@gmail.com', vol: 'rm' },
-        lead = { first: 'Lead', last: 'Test', email: 'epdarnell+lead@gmail.com', vol: 'lead' },
+        lead = { first: 'Lead', last: 'Test', email: 'epdarnell+lead@gmail.com', vol: 'lead', admin: true },
         coord = { first: 'Coord', last: 'Test', email: 'epdarnell+coord@gmail.com', vol: 'coord' },
         va = { first: 'Va', last: 'Test', email: 'epdarnell+va@gmail.com', vol: 'a' },
         vaj = { first: 'Vaj', last: 'Test', email: 'epdarnell+vaj@gmail.com', vol: 'aj' },
@@ -261,12 +261,13 @@ describe('Volunteer', () => {
     beforeEach(async () => await logout())
     afterEach(async () => setDebug(false, true))
 
-    test.only('Volunteer', async () => {
+    test('Volunteer', async () => {
+        //setDebug(true)
         await ajax({ req: 'test', reg: vol })
         await page.goto(url + '/volunteer#' + await token(vol.email))
         expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'grey')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'please confirm availability')).toBeTruthy()
-        expect(await page.$eval('[id^="popup_TT_u_greet"]', l => l)).toBeTruthy()
+        expect(await waitSel(('[id^="popup_TT_u_greet"]'), l => l)).toBeTruthy()
         expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(false)
         await hover('IN_adult', 'available for adult race')
         expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(false)
@@ -278,6 +279,7 @@ describe('Volunteer', () => {
         await sleep(100)
         expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'grey')).toBeTruthy()
         await page.click('[id^="TT_u_greet"]')
+        expect(await waitSel(('[id^="popup_TT_u_greet"]'), l => l)).toBeTruthy()
         expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(false)
         expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(false)
         expect(await page.$eval('[id^="IN_none"]', l => l.checked)).toBe(false)
@@ -288,6 +290,7 @@ describe('Volunteer', () => {
         expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'blue')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'thank you for volunteering')).toBeTruthy()
         await page.click('[id^="TT_u_greet"]')
+        expect(await waitSel(('[id^="popup_TT_u_greet"]'), l => l)).toBeTruthy()
         expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(true)
         expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(false)
         expect(await page.$eval('[id^="IN_none"]', l => l.checked)).toBe(false)
@@ -298,6 +301,7 @@ describe('Volunteer', () => {
         expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'blue')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'thank you for volunteering')).toBeTruthy()
         await page.click('[id^="TT_u_greet"]')
+        expect(await waitSel(('[id^="popup_TT_u_greet"]'), l => l)).toBeTruthy()
         expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(true)
         expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(true)
         expect(await page.$eval('[id^="IN_none"]', l => l.checked)).toBe(false)
@@ -308,6 +312,7 @@ describe('Volunteer', () => {
         expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'red')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'thank you for confirming you are unable to help this year')).toBeTruthy()
         await page.click('[id^="TT_u_greet"]')
+        expect(await waitSel(('[id^="popup_TT_u_greet"]'), l => l)).toBeTruthy()
         expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(false)
         expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(false)
         expect(await page.$eval('[id^="IN_none"]', l => l.checked)).toBe(true)
@@ -317,5 +322,18 @@ describe('Volunteer', () => {
         await sleep(100)
         expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'grey')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'please confirm availability')).toBeTruthy()
+    })
+
+    test.only('Lead', async () => {
+        //setDebug(true)
+        await ajax({ req: 'test', reg: lead })
+        await page.goto(url + '/volunteer#' + await token(lead.email))
+        expect(await waitSel('[id^="TT_u_greet"]', name(lead), 'grey')).toBeTruthy()
+        expect(await waitSel('[id^="greet"]', 'please confirm availability')).toBeTruthy()
+        expect(await waitSel(('[id^="popup_TT_u_greet"]'), l => l)).toBeTruthy()
+        expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(false)
+        await hover('IN_adult', 'available for adult race')
+        expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(false)
+        await hover('IN_junior', 'available for junior race')
     })
 })

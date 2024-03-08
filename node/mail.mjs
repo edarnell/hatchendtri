@@ -1,4 +1,5 @@
 // credentials in config.json
+const debug = console.log.bind(console)
 import { STSClient, GetSessionTokenCommand } from '@aws-sdk/client-sts'
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
 import jwt from 'jsonwebtoken'
@@ -130,6 +131,13 @@ function email(p) {
 
 function send(m) {
     return new Promise((s, f) => {
+        if (d.debug && d.debug.email) {
+            const r = email(m), { Message: msg, Destination: d, ReplyToAddresses: reply } = r,
+                { ToAddresses: to } = d, subject = msg.Subject.Data
+            debug({ subject, to, reply })
+            s('debug')
+            return
+        }
         const aws = { ...d.config.aws },
             l = saveF('ml', m)
         aws.clientDefault = { outputFormat: 'json' }

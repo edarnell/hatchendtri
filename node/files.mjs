@@ -1,16 +1,16 @@
-const debug = console.log.bind(console)
+const debug = console.log.bind(console), error = console.error.bind(console)
 import fs from 'fs'
 import { f, fz, save, zip } from './zip.mjs'
 import log4js from "log4js"
 // aims to be a single source of truth for all data
-let d = {}, log
+const d = { config: f('config.json', true).data }
+log4js.configure(d.config.log4js)
+const log = d.log = log4js.getLogger()
+
 function load(reload) {
-    if (d.config && !reset) return d
-    const config = f('config.json', true).data
-    log4js.configure(config.log4js)
-    log = log4js.getLogger()
+    if (d.fns && !reset) return d
     log.info({ load: reload ? 'reload' : 'initial' })
-    d = { config, fns: {}, log }
+    d.fns = {}
     d.fns['ps'] = photoN() // also sets ns and pp 
     d.fns['vs'] = f_vs() // also sets ei, vs, _vs, _es, vr
     d.fns['ds'] = f_('ds')
@@ -23,12 +23,13 @@ function load(reload) {
     return d
 }
 
-function saveF(n, d, k) {
-    if (n === 'vs') return saveV(d, k)
-    else if (n === 'es') return saveE(d)
-    else if (n === 'ml') return saveMl(d, k)
-    else if (n === 'ps') return savePs(d, k)
-    else if (n === 'unsub') return saveUnsub(d, k)
+function saveF(n, p, k) {
+    if (n === 'vs') return saveV(p, k)
+    else if (n === 'es') return saveE(p)
+    else if (n === 'ml') return saveMl(p, k)
+    else if (n === 'ps') return savePs(p, k)
+    else if (n === 'unsub') return saveUnsub(p, k)
+    else if (n === 'debug') d.debug = p
 }
 
 function savePs(y, n) {
@@ -89,7 +90,8 @@ function saveV(jv, jr) {
         save('vs', d._vs)
         d.fns['vs'] = f_vs() // could be more efficient
         const u = d._es[d.ei[v.i]]
-        if (u.updated) saveE(u) // needs more work
+        if (u && u.updated) saveE(u) // needs more work
+        else if (!u) error({ saveV: { v, jv } })
     }
     else { // only used in testing
         save('vs', d._vs)

@@ -1,4 +1,4 @@
-import Html, { debug, error, _s } from './Html'
+import Html, { debug, error, _s, dbg } from './Html'
 import { nav } from './Nav'
 import html from './html/Volunteer.html'
 import { sections, section, roles, selectSection, selectRole } from './roles'
@@ -9,7 +9,7 @@ class Volunteer extends Html {
     super()
     this.id = 'volunteer'
     this.data = ['vs', 'vr']
-    nav._vol = nav._vol || true
+    this._vol = true
   }
   greet = () => {
     const u = nav._user, v = u && u.vs && u.vs[0], c = this.color(v)
@@ -22,6 +22,7 @@ class Volunteer extends Html {
     if (n === 'year') return '' + year
   }
   loaded = (r) => {
+    dbg({loaded:r})
     if (r) this.reload(false)
   }
   volClose = () => this.updated()
@@ -29,16 +30,20 @@ class Volunteer extends Html {
     this.reload()
   }
   rendered = () => {
-    const u = nav._user, v = u && u.vs && u.vs[0]
+    dbg('rendered')
+    const u = nav._user, vs=nav.d.data.vs
     if (u && u.admin) {
       const n = this.fe('New')
       if (n) n.classList.remove('hidden')
     }
-    const d = nav.d.data, vid = u && d.vs && u.admin && d.vs[nav._vol]
-    if (u && ((nav._vol && this.color() === 'grey') || vid)) {
+    if (u && vs && ((this._vol && this.color() === 'grey') || nav._vol)) {
+      this._vol=null
+      dbg({popup:u})
       const l = this.q(`[id="TT_u_greet_0"]`)
       if (l) l.click()
     }
+  dbg('no popup')
+
   }
   form = () => {
     return { // section and options populated on load
