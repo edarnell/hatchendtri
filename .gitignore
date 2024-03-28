@@ -10,3 +10,4 @@ public/photos
 node/gz
 node/config.json
 node/access.log
+node/test

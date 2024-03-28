@@ -62,7 +62,7 @@ function loginReq(j, r, a) {
             m = { subject: 'Login', message: msg, to_email: email, ...i ? { to: u.first } : { to: 'Competitor/Volunteer' } }
         send(m)
             .then(s => resp(j, r, u, { sent: s }))
-            .catch(e => resp(j, r, u, { e: 'send failed' }, 400))
+            .catch(e => resp(j, r, u, { loginReq_send :e }, 400))
     } else resp(j, r, a, { message: 'no email' }, 400)
 }
 
