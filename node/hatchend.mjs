@@ -1,4 +1,5 @@
 // npm install @aws-sdk/client-ses
+process.title = "Hatchendtri Server"
 const debug = console.log.bind(console)
 import express from 'express'
 import jwt from 'jsonwebtoken'
