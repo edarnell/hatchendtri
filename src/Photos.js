@@ -44,7 +44,6 @@ class PhotosP extends Html {
         this.reload(`ps_${y}_${n}`)
     }
     close = () => this.popup.close(null, this.updated)
-    instruct = () => ''
     photos = () => {
         const ps = this.op || this.pp
         if (ps.length === 1) this.pn = 0
@@ -84,7 +83,8 @@ class Photos extends PhotosP {
         return p && pp && pp.includes(p)
     }
     instruct = () => {
-        return this.pn ? 'Click to minimise or right click to download. Tick {checkbox.public} to save and make public.'
+        if (!this.op) return ''
+        else return this.pn ? 'Click to minimise or right click to download. Tick {checkbox.public} to save and make public.'
             : 'Click on thumbnails to enlarge where you can download or save and make public.'
     }
 }

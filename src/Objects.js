@@ -8,7 +8,7 @@ import Competitor from './Competitor'
 import Details from './Details'
 import Results from './Results'
 import Contact from './Contact'
-import User from './User'
+import User, { Switch } from './User'
 import Home from './Home'
 import CSV from './CSV'
 import Photos, { PhotosP } from './Photos'
@@ -23,6 +23,7 @@ const cs = {
     Results,
     Contact,
     User,
+    Switch,
     CSV,
     Photos,
     PhotosP,

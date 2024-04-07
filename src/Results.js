@@ -54,10 +54,10 @@ class Results extends Html {
     else if (n === 'name') return { tip: `${k.replace(/_/g, " ")} all results`, click: this.name }
     else if (n === 'photos') {
       const [y, n] = k.split('_'), ps = nav.d.data.ps, yp = ps && ps[y], p = yp && yp[n],
-        o = this.own(y, n), u = nav._user,
+        u = nav._user, o = this.own(y, n) || u.admin,
         r = {
-          id: `TT_photos_${k}`, active: p.p, placement: 'auto', icon: 'photo', tip: `${p.p} of ${p.t} photos`,
-          ...(o ? { drag: `{Photos.${y}.${n}}` } : u && p.p ? { drag: `{Photos.${y}.${n}}` } : { popup: 'User' })
+          id: `TT_photos_${k}`, active: p.p, placement: 'auto', icon: 'photo', tip: `${p.p} public of ${p.t} photos`,
+          ...(o ? { drag: `{Photos.${y}.${n}}` } : u && p.p ? { drag: `{Photos.${y}.${n}}` } : { popup: 'Switch' })
         }
       return r
     }

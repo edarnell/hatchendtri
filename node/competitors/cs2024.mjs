@@ -3,7 +3,7 @@ import fs from 'fs'
 import csv from 'csv-parser'
 const debug = console.log.bind(console)
 
-const emails = fz('gz/_emails.gz') || {}, ei = []
+const emails = fz('gz/es.gz') || {}, ei = []
 Object.keys(emails).forEach(e => ei[emails[e].i] = e)
 let hs, n = 0, w = 0, e = 0
 const cs = {}
@@ -14,9 +14,9 @@ fs.createReadStream('lists/2024C.csv')
         const o = {
             ref: r['Ref'], email: r['Email'], first: r['First Name'], last: r['Last Name'], mf: r['Gender'],
             cat: r['Category'], club: r['Club'],
-            btf: r['British Triathlon Membership'],
+            btf: r['I am a BTF member'],
             swim: r['(ADULT ENTRIES ONLY) Please select your estimated swim time for 400m'],
-            btrl: r['Merchandise Purchases'],
+            btrl: r['BTFpass'],
         }
         if (o.email && o.ref) {
             cs[o.ref] = o
@@ -35,5 +35,5 @@ fs.createReadStream('lists/2024C.csv')
     .on('end', () => {
         debug({ cs })
         debug({ n, w, e })
-        save('_cs', cs)
+        save('cs', cs)
     })

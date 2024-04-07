@@ -1,4 +1,4 @@
-import { debug, error, _s, dbg } from './Html'
+import Html, { debug, error, _s, dbg } from './Html'
 import user from './html/user.html'
 import unsub from './html/unsub.html'
 import subscribe from './html/subscribe.html'
@@ -9,8 +9,9 @@ import { nav } from './Nav'
 import { ajax } from './ajax'
 
 class User extends Contact {
-    constructor() {
+    constructor(n) {
         super()
+        this.n = n
         if (nav._path === 'unsubscribe') ajax({ req: 'unsub', tok: localStorage.getItem('HEtok'), u: true }).then(r => {
             this.u = r.u
             this.reload('unsub_name')
@@ -65,6 +66,14 @@ class User extends Contact {
                 spam1: { tip: this.spamtt }, spam2: { tip: this.spamtt }, spam3: { tip: this.spamtt }
             }
         }
+        else if (this.n === 'switch' && nav._user) {
+            this._fid = '#login_form'
+            this._submit = 'login'
+            f = {
+                email: { placeholder: 'email', type: 'email', required: true },
+                login: { e: 'enter your email', m: 'login by email', class: 'form disabled', click: 'submit', tip: this.spamtt },
+            }
+        }
         else if (nav._path === 'login' || !nav._user) {
             this._fid = '#login_form'
             this._submit = 'login'
@@ -88,7 +97,7 @@ class User extends Contact {
         else if (n === 'subscribe') return `<div id="subscribe">${subscribe}</div>`
         else {
             if (nav._path === 'unsubscribe') return `<div id="unsub">${unsub}</div>`
-            else if (nav._path === 'login') return `<div id="login">${login}</div>`
+            else if (nav._path === 'login' || this.n === 'switch') return `<div id="login">${login}</div>`
             else if (nav._path === 'register') return `<div id="register">${register}</div>`
             else if (nav._user) {
                 const u = nav._user, un = u.fi && u.fi.unsub
@@ -104,11 +113,11 @@ class User extends Contact {
         this.reload()
     }
     reg = () => {
-        nav._path = 'register'
+        this.n = nav._path = 'register'
         this.reload()
     }
     log = () => {
-        nav._path = 'login'
+        this.n = nav._path = 'login'
         this.reload()
     }
     unsub = () => {
@@ -160,4 +169,12 @@ class User extends Contact {
             })
     }
 }
+
+class Switch extends User {
+    constructor() {
+        super('switch')
+    }
+}
+
+export { Switch }
 export default User

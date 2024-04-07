@@ -22,7 +22,7 @@ class Volunteer extends Html {
     if (n === 'year') return '' + year
   }
   loaded = (r) => {
-    dbg({loaded:r})
+    dbg({ loaded: r })
     if (r) this.reload(false)
   }
   volClose = () => this.updated()
@@ -31,18 +31,18 @@ class Volunteer extends Html {
   }
   rendered = () => {
     dbg('rendered')
-    const u = nav._user, vs=nav.d.data.vs
+    const u = nav._user, vs = nav.d.data.vs
     if (u && u.admin) {
       const n = this.fe('New')
       if (n) n.classList.remove('hidden')
     }
     if (u && vs && ((this._vol && this.color() === 'grey') || nav._vol)) {
-      this._vol=null
-      dbg({popup:u})
+      this._vol = null
+      dbg({ popup: u })
       const l = this.q(`[id="TT_u_greet_0"]`)
       if (l) l.click()
     }
-  dbg('no popup')
+    dbg('no popup')
 
   }
   form = () => {
@@ -313,7 +313,7 @@ class Vroles extends Html {
       opta = `{link.a_${si}r_${ri}.optional}`,
       optj = `{link.j_${si}r_${ri}.optional}`
     let ret = [], i = 0, j = v.length - 1, t = 0
-    while (t < amax || t < jmax) {
+    while (t < amin || t < jmin || i <= j) {
       if (i > j) {
         ret.push([sr,
           t < amin ? reqa : t < amax ? opta : '',

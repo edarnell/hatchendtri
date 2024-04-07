@@ -79,7 +79,7 @@ function newV(jv) {
 function saveV(jv, jr) {
     let v = jv ? jv.id ? d._vs[jv.id] : newV(jv) : null
     if (v && jr) {
-        clearVr(jr)
+        //clearVr(jr)
         d.vr[v.id] = jr
         d.vr[v.id].upd = new Date().toISOString()
         save('vr', d.vr)

@@ -78,7 +78,7 @@ class Vselect extends Html {
     }
     vol_names = () => {
         const d = nav.d.data, vs = d.vs,
-            vols = Object.keys(d.vr).filter(this.filter).sort(this.nameSort),
+            vols = Object.keys(vs).filter(this.filter).sort(this.nameSort),
             html = vols.slice(0, 10).map(id => `<div>{link._${id}.${_s(vs[id].first)}_${_s(vs[id].last)}}</div>`)
                 .join(' ')
         const f = this._form, name = f && f.name

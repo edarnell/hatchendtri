@@ -63,7 +63,7 @@ function loginReq(j, r, a) {
             m = { subject: 'Login', message: msg, to_email: email, ...i ? { to: u.first } : { to: 'Competitor/Volunteer' } }
         send(m)
             .then(s => resp(j, r, u, { sent: s }))
-            .catch(e => resp(j, r, u, { loginReq_send :e }, 400))
+            .catch(e => resp(j, r, u, { loginReq_send: e }, 400))
     } else resp(j, r, a, { message: 'no email' }, 400)
 }
 
@@ -293,9 +293,9 @@ function awsSnsReq(req, json, r) {
 
 function photoReq(j, r, a) {
     const { y, n } = (j.get || j.pub), np = d.ns[a.email],
-        u = np[y] && (np[y].includes(n))
+        u = np[y] && np[y].includes(n)
     if (j.get) {
-        const pp = d.ps[y][n], // public photos for number n
+        const pp = d.ps[y][n] || (a.admin && d.photos[y][n]), // public photos for number n
             op = u && d.photos[y][n]
         resp(j, r, a, { pp, op })
     }
@@ -332,8 +332,8 @@ app.post(d.config.url, auth(async (j, r, a) => {
 
 function ue(email) {
     const u = email && d._es[email],
-        { first, last, aed, i } = u || {}
-    return i ? { i, aed, first, last, email } : null
+        { first, last, aed, admin, i } = u || {}
+    return i ? { i, aed, admin, first, last, email } : null
 }
 
 function authH(h) {
