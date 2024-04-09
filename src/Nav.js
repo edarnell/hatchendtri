@@ -134,7 +134,7 @@ class Nav extends Html {
                 s(r.u) // user or null (no vol or comp)
             }).catch(e => {
                 error({ e })
-                localStorage.removeItem('HEtoken')
+                if (!e.reload) localStorage.removeItem('HEtoken')
                 f(e)
             })
             else {

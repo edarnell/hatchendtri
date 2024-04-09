@@ -3,6 +3,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const { merge } = require('webpack-merge');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const gitRev = require('git-rev-sync');
+const v_client = gitRev.tag();
 
 base = {
     entry: {
@@ -10,7 +12,7 @@ base = {
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: '[name].[contenthash].js',
+        filename: `[name].${v_client}.js`,
         clean: true,
     },
     plugins: [
@@ -18,7 +20,7 @@ base = {
             template: './public/index.html'
         }),
         new CleanWebpackPlugin(),
-        new MiniCssExtractPlugin(),
+        new MiniCssExtractPlugin()
     ],
     module: {
         rules: [

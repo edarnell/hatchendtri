@@ -352,7 +352,14 @@ function auth(rH) {
         try {
             a = j.req ? authH(h.authorization) : null
             if (j.req) {
-                if (m.headers.a_hatchend !== '20230521') return resp(j.req, r, { message: 'Invalid request' }, 404)
+                const v_client = h.v_client,
+                    v_ts = h.v_ts,
+                    v = d.config.v
+                if (v_client !== v) {
+                    log.info('req->', j.req)
+                    log.info({ v_client, v_ts, v })
+                    resp(j, r, a, { reload: `${v_client}!=${v}` }, 503)
+                }
                 else await rH(j, r, a)
             }
             else if (j.MessageId && j.TopicArn) sns(j, r)
