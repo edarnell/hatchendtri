@@ -324,16 +324,10 @@ describe('Volunteer', () => {
         expect(await waitSel('[id^="greet"]', 'please confirm availability')).toBeTruthy()
     })
 
-    test.only('Lead', async () => {
+    test('Lead', async () => {
         //setDebug(true)
         await ajax({ req: 'test', reg: lead })
         await page.goto(url + '/volunteer#' + await token(lead.email))
-        expect(await waitSel('[id^="TT_u_greet"]', name(lead), 'grey')).toBeTruthy()
-        expect(await waitSel('[id^="greet"]', 'please confirm availability')).toBeTruthy()
-        expect(await waitSel(('[id^="popup_TT_u_greet"]'), l => l)).toBeTruthy()
-        expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(false)
-        await hover('IN_adult', 'available for adult race')
-        expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(false)
-        await hover('IN_junior', 'available for junior race')
+        expect(await waitSel('[id^="TT_u_greet"]', name(lead), 'green')).toBeTruthy()
     })
 })

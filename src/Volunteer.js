@@ -98,7 +98,7 @@ class Volunteer extends Html {
       const r = (v.adult || v.junior || v.none),
         ar = v.adult ? v.arole ? (v.asection + ' ' + v.arole) : '?' : r ? '✗' : '?',
         jr = v.junior ? v.jrole ? (v.jsection + ' ' + v.jrole) : '?' : r ? '✗' : '?'
-      return `<div class=${cl}>${year} adult:${ar} junior:${jr}</div>`
+      return `<div class=${cl}>${year} ${ar}, ${jr}</div>`
     }
     else return `<div class=${cl}>${year} ?</div>`
   }
@@ -148,15 +148,15 @@ class Vnames extends Html {
     return '<div id="vNames">{table.vTable}</div>'
   }
   link = (name, param) => {
-    if (name === 'id') return {
-      tip: () => (this._year ? `${this.rows.length} rows show all` : `${this.rows.length} rows filter year`),
+    if (name === 'year') return {
+      tip: () => (this._year ? `${this.rows.length} rows show all years` : `${this.rows.length} rows filter ${year}`),
       click: () => {
         this._year = !this._year
         this.reload('vNames')
       }
     }
     else if (name.startsWith('v_')) {
-      const id = name.substring(2), vol = nav.d.data.vs[id], _id = name.substring(1), u = nav._user
+      const id = name.substring(2), vol = nav.d.data.vs[id], u = nav._user
       if (vol && u.admin) return { tip: () => this._p('tip')(id), class: ' ', theme: 'light', popup: `{Vol.${id}}` }
       else if (vol) return { tip: 'contact', class: ' ', theme: 'light', popup: `{Contact.${id}}` }
     }
@@ -167,26 +167,28 @@ class Vnames extends Html {
   }
   filter = (id) => {
     const fd = this.p._p('_form'), f = fd && fd.filter,
-      v = nav.d.data.vs[id], vyear = v.year && v.year[year],
-      role = vyear && ((vyear.asection || '') + ' ' + (vyear.arole || '') + ' ' + (vyear.jsection || '') + ' ' + (vyear.jrole || ''))
+      d = nav.d.data,
+      v = d.vs[id],
+      vy = d.vr[id],
+      role = vy && ((vy.asection || '') + ' ' + (vy.arole || '') + ' ' + (vy.jsection || '') + ' ' + (vy.jrole || ''))
     let r = false
     if (!v || id * 1 === 0) r = false
     else if (!f) r = true
     else if (v.name && v.name.toLowerCase().includes(f)) r = true
     else if (v.email && v.email.toLowerCase().includes(f)) r = true
     else if (role && role.toLowerCase().includes(f)) r = true
-    if (this._year) r = r && v.year && v.year[year]
+    if (this._year) r = r && vy
     return r
   }
-  trs = (name, param) => {
-    if (name === 'vTable') {
+  trs = (n) => {
+    if (n === 'vTable') {
       const ids = Object.keys(nav.d.data.vs).filter(this.filter),
         rows = this.rows = ids.map(id => this.tr(id)).sort((a, b) => a[2].localeCompare(b[2]))
       return rows
     }
   }
-  ths = (name, param) => {
-    if (name === 'vTable') return ['{link.id._year}', 'First', 'Last', 'Adult', 'Junior']
+  ths = (n) => {
+    if (n === 'vTable') return [`{link.year.${this._year ? year : 'all_years'}}`, 'First', 'Last', 'Adult', 'Junior']
   }
   ticks = (l, id) => {
     if (!l) return `<span class="grey">{link.v_${id}.?}</span>`
@@ -199,14 +201,13 @@ class Vnames extends Html {
     return ret
   }
   tr = (id) => {
-    const v = nav.d.data.vs[id],
-      c = name(id, true),
-      n = Object.keys(v.year).length,
-      l = v.year[year],
+    const d = nav.d.data,
+      v = d.vs[id],
+      l = d.vr[id],
       a = l && l.arole ? l.asection + ' ' + l.arole : '',
       j = l && l.jrole ? l.jsection + ' ' + l.jrole : ''
-    if (!c.first) error({ id, v, c, l, a, j })
-    return [this.ticks(l, id), `{link._${id}.${_s(c.first) || '?'}}`, c.last, a, j]
+    if (!v.first) error({ id, v, c, l, a, j })
+    return [this.ticks(l, id), `{link._${id}.${_s(v.first) || '?'}}`, v.last, a, j]
   }
 }
 

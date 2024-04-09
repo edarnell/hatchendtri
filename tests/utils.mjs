@@ -95,7 +95,10 @@ async function login(u) {
 }
 
 function tok(s) {
-    const r = s.replace(/href=\\"([^#]+)#([^\\]+)\\"/g, 'href=\\"$1#{token}\\"').replace(/\r\n/g, '\n')
+    const r = s.replace(/href=\\"([^#]+)#([^\\]+)\\"/g, 'href=\\"$1#{token}\\"')
+        .replace(/\r\n/g, '\n')
+        .replace(/\\r\\n/g, '\\n')
+        .replace(/Test 1\d{3}/g, 'Test 1')
     return r
 }
 
@@ -107,12 +110,12 @@ async function scp(name, s, t, n2) {
     }
     const n = name + (t ? t : '.html'),
         c = (t ? '' : '<link rel="stylesheet" href="combined.css"></link>')
-            + (t === '.email' ? tok(s) : s)
+            + tok(s) // only emails have tokens but all replace /r/n with /n
     try {
         const old = await fs.readFile(path.join(dir, n), 'utf-8')
-        if (old !== c) await fs.writeFile(path.join(dir, '_' + n), c)
+        if (tok(old) !== c) await fs.writeFile(path.join(dir, '_' + n), c)
         if (dbg) debug('line ' + lnum(), old === c, { scp: name })
-        expect(c).toBe(old) // This will fail the test
+        expect(c).toBe(tok(old)) // This will fail the test
     } catch (e) {
         if (e.code === 'ENOENT') await fs.writeFile(path.join(dir, n), c)
         else throw e

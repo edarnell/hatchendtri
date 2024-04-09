@@ -11,3 +11,7 @@ node/gz
 node/config.json
 node/access.log
 node/test
+node/emails
+node/volunteers
+node/photos
+node/images

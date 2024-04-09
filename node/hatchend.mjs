@@ -293,7 +293,7 @@ function awsSnsReq(req, json, r) {
 
 function photoReq(j, r, a) {
     const { y, n } = (j.get || j.pub), np = d.ns[a.email],
-        u = np[y] && np[y].includes(n)
+        u = np && np[y] && np[y].includes(n)
     if (j.get) {
         const pp = d.ps[y][n] || (a.admin && d.photos[y][n]), // public photos for number n
             op = u && d.photos[y][n]
