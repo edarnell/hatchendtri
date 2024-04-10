@@ -6,6 +6,7 @@ import { icons } from './icons'
 import Data from './Data.js'
 import { apage } from './Admin'
 import { ajax } from './ajax'
+const v_client = 'v2024.04.10' // also node config.json and git tag
 
 const images = ['url("swim.jpg")', 'url("bike.jpg")', 'url("run.jpg")']
 var nav
@@ -41,25 +42,29 @@ class Nav extends Html {
         }
     }
     path = () => {
-        const t = localStorage.getItem('HEtoken'), d = localStorage.getItem('HEdate')
-        if (!d) { // tidy up old storage - can add or d<date
+        const jcI = localStorage.getItem('HEcI'),
+            cI = this.cI = jcI ? JSON.parse(jcI) : {} // client info - including user token
+        if (cI.token === undefined) {
+            const token = localStorage.getItem('HEtoken')
             localStorage.clear()
-            localStorage.setItem('HEdate', new Date().toISOString())
-            if (t) localStorage.setItem('HEtoken', t) // keep user token
+            if (token) cI.token = token
+            else cI.token = null
+        }
+        if (!cI.v || cI.v !== v_client) {
+            const now = new Date()
+            cI.v = v_client
+            cI.ts = now.toISOString()
         }
         const hash = window.location.hash, token = hash && hash.substring(1)
         window.location.hash = ''
         this.path = window.location.pathname.replace('/', '')
         if (this.path === 'logout') {
-            if (this._logout = t ? true : false) localStorage.removeItem('HEtoken')
+            if (this._logout = cI.token ? true : false) cI.token = null
             if (hash === '#clear') localStorage.clear()
         }
+        else if (token && token.length > 10) cI.token = token
         if (this.path === 'register' || this.path === 'unsubscribe' || this.path === 'subscribe') this._path = this.path
-        if (token && token.length > 10) {
-            if (['home', 'unsubscribe', 'register'].includes(this.path)) localStorage.setItem('HEtok', token)
-            else localStorage.setItem('HEtoken', token)
-        }
-        else if (token && this.path === 'volunteer') nav._vol = token
+        localStorage.setItem('HEcI', JSON.stringify(cI))
     }
     html = (n) => {
         // ${this.path === 'admin' ? '{select.admin}' : ''}
@@ -129,12 +134,15 @@ class Nav extends Html {
     }
     user = () => {
         return new Promise((s, f) => {
-            const token = localStorage.getItem('HEtoken')
+            const token = this.cI.token
             if (token) ajax({ req: 'user' }).then(r => {
                 s(r.u) // user or null (no vol or comp)
             }).catch(e => {
                 error({ e })
-                if (!e.reload) localStorage.removeItem('HEtoken')
+                if (!e.reload) {
+                    this.cI.token = null
+                    localStorage.setItem('HEcI', JSON.stringify(this.cI))
+                }
                 f(e)
             })
             else {
@@ -144,7 +152,8 @@ class Nav extends Html {
     }
     logout = (e, o) => {
         dbg('logout')
-        localStorage.removeItem('HEtoken')
+        this.cI.token = null
+        localStorage.setItem('HEcI', JSON.stringify(this.cI))
         this.userIcon(false, true)
         this.load('home')
     }

@@ -9,7 +9,7 @@ const log = d.log = log4js.getLogger()
 
 function load(reload) {
     if (d.fns && !reset) return d
-    log.info({ load: reload ? 'reload' : 'initial' })
+    reload ? log.info({ reload: d.config.v }) : log.info({ load: d.config.v })
     d.fns = {}
     d.fns['ps'] = photoN() // also sets ns and pp 
     d.fns['vs'] = f_vs() // also sets ei, vs, _vs, _es, vr

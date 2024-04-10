@@ -43,7 +43,7 @@ function filesReq(j, r, a) {
 function datesReq(j, r, a) {
     if (j.files) {
         const { files } = j, date = {}, e = []
-        //log.info('req->', req, files)
+        log.info({ files })
         files.forEach(fn => {
             if (d.fns[fn]) date[fn] = d.fns[fn].date
             else e.push(fn)
@@ -336,8 +336,8 @@ function ue(email) {
     return i ? { i, aed, admin, first, last, email } : null
 }
 
-function authH(h) {
-    const token = h && h.startsWith('Bearer ') ? h.substring(7) : null,
+function authH(cI) {
+    const token = cI.token,
         auth = token ? jwt.verify(token, d.config.key) : null,
         u = auth ? ue(auth.email.toLowerCase()) : null
     return u
@@ -349,27 +349,32 @@ function auth(rH) {
         _resp = false
         const j = m.body, h = m.headers
         let a
-        try {
-            a = j.req ? authH(h.authorization) : null
-            if (j.req) {
-                const v_client = h.v_client,
-                    v_ts = h.v_ts,
-                    v = d.config.v
-                if (v_client !== v) {
-                    log.info('req->', j.req)
-                    log.info({ v_client, v_ts, v })
-                    resp(j, r, a, { reload: `${v_client}!=${v}` }, 503)
+        if (h.ci) { // cI=>ci
+            const cI = JSON.parse(h.ci)
+            try {
+                a = j.req ? authH(cI) : null
+                if (j.req) {
+                    const v = d.config.v
+                    if (v !== cI.v) {
+                        log.info('req->', j.req)
+                        log.info({ v, cI })
+                        resp(j, r, a, { reload: `${v}!=${cI.v}` }, 503)
+                    }
+                    else await rH(j, r, a)
                 }
-                else await rH(j, r, a)
+                else if (j.MessageId && j.TopicArn) sns(j, r)
+                else {
+                    log.info('req->', j.req)
+                    resp(j, r, a, { e: 'No Request' }, 400)
+                }
+            } catch (e) {
+                log.error({ j, a, e, _resp })
+                if (!_resp) resp(j, r, a, { e: 'Server catch' }, 500)
             }
-            else if (j.MessageId && j.TopicArn) sns(j, r)
-            else {
-                log.info('req->', j.req)
-                resp(j, r, a, { e: 'No Request' }, 400)
-            }
-        } catch (e) {
-            log.error({ j, a, e, _resp })
-            if (!_resp) resp(j, r, a, { e: 'Server catch' }, 500)
+        }
+        else {
+            log.error({ h })
+            resp(j, r, a, { e: 'Unauthorized' }, 401)
         }
     }
 }
