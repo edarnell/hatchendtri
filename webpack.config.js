@@ -3,7 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const { merge } = require('webpack-merge');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const { v_client } = require('./node/version.json');
+const { v } = require('./node/config.json');
 
 base = {
     entry: {
@@ -11,7 +11,7 @@ base = {
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: `[name].${v_client}.js`,
+        filename: `[name].${v}.js`,
         clean: true,
     },
     plugins: [

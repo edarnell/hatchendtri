@@ -6,7 +6,7 @@ import { icons } from './icons'
 import Data from './Data.js'
 import { apage } from './Admin'
 import { ajax } from './ajax'
-const v_client = 'v2024.04.10' // also node config.json and git tag
+const v = 'v2024.04.10' // also node config.json and git tag
 
 const images = ['url("swim.jpg")', 'url("bike.jpg")', 'url("run.jpg")']
 var nav
@@ -50,9 +50,9 @@ class Nav extends Html {
             if (token) cI.token = token
             else cI.token = null
         }
-        if (!cI.v || cI.v !== v_client) {
+        if (!cI.v || cI.v !== v) {
             const now = new Date()
-            cI.v = v_client
+            cI.v = v
             cI.ts = now.toISOString()
         }
         const hash = window.location.hash, token = hash && hash.substring(1)
