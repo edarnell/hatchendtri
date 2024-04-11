@@ -1,12 +1,13 @@
 import css from './css/combined.css'
 import favicon from './icon/jetstream.ico'
-import Html, { debug, error, dbg } from './Html'
+import Html, { debug, error, dbg } from './Html.mjs'
 import html from './html/Nav.html'
-import { icons } from './icons'
-import Data from './Data.js'
-import { apage } from './Admin'
-import { ajax } from './ajax'
-const v = 'v2024.04.10' // also node config.json and git tag
+import { icons } from './icons.mjs'
+import Data from './Data.mjs'
+import { apage } from './Admin.mjs'
+import { ajax } from './ajax.mjs'
+import manifest from '../public/manifest.json'
+const version = manifest.version
 
 const images = ['url("swim.jpg")', 'url("bike.jpg")', 'url("run.jpg")']
 var nav
@@ -26,7 +27,7 @@ class Nav extends Html {
         this.d = new Data(this)
         this.id = 'nav'
         this.init(css, favicon)
-        import('./Objects.js').then(m => {
+        import('./Objects.mjs').then(m => {
             const H = new m.default()
             this.O = H.O
             nav = this
@@ -50,9 +51,9 @@ class Nav extends Html {
             if (token) cI.token = token
             else cI.token = null
         }
-        if (!cI.v || cI.v !== v) {
+        if (!cI.v || cI.v !== version) {
             const now = new Date()
-            cI.v = v
+            cI.v = version
             cI.ts = now.toISOString()
         }
         const hash = window.location.hash, token = hash && hash.substring(1)

@@ -1,5 +1,5 @@
-import Html, { debug, error, nav } from './Html'
-import { ajax } from './ajax'
+import Html, { debug, error, nav } from './Html.mjs'
+import { ajax } from './ajax.mjs'
 
 class PhotosP extends Html {
     constructor(p, name, param) {

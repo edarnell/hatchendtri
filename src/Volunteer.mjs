@@ -1,7 +1,7 @@
-import Html, { debug, error, _s, dbg } from './Html'
-import { nav } from './Nav'
+import Html, { debug, error, _s, dbg } from './Html.mjs'
+import { nav } from './Nav.mjs'
 import html from './html/Volunteer.html'
-import { sections, section, roles, selectSection, selectRole } from './roles'
+import { sections, section, roles, selectSection, selectRole } from './roles.mjs'
 
 const year = 2024
 class Volunteer extends Html {

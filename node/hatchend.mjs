@@ -4,7 +4,7 @@ const debug = console.log.bind(console)
 import express from 'express'
 import jwt from 'jsonwebtoken'
 import { send, send_list } from './mail.mjs'
-import { load, saveF, log, d } from './files.mjs'
+import { load, saveF, log, d, version } from './files.mjs'
 import { testF } from './testing.mjs'
 
 load()
@@ -354,11 +354,10 @@ function auth(rH) {
             try {
                 a = j.req ? authH(cI) : null
                 if (j.req) {
-                    const v = d.config.v
-                    if (v !== cI.v) {
+                    if (version !== cI.v) {
                         log.info('req->', j.req)
-                        log.info({ v, cI })
-                        resp(j, r, a, { reload: `${v}!=${cI.v}` }, 503)
+                        log.info({ version, cI })
+                        resp(j, r, a, { reload: `${version}!=${cI.v}` }, 503)
                     }
                     else await rH(j, r, a)
                 }

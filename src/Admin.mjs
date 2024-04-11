@@ -1,5 +1,5 @@
-import AdminResults from './AdminResults'
-import AdminEmail from './AdminEmail'
+import AdminResults from './AdminResults.mjs'
+import AdminEmail from './AdminEmail.mjs'
 
 function apage(name) {
     switch (name) {

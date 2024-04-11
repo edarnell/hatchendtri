@@ -1,8 +1,8 @@
-import Results from './Results'
-import { debug, error, nav } from './Html'
-import { str2csv } from './CSV'
-import { ajax } from './ajax'
-import { zip } from './unzip'
+import Results from './Results.mjs'
+import { debug, error, nav } from './Html.mjs'
+import { str2csv } from './CSV.mjs'
+import { ajax } from './ajax.mjs'
+import { zip } from './unzip.mjs'
 import { Buffer } from 'buffer'
 
 class AdminResults extends Results {

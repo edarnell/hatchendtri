@@ -1,4 +1,4 @@
-import Html, { debug, nav } from './Html'
+import Html, { debug, nav } from './Html.mjs'
 class Var extends Html {
     constructor() {
         super()

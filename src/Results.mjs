@@ -1,4 +1,4 @@
-import Html, { debug, error, _s, nav } from './Html.js'
+import Html, { debug, error, _s, nav } from './Html.mjs'
 import html from './html/Results.html'
 
 class Results extends Html {

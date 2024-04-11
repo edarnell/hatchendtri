@@ -1,6 +1,6 @@
 const debug = console.log.bind(console)
 const error = console.error.bind(console)
-import TT from './TT'
+import TT from './TT.mjs'
 
 class Img extends TT {
     constructor(p, type, name, param) {

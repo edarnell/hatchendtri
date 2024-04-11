@@ -1,9 +1,9 @@
-import Html, { debug, nav, _s, error } from './Html'
-import { sections, roles, selectSection, selectRole, setVol } from './roles'
+import Html, { debug, nav, _s, error } from './Html.mjs'
+import { sections, roles, selectSection, selectRole, setVol } from './roles.mjs'
 import html from './html/Vol.html'
 import volD from './html/volD.html'
 import volE from './html/volE.html'
-import { ajax } from './ajax'
+import { ajax } from './ajax.mjs'
 
 const year = 2024
 

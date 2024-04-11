@@ -3,13 +3,14 @@ import fs from 'fs'
 import { f, fz, save, zip } from './zip.mjs'
 import log4js from "log4js"
 // aims to be a single source of truth for all data
+const version = f('../public/manifest.json', true).data.version
 const d = { config: f('config.json', true).data }
 log4js.configure(d.config.log4js)
 const log = d.log = log4js.getLogger()
 
 function load(reload) {
     if (d.fns && !reset) return d
-    reload ? log.info({ reload: d.config.v }) : log.info({ load: d.config.v })
+    reload ? log.info({ reload: version }) : log.info({ load: version })
     d.fns = {}
     d.fns['ps'] = photoN() // also sets ns and pp 
     d.fns['vs'] = f_vs() // also sets ei, vs, _vs, _es, vr
@@ -261,4 +262,4 @@ function photoN() {
     return { date: ts, data: zip(d.pp, false, true) }
 }
 
-export { load, saveF, d, log }
+export { load, saveF, version, d, log }

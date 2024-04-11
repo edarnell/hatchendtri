@@ -1,19 +1,19 @@
 const debug = console.log.bind(console)
 const error = console.error.bind(console)
-import Volunteer from './Volunteer'
-// import Vol from './Vol'
-import Competitor from './Competitor'
+import Volunteer from './Volunteer.mjs'
+// import Vol from './Vol.mjs'
+import Competitor from './Competitor.mjs'
 //import Comp from './Comp'
-//import Vselect from './Vselect'import Home from './Home'
-import Details from './Details'
-import Results from './Results'
-import Contact from './Contact'
-import User, { Switch } from './User'
-import Home from './Home'
-import CSV from './CSV'
-import Photos, { PhotosP } from './Photos'
-import Vselect from './Vselect'
-import Vol from './Vol'
+//import Vselect from './Vselect.mjs'import Home from './Home.mjs'
+import Details from './Details.mjs'
+import Results from './Results.mjs'
+import Contact from './Contact.mjs'
+import User, { Switch } from './User.mjs'
+import Home from './Home.mjs'
+import CSV from './CSV.mjs'
+import Photos, { PhotosP } from './Photos.mjs'
+import Vselect from './Vselect.mjs'
+import Vol from './Vol.mjs'
 
 const cs = {
     Home,

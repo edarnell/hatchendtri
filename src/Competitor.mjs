@@ -1,4 +1,4 @@
-import Html, { debug, nav, _s } from './Html'
+import Html, { debug, nav, _s } from './Html.mjs'
 import html from './html/Competitor.html'
 import greet from './html/comp_greet.html'
 

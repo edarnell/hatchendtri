@@ -1,5 +1,5 @@
-import Html, { debug, page, _s } from './Html'
-import { req, cleanse } from './data'
+import Html, { debug, page, _s } from './Html.mjs'
+import { req, cleanse } from './Data.mjs'
 import comp from './html/Comp.html'
 import compD from './html/compD.html'
 import swimD from './html/swimD.html'

@@ -1,6 +1,6 @@
-import { debug, nav } from './Html'
-import { ajax } from './ajax'
-import { unzip } from './unzip'
+import { debug, nav } from './Html.mjs'
+import { ajax } from './ajax.mjs'
+import { unzip } from './unzip.mjs'
 
 class Data {
     constructor() {

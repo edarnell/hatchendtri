@@ -1,12 +1,12 @@
-import Html, { debug, error, _s, dbg } from './Html'
+import Html, { debug, error, _s, dbg } from './Html.mjs'
 import user from './html/user.html'
 import unsub from './html/unsub.html'
 import subscribe from './html/subscribe.html'
 import register from './html/register.html'
 import login from './html/login.html'
-import Contact from './Contact'
-import { nav } from './Nav'
-import { ajax } from './ajax'
+import Contact from './Contact.mjs'
+import { nav } from './Nav.mjs'
+import { ajax } from './ajax.mjs'
 
 class User extends Contact {
     constructor(n) {

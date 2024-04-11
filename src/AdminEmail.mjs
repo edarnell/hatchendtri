@@ -1,6 +1,6 @@
-import Html, { debug, error, nav, snakeCase, jsonToHtml } from './Html.js'
-import { ajax } from './ajax.js'
-import { zip } from './unzip.js'
+import Html, { debug, error, nav, snakeCase, jsonToHtml } from './Html.mjs'
+import { ajax } from './ajax.mjs'
+import { zip } from './unzip.mjs'
 import html from './html/AdminEmail.html'
 class AdminEmail extends Html {
     constructor() {

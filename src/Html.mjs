@@ -1,11 +1,11 @@
 const debug = console.log.bind(console),
     dbg = window._test ? console.log.bind(console) : () => { },
     error = console.error.bind(console)
-import TT from './TT'
-import IN from './IN'
-import Img from './Img'
-import Table from './Table'
-import { nav } from './Nav'
+import TT from './TT.mjs'
+import IN from './IN.mjs'
+import Img from './Img.mjs'
+import Table from './Table.mjs'
+import { nav } from './Nav.mjs'
 
 function _s(s, p) {
     if (p === undefined) return s && s.replace(/\s/g, "&nbsp;")

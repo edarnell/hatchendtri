@@ -1,4 +1,4 @@
-import { debug } from './Html'
+import { debug } from './Html.mjs'
 
 function lists(r, es) {
     const mapM = { first: '"First Name"', last: '"Last Name"', email: '"Email Address"' }

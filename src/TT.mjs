@@ -1,7 +1,7 @@
-import { links } from './links'
-import { icons } from './icons'
+import { links } from './links.mjs'
+import { icons } from './icons.mjs'
 import { createPopper } from '@popperjs/core'
-import { nav, error, debug, dbg } from './Html'
+import { nav, error, debug, dbg } from './Html.mjs'
 
 class TT {
     constructor(p, type, name, param, fm) {

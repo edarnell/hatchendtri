@@ -1,4 +1,4 @@
-import Html, { debug, nav } from './Html'
+import Html, { debug, nav } from './Html.mjs'
 
 function str2csv(ent) { // could add code to map first line.
     const rows = ent.split('\n')

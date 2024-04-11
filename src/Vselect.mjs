@@ -1,8 +1,8 @@
-import Html, { error, debug, nav, _s } from './Html'
+import Html, { error, debug, nav, _s } from './Html.mjs'
 import select from './html/select.html'
 import selectV from './html/selectV.html'
-import { roles, sections } from './roles'
-import { ajax } from './ajax'
+import { roles, sections } from './roles.mjs'
+import { ajax } from './ajax.mjs'
 
 const year = 2024
 class Vselect extends Html {

@@ -1,6 +1,18 @@
 import fs from 'fs/promises'
 import path from 'path'
 import jwt from 'jsonwebtoken'
+import { ajx } from '../src/ajx.mjs'
+import manifest from '../public/manifest.json'
+const cI = {
+    v: manifest.version,
+    ts: new Date().toISOString(),
+    token: null,
+    ajax: 'http://localhost:4000/ajax'
+}
+
+function ajax(req) {
+    return ajx(req, cI)
+}
 
 const debug = console.log.bind(console),
     url = 'http:localhost:3000',
@@ -13,27 +25,6 @@ let page, dbg = false, _e = false
 function setDebug(s, e) {
     if (e) expect(_e).toBe(false)
     dbg = s, _e = false
-}
-
-async function ajax(req) // token used when state not yet set
-{
-    const r = await fetch('http://localhost:4000/ajax', params(req))
-    const d = r.json()
-    return d
-}
-function params(data) {
-    const ret = {
-        headers: {
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Content-Type': 'application/json',
-            'a_hatchend': '20230521'
-        },
-        method: 'post',
-        cache: 'no-cache',
-        body: JSON.stringify(data)
-    }
-    return ret
 }
 
 function setPage(p) {

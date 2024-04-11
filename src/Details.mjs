@@ -1,4 +1,4 @@
-import Html from './Html.js'
+import Html from './Html.mjs'
 import html from './html/Details.html'
 import details_main from './html/details_main.html'
 import news from './html/news.html'

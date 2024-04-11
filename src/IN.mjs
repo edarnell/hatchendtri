@@ -1,6 +1,6 @@
-import { error, debug, dbg } from './Html'
-import { icons } from './icons'
-import TT from './TT'
+import { error, debug, dbg } from './Html.mjs'
+import { icons } from './icons.mjs'
+import TT from './TT.mjs'
 
 class IN extends TT {
     constructor(p, type, name, param) {

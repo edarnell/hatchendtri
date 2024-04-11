@@ -1,7 +1,7 @@
-import Html, { debug, _s, error, dbg } from './Html'
+import Html, { debug, _s, error, dbg } from './Html.mjs'
 import html from './html/Contact.html'
-import { ajax } from './ajax'
-import { nav } from './Nav'
+import { ajax } from './ajax.mjs'
+import { nav } from './Nav.mjs'
 
 class Contact extends Html {
     constructor(p, id) {

@@ -1,7 +1,7 @@
 import Div from './Div'
-import TT from './TT'
+import TT from './TT.mjs'
 import Form from './Form'
-import Table from './Table'
+import Table from './Table.mjs'
 import Var from './Var'
 
 function custom_html() {

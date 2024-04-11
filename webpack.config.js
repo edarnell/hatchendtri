@@ -3,15 +3,15 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const { merge } = require('webpack-merge');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const { v } = require('./node/config.json');
+const { version } = require('./public/manifest.json');
 
 base = {
     entry: {
-        main: './src/index.js'
+        main: './src/index.mjs'
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: `[name].${v}.js`,
+        filename: `[name].${version}.js`,
         clean: true,
     },
     plugins: [
@@ -40,7 +40,7 @@ base = {
                 loader: 'html-loader',
             },
             {
-                test: /\.js$/,
+                test: /\.mjs$/,
                 exclude: /node_modules/,
                 use: {
                     loader: 'babel-loader',
@@ -87,35 +87,6 @@ const modern = {
             chunks: 'all'
         }
     }
-};
-
-const legacy = {
-    mode: 'production',
-    output: {
-        filename: 'bundle.old.js'
-    },
-    module: {
-        rules: [
-            {
-                test: /\.js$/,
-                exclude: /node_modules/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: [
-                            ['@babel/preset-env', {
-                                targets: {
-                                    browsers: ['> 1%', 'last 2 versions', 'not ie <= 8']
-                                },
-                                useBuiltIns: 'usage',
-                                corejs: { version: 3, proposals: true }
-                            }]
-                        ]
-                    }
-                }
-            }
-        ]
-    },
 };
 
 module.exports = (env, argv) => {
