@@ -147,31 +147,28 @@ function saveReq(j, r, a) {
 }
 
 function unsubReq(j, r, a) {
-    const tok = j.tok, auth = tok && jwt.verify(tok, d.config.key),
-        ae = (a && j.i === a.i) ? ue(a.email) : ue(auth.email)
-    if (a && ae && a.i !== ae.i) log.info({ unsub: { ai: a.i, ae: ae.i } })
-    if (ae && j.u) resp(j, r, a, { u: ae }) // get unsub user details
-    else if (ae && j.i == ae.i) {
-        const reason = j.reason || '', { first, last } = ae,
-            un = { i: ae.i, first, last, reason, date: new Date().toISOString() }
+    log.info({ j, a })
+    if (a && j.u) resp(j, r, a, { u: a }) // get unsub user details
+    else if (a) {
+        const reason = j.reason || '', { first, last } = a,
+            un = { i: a.i, first, last, reason, date: new Date().toISOString() }
         saveF('unsub', un)
-        resp(j, r, ae, { unsub: true })
+        resp(j, r, a, { unsub: true })
         const m = {
-            to_email: d.ei[ae.i],
+            to_email: d.ei[a.i],
             subject: 'Unsubscribe',
             message: 'You have been unsubscribed from Hatch End Triathlon emails, please conatct us if you did not request this.\r\n' +
                 'You should treat any future emails which claim to be from Hatch End Triathlon with suspicion.'
         }
         send(m)
         const am = {
-            i: ae.i,
+            i: a.i,
             subject: 'Unsub',
-            message: `${first} ${last} ${ae.i} unsubscribed\n Reason: ${reason}\n` +
-                `${a && a.i !== ae.i ? `${ae.i}(${ae.email}) !== ${a.i}(${a.email})\n` : ''}`
+            message: `${first} ${last} ${a.i} unsubscribed\n Reason: ${reason}\n`
         }
         send(am)
     } else {
-        debug({ unsub: { j, a, ae, auth } })
+        debug({ unsub: { j, a } })
         resp(j, r, a, { e: 'data error' }, 400)
     }
 }
