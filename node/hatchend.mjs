@@ -258,13 +258,13 @@ function delaySend(req) {
 }
 
 function bulksendReq(j, r, a) {
-    const { subject, message, list, live, time } = j
-    if (subject && message && list && list.length && a.aed) {
-        const pre = { ...j, list: [] }, mailLog = saveF('mail', pre)
-        log.info({ bulksend: { to: list.length, subject, time } })
-        if (time) delaySend(j)
-        else send_list(j)
-        resp(j, r, a, { bulksend: list.length, time, mailLog })
+    const { subject, message, to, live, time } = j
+    if (subject && message && to && to.length && a.aed) {
+        const blk = saveF('blk', { subject, message, to, time })
+        log.info({ bulksend: { to: to.length, subject, time } })
+        if (time) delaySend(blk)
+        else send_list(blk)
+        resp(j, r, a, { bulksend: to.length, blk })
     } else resp(j, r, a, { e: 'Unauthorized' }, 401)
 }
 

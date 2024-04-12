@@ -1,6 +1,6 @@
 const debug = console.log.bind(console), error = console.error.bind(console)
 import fs from 'fs'
-import { f, fz, save, zip } from './zip.mjs'
+import { f, fz, save, zip, ts_s } from './zip.mjs'
 import log4js from "log4js"
 // aims to be a single source of truth for all data
 const version = f('../public/manifest.json', true).data.version
@@ -18,6 +18,7 @@ function load(reload) {
     d.fns['cs'] = f_('cs')
     d.fns['vr'] = fv('vr')
     d.fns['es'] = f_es()
+    d.fns['blk'] = fv('blk')
     d.fns['ml'] = fv('ml')
     d.fns['results'] = f('gz/results.gz')
     d.mail = fs.readFileSync('mail.html').toString()
@@ -28,6 +29,7 @@ function saveF(n, p, k) {
     if (n === 'vs') return saveV(p, k)
     else if (n === 'es') return saveE(p)
     else if (n === 'ml') return saveMl(p, k)
+    else if (n === 'blk') return saveBlk(p, k)
     else if (n === 'ps') return savePs(p, k)
     else if (n === 'unsub') return saveUnsub(p, k)
     else if (n === 'debug') d.debug = p
@@ -54,7 +56,7 @@ function saveUnsub(u, k) {
 }
 
 function saveMl(m, r) {
-    const ts = r ? m : new Date().toISOString()
+    const ts = r ? m : ts_s()
     if (r) {
         if (r.MessageId) d.ml[ts].sent = r.MessageId
         else d.ml[ts].error = r
@@ -63,6 +65,30 @@ function saveMl(m, r) {
     save('ml', d.ml)
     d.fns['ml'] = f('gz/ml.gz')
     return ts
+}
+
+function saveBlk(m, dt) {
+    const ts = dt ? dt : m.time ? m.time : ts_s()
+    if (dt) {
+        if (m === 'save') {
+            save('blk', d.blk)
+            d.fns['blk'] = f('gz/blk.gz')
+        }
+        else {
+            d.blk[ts].end = ts_s()
+            d.blk[ts].sent += m.sent
+            if (m.error.length) m.error.forEach(i => d.blk[ts].error.push(i))
+        }
+    }
+    else {
+        d.blk[ts] = m
+        d.blk[ts].error = []
+        d.blk[ts].start = ts
+        d.blk[ts].sent = 0
+        save('blk', d.blk)
+        d.fns['blk'] = f('gz/blk.gz')
+    }
+    return d.blk[ts]
 }
 
 function newV(jv) {
@@ -235,9 +261,10 @@ function f_es() {
     Object.values(d._es).forEach(u => {
         if (!u.fi) u.fi = {}
         const { i, first, last, fi, admin } = u
+        if (first !== first.trim()) log.error({ i, first })
         if (unsub[i]) fi.unsub = unsub[i].date
         if (bounce[i]) fi.bounce = bounce[i].mail.timestamp
-        d.es[i] = { first, last, i, fi, admin }
+        d.es[i] = { first: first.trim(), last: last.trim(), i, fi, admin }
         n++
     })
     d.ei = {}

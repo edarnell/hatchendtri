@@ -26,10 +26,14 @@ function fz(f) {
 }
 
 function save(f, j) {
-    const z = zip(j), ts = (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
+    const z = zip(j), ts = ts_s()
     if (fs.existsSync(`gz/${f}.gz`)) fs.renameSync(`gz/${f}.gz`, `gz/backups/${f}_${ts}.gz`)
     fs.writeFileSync(`gz/${f}.gz`, z)
     return fs.statSync(`gz/${f}.gz`).mtime
 }
 
-export { f, zip, unzip, fz, save }
+function ts_s() {
+    return (new Date()).toISOString().replace(/[-:]/g, '').slice(0, -5) + 'Z'
+}
+
+export { f, zip, unzip, fz, save, ts_s }

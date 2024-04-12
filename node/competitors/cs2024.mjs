@@ -12,7 +12,7 @@ fs.createReadStream('lists/2024C.csv')
     .on('headers', h => hs = h)
     .on('data', r => {
         const o = {
-            ref: r['Ref'], email: r['Email'], first: r['First Name'], last: r['Last Name'], mf: r['Gender'],
+            ref: r['Ref'].trim(), email: r['Email'].trim(), first: r['First Name'].trim(), last: r['Last Name'].trim(), mf: r['Gender'].trim(),
             cat: r['Category'], club: r['Club'],
             btf: r['I am a BTF member'],
             swim: r['(ADULT ENTRIES ONLY) Please select your estimated swim time for 400m'],

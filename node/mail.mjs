@@ -8,8 +8,8 @@ import fs from 'fs' // for testing - write of email files
 
 function send_list(m) {
     const aws = { ...d.config.aws },
-        { subject, list } = m,
-        length = list.length
+        { subject, to } = m,
+        length = to.length
     log.info({ sending: length })
     aws.clientDefault = { outputFormat: 'json' }
     const sts = new STSClient(aws)
@@ -36,27 +36,27 @@ function send_list(m) {
             subject: 'bulk send',
             message: `${subject}\nSent to ${s_} of ${length} recipients (${f_} failed)\n`
         })
+        saveF('blk', 'save', m.start)
     }).catch(e => log.error(e))
 }
 
 // should look to modify to bulk send
 async function send_batch(ses, n, m, i) {
-    const { subject, message, live, unsub, list } = m, emails = list.slice(i, i + n)
+    const { subject, message, live, unsub, to } = m, emails = to.slice(i, i + n),
+        error = []
     const promises = emails.map(async r => {
-        return ses.send(new SendEmailCommand(email({ to: r.to.name, email: d.ei[r.to.email], subject, message, live, unsub })))
+        return ses.send(new SendEmailCommand(email({ to: r.to, email: d.ei[r.i], subject, message, live, unsub })))
             .then(r => r.MessageId)
             .catch(e => {
-                log.error({ error: e, email: r.to.email })
+                log.error({ error: e, email: r.i })
+                error.push(r.i)
                 return false
             })
     })
     const results = await Promise.all(promises)
     const sent = results.filter(r => r).length
     const failed = emails.length - sent
-    const log = { ...m }
-    log.list = emails
-    log.results = results
-    saveF('mail', log)
+    saveF('blk', { sent, error }, m.start)
     return { sent, failed }
 }
 
