@@ -116,7 +116,7 @@ class AdminEmail extends Html {
     }
     loaded = (r) => {
         //debug({ loaded: { r, d: nav.d.data } })
-        if (r) this.reload("emails")
+        if (r) this.reload(false)
     }
     rendered = (id) => {
         const v = this.q('#n')
@@ -334,7 +334,8 @@ class Send extends Html {
             to = rows.map(email => (emails[email] && { to: emails[email].first, i: email })).filter(r => r),
             { subject, message, unsub, time } = fm
         if (to.length) ajax({ req: 'bulksend', subject, message, unsub, time, to, live }).then(r => {
-            this.p.reload('emails')
+            this.close(`<div class="green">Sent ${r.blk.subject} to ${r.blk.to.length} emails</div>`)
+            this.p.reload()
             debug({ r })
         }).catch(e => error(e, o))
     }

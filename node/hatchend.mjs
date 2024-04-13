@@ -264,7 +264,7 @@ function bulksendReq(j, r, a) {
         log.info({ bulksend: { to: to.length, subject, time } })
         if (time) delaySend(blk)
         else send_list(blk)
-        resp(j, r, a, { bulksend: to.length, blk })
+        resp(j, r, a, { blk })
     } else resp(j, r, a, { e: 'Unauthorized' }, 401)
 }
 
