@@ -260,7 +260,7 @@ function delaySend(req) {
 function bulksendReq(j, r, a) {
     const { subject, message, to, live, time } = j
     if (subject && message && to && to.length && a.aed) {
-        const blk = saveF('blk', { subject, message, to, time })
+        const blk = saveF('blk', { subject, message, to, time, live })
         log.info({ bulksend: { to: to.length, subject, time } })
         if (time) delaySend(blk)
         else send_list(blk)
