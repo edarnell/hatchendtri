@@ -77,8 +77,8 @@ class AdminEmail extends Html {
                         if (blk[l].subject !== m.subject) eml[r.i].push(dt)
                     }
                 })
-                if (m.subject === last) r = null
-                else last = m.subject
+                //if (m.subject === last) r = null
+                last = m.subject
                 return r
             }).filter(r => r)
             this._ml = eml
