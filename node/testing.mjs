@@ -26,8 +26,8 @@ function testF(j) {
         p = f && j[f],
         a = typeof p === 'string' && p.includes('epdarnell+'),
         u = a && d._es[p]
-    if (j.debug && j.debug === 'email') {
-        saveF('debug', { email: true })
+    if (j.debug) {
+        saveF('debug', j.debug)
         return { debug: d.debug }
     }
     else if (j.rm && (u || p === 'epdarnell+')) {

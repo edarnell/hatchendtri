@@ -14,7 +14,7 @@ beforeAll(async () => {
     page = await browser.newPage()
     setPage(page)
     setDebug(false)
-    await ajax({ req: 'test', debug: 'email' })
+    await ajax({ req: 'test', debug: { email: true } })
     await ajax({ req: 'test', rm: 'epdarnell+' })
     await ajax({ req: 'test', reg: user })
     await page.evaluateOnNewDocument(() => {
@@ -24,6 +24,8 @@ beforeAll(async () => {
     })
 })
 afterAll(async () => {
+    await ajax({ req: 'test', rm: 'epdarnell+' })
+    await ajax({ req: 'test', debug: {} })
     await jest.restoreAllMocks()
     await browser.close()
 })
