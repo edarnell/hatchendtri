@@ -16,7 +16,7 @@ fs.createReadStream('lists/2024C.csv')
             cat: r['Category'], club: r['Club'],
             btf: r['I am a BTF member'],
             swim: r['(ADULT ENTRIES ONLY) Please select your estimated swim time for 400m'],
-            btrl: r['BTFpass'],
+            btrl: r['race-pass'],
         }
         if (o.email && o.ref) {
             cs[o.ref] = o
