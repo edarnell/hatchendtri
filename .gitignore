@@ -8,6 +8,7 @@ public/Identified
 tidy/
 public/photos
 node/gz
+node/gz.*
 node/config.json
 node/access.log
 node/test
