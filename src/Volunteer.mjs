@@ -1,6 +1,8 @@
 import Html, { debug, error, _s, dbg } from './Html.mjs'
 import { nav } from './Nav.mjs'
+import { ajax } from './ajax.mjs'
 import html from './html/Volunteer.html'
+import Vselect from './Vselect.mjs'
 import { sections, section, roles, selectSection, selectRole } from './roles.mjs'
 
 const year = 2024
@@ -32,10 +34,6 @@ class Volunteer extends Html {
   rendered = () => {
     dbg('rendered')
     const u = nav._user, vs = nav.d.data.vs
-    if (u && u.admin) {
-      const n = this.fe('New')
-      if (n) n.classList.remove('hidden')
-    }
     if (u && vs && ((this._vol && this.color() === 'grey') || nav._vol)) {
       this._vol = null
       dbg({ popup: u })
@@ -69,13 +67,46 @@ class Volunteer extends Html {
     const vs = nav.d.data.vs
     if (!vs) return `<div id="volunteer"></div>` // wait to load
     else if (!n) return `<div id="volunteer">${html}</div>`
+    else if (n === 'names') return this.names()
     else if (n === 'greet') return `<div id="greet"><p>${this.greet()}</p></div>`
     else if (n === 'nr') {
       const f = this._form, nr = (f && f.nr) || 'Roles'
       return `<div id="nr">${nr === 'Roles' ? '{div.vRoles}' : '{div.vNames}'}</div>`
     }
+    else if (n === 'Vselect') return new Vselect(this.div['admin'], n)
     else if (n === 'vRoles') return new Vroles(this.div['nr'], n)
     else if (n === 'vNames') return new Vnames(this.div['nr'], n)
+  }
+  nameSort = (a, b) => {
+    const vs = nav.d.data.vs
+    const { last: al, first: af } = vs[a], { last: bl, first: bf } = vs[b]
+    if (al < bl) return -1
+    if (al > bl) return 1
+    if (af < bf) return -1
+    if (af > bf) return 1
+    return 0
+  }
+  filter = (id) => {
+    const f = this._form, d = nav.d.data, v = d.vs[id], vr = d.vr[id]
+    if (f && f.filter) {
+      const name = v.first + ' ' + v.last
+      return name.toLowerCase().indexOf(f.filter.toLowerCase()) > -1
+    }
+    else return vr && ((vr.adult && (!vr.arole || vr.arole === 'Role')) || (vr.junior && (!vr.jrole || vr.jrole === 'Role')))
+  }
+  names = () => {
+    const f = this._form, nm = f && f.filter,
+      u = nav._user,
+      d = nav.d.data, vs = d.vs,
+      n = this.fe('New'),
+      vols = Object.keys(vs).filter(this.filter).sort(this.nameSort),
+      html = vols.slice(0, 10).map(id => `<span>{link._${id}.${_s(vs[id].first)}_${_s(vs[id].last)}}</span>`)
+        .join(', '),
+      add = nm && !vols.length && u && u.admin
+    if (n && add) n.classList.remove('hidden')
+    else if (n) n.classList.add('hidden')
+    else error({ n })
+    return `${nm ? 'Historic' : 'Available'}:</b> ${html}`
   }
   color = (vid) => {
     const u = nav._user, id = vid || (u && u.vs && u.vs[0]),
@@ -90,17 +121,17 @@ class Volunteer extends Html {
   utip = () => {
     const u = nav._user, v = u.vs && u.vs[0], c = this.color(v)
     if (c === 'grey') return '<div class="grey">click to set availability</div>'
-    else return this.vtip(v).replace(/\?/g, '✓')
+    else return this.vtip(v)
   }
   vtip = (id) => {
     const vr = nav.d.data.vr, v = vr && vr[id], cl = this.color(id)
     if (v) {
-      const r = (v.adult || v.junior || v.none),
-        ar = v.adult ? v.arole ? (v.asection + ' ' + v.arole) : '?' : r ? '✗' : '?',
-        jr = v.junior ? v.jrole ? (v.jsection + ' ' + v.jrole) : '?' : r ? '✗' : '?'
-      return `<div class=${cl}>${year} ${ar}, ${jr}</div>`
+      const ar = v.arole ? v.asection + ' ' + v.arole : '', jr = v.jrole ? v.jsection + ' ' + v.jrole : '',
+        a = v.adult ? ar || '✓' : '✗', ca = v.adult ? v.arole ? 'green' : 'blue' : 'red',
+        j = v.junior ? jr || '✓' : '✗', cj = v.junior ? v.jrole ? 'green' : 'blue' : 'red'
+      return `<span><span class=${cl}>${year}</span> <span class=${ca}>${a}</span>, <span class=${cj}>${j}</span> ${v.notes || ''}</span>`
     }
-    else return `<div class=${cl}>${year} ?</div>`
+    else return `<span class=${cl}>${year} ?</span>`
   }
   roles(id) {
     const v = nav.d.data.vs[id],
@@ -110,11 +141,24 @@ class Volunteer extends Html {
   yroles = (v, y = year) => {
     if (v && v.year && v.year[y]) {
       const vy = v.year[y]
-      return `<div>${y} ${vy.adult || '✗'}, ${vy.junior || '✗'}</div>`
+      return `<span>${y} ${vy.adult || '✗'}, ${vy.junior || '✗'}</span>`
     }
     else return ''
   }
   tip = (id, y) => {
+    const u = nav._user,
+      rs = this.roles(id).filter(r => r).join('<br />')
+    if (u && u.admin) {
+      ajax({ req: 'vol', v: id }).then(r => {
+        const l = this.q(`[id=vol_tt_${id}]`),
+          m = r.v.mobile, e = r.v.email
+        if (l) l.innerHTML = `<span>${m ? `<a href="tel:${m}">${m}</a>` : '?mobile'} ${e ? `<a href="mailto:${e}">${e}</a>` : '?email'}</span><br />`
+          + l.innerHTML
+        else error({ id, r })
+        debug({ rs })
+      })
+      return `<span id="vol_tt_${id}">${this.vtip(id)}</span><br />${rs}`
+    }
     if (y) return this.vtip(id, y)
     let ret = this.roles(id)
     ret.unshift(this.vtip(id))
@@ -135,6 +179,7 @@ class Volunteer extends Html {
       fd = this._form = this.getForm(),
       filter = fd.filter
     C.classList[filter ? 'remove' : 'add']('hidden')
+    this.reload('names')
     this.reload('nr')
   }
 }

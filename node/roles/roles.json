@@ -1,0 +1,576 @@
+{
+    "Race Control": {
+        "times": {
+            "adult": [
+                "06:00",
+                "10:30"
+            ],
+            "junior": [
+                "11:15",
+                "14:30"
+            ]
+        },
+        "roles": {
+            "Race Lead": {
+                "adult": 1,
+                "junior": 1,
+                "info": "Heads up the team and is responsible for the overall running of the event."
+            },
+            "Volunteer Lead": {
+                "adult": 1,
+                "junior": 1,
+                "info": "Recruits and assigns team. Registers volunteers, issues food vouchers and supervises race control on the day."
+            },
+            "Asst. Coordinator": {
+                "adult": 1,
+                "junior": 1,
+                "info": "Assistant to race and volunteer leads."
+            },
+            "Safety Officer": {
+                "adult": 1,
+                "junior": 1,
+                "info": "Reviews and refines safety procdedures. Manages any issues on the day."
+            },
+            "Race Briefings": {
+                "adult": 1,
+                "junior": 1,
+                "info": "Pre-race briefings to all competitors. Covers PA announcements during the race."
+            },
+            "Referee": {
+                "adult": 1,
+                "junior": 1,
+                "info": "British Triathlon approved race referee. Ensures event is safe and well organised and all rules are followed."
+            },
+            "Asst. Referee": {
+                "adult": 0,
+                "junior": 0,
+                "info": "Assists the referee"
+            },
+            "Motor Cycle Marshall": {
+                "adult": 1,
+                "junior": 1,
+                "info": "Monitors adult cycle course. Safety and ruke advice to competitors, reporting any incidents"
+            }
+        }
+    },
+    "Registration": {
+        "name": "Registration",
+        "start": {
+            "adult": "06:00",
+            "junior": "9:00"
+        },
+        "end": {
+            "adult": "08:30",
+            "junior": "12:00"
+        },
+        "role": {
+            "Lead": {
+                "name": "Lead",
+                "qty": {
+                    "adult": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "junior": {
+                        "min": 0,
+                        "max": 1
+                    }
+                }
+            },
+            "Identity Checks": {
+                "name": "Identity Checks",
+                "qty": {
+                    "adult": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "junior": {
+                        "min": "0",
+                        "max": "0"
+                    }
+                }
+            },
+            "Registration": {
+                "name": "Registration",
+                "qty": {
+                    "adult": {
+                        "min": 2,
+                        "max": 2
+                    },
+                    "junior": {
+                        "min": 2,
+                        "max": "3"
+                    }
+                }
+            },
+            "Marker": {
+                "name": "Marker",
+                "qty": {
+                    "adult": {
+                        "min": "2",
+                        "max": "3"
+                    },
+                    "junior": {
+                        "min": "2",
+                        "max": "3"
+                    }
+                }
+            }
+        }
+    },
+    "Car Park": {
+        "name": "Car Park",
+        "start": {
+            "adult": "06:00",
+            "junior": "12:00"
+        },
+        "end": {
+            "adult": "11:00",
+            "junior": "14:00"
+        },
+        "role": {
+            "Art Centre": {
+                "name": "Art Centre",
+                "qty": {
+                    "adult": {
+                        "min": 2,
+                        "max": 2
+                    },
+                    "junior": {
+                        "min": "0",
+                        "max": "0"
+                    }
+                }
+            }
+        }
+    },
+    "Swim": {
+        "name": "Swim",
+        "start": {
+            "adult": "06:30",
+            "junior": "11:15"
+        },
+        "end": {
+            "adult": "09:15",
+            "junior": "13:15"
+        },
+        "role": {
+            "Lead": {
+                "name": "Lead",
+                "qty": {
+                    "adult": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "junior": {
+                        "min": 0,
+                        "max": 1
+                    }
+                }
+            },
+            "Pool Entry": {
+                "name": "Pool Entry",
+                "qty": {
+                    "adult": {
+                        "min": "1",
+                        "max": "1"
+                    },
+                    "junior": {
+                        "min": 1,
+                        "max": 1
+                    }
+                }
+            },
+            "Starter": {
+                "name": "Starter",
+                "qty": {
+                    "adult": {
+                        "min": 3,
+                        "max": 6
+                    },
+                    "junior": {
+                        "min": 3,
+                        "max": 6
+                    }
+                }
+            },
+            "Lap Counter": {
+                "name": "Lap Counter",
+                "qty": {
+                    "adult": {
+                        "min": 6,
+                        "max": 6
+                    },
+                    "junior": {
+                        "min": 6,
+                        "max": 6
+                    }
+                }
+            },
+            "Marshall": {
+                "name": "Marshall",
+                "qty": {
+                    "adult": {
+                        "min": 2,
+                        "max": "3"
+                    },
+                    "junior": {
+                        "min": 2,
+                        "max": "3"
+                    }
+                }
+            },
+            "Collect Hats": {
+                "name": "Collect Hats",
+                "qty": {
+                    "adult": {
+                        "min": 1,
+                        "max": "2"
+                    },
+                    "junior": {
+                        "min": 2,
+                        "max": 2
+                    }
+                }
+            },
+            "Timing Chips": {
+                "name": "Timing Chips",
+                "qty": {
+                    "adult": {
+                        "min": "0",
+                        "max": "0"
+                    },
+                    "junior": {
+                        "min": "0",
+                        "max": "0"
+                    }
+                }
+            }
+        }
+    },
+    "Cycle": {
+        "name": "Cycle",
+        "start": {
+            "adult": "06:30",
+            "junior": "11:15"
+        },
+        "end": {
+            "adult": "10:30",
+            "junior": "14:30"
+        },
+        "role": {
+            "Lead": {
+                "name": "Lead",
+                "qty": {
+                    "adult": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "junior": {
+                        "min": 0,
+                        "max": 1
+                    }
+                }
+            },
+            "Swim Bridge": {
+                "name": "Swim Bridge",
+                "qty": {
+                    "adult": {
+                        "min": "1",
+                        "max": "3"
+                    },
+                    "junior": {
+                        "min": "1",
+                        "max": "2"
+                    }
+                }
+            },
+            "Mount/Dismount": {
+                "name": "Mount/Dismount",
+                "qty": {
+                    "adult": {
+                        "min": 2,
+                        "max": 2
+                    },
+                    "junior": {
+                        "min": 2,
+                        "max": 2
+                    }
+                }
+            },
+            "On Course": {
+                "name": "On Course",
+                "qty": {
+                    "adult": {
+                        "min": 0,
+                        "max": 0
+                    },
+                    "junior": {
+                        "min": 3,
+                        "max": 3
+                    }
+                }
+            },
+            "Lap Counter": {
+                "name": "Lap Counter",
+                "qty": {
+                    "adult": {
+                        "min": 0,
+                        "max": 0
+                    },
+                    "junior": {
+                        "min": 2,
+                        "max": 2
+                    }
+                }
+            },
+            "Morrison Roundabout": {
+                "name": "Morrison Roundabout",
+                "qty": {
+                    "adult": {
+                        "min": 2,
+                        "max": 2
+                    },
+                    "junior": {
+                        "min": 0,
+                        "max": 0
+                    }
+                }
+            },
+            "Hatch End Ped. Crossing": {
+                "name": "Hatch End Ped. Crossing",
+                "qty": {
+                    "adult": {
+                        "min": "1",
+                        "max": "2"
+                    },
+                    "junior": {
+                        "min": 0,
+                        "max": 0
+                    }
+                }
+            },
+            "King George Roundabout": {
+                "name": "King George Roundabout",
+                "qty": {
+                    "adult": {
+                        "min": "1",
+                        "max": 2
+                    },
+                    "junior": {
+                        "min": 0,
+                        "max": 0
+                    }
+                }
+            },
+            "King George Lights": {
+                "name": "King George Lights",
+                "qty": {
+                    "adult": {
+                        "min": "1",
+                        "max": "3"
+                    },
+                    "junior": {
+                        "min": 0,
+                        "max": 0
+                    }
+                }
+            },
+            "Headstone Zebra Crossing": {
+                "name": "Headstone Zebra Crossing",
+                "qty": {
+                    "adult": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "junior": {
+                        "min": 0,
+                        "max": 0
+                    }
+                }
+            },
+            "Headstone/Uxbridge Left": {
+                "name": "Headstone/Uxbridge Left",
+                "qty": {
+                    "adult": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "junior": {
+                        "min": 0,
+                        "max": 0
+                    }
+                }
+            },
+            "Field Footbridge": {
+                "name": "Field Footbridge",
+                "qty": {
+                    "adult": {
+                        "min": 2,
+                        "max": 2
+                    },
+                    "junior": {
+                        "min": 0,
+                        "max": 0
+                    }
+                }
+            },
+            "Headstone Width Restrict": {
+                "name": "Headstone Width Restrict",
+                "qty": {
+                    "adult": {
+                        "min": 3,
+                        "max": 3
+                    },
+                    "junior": {
+                        "min": 0,
+                        "max": 0
+                    }
+                }
+            },
+            "Sign Removal": {
+                "name": "Sign Removal",
+                "qty": {
+                    "adult": {
+                        "min": 0,
+                        "max": 0
+                    },
+                    "junior": {
+                        "min": "1",
+                        "max": "2"
+                    }
+                }
+            }
+        }
+    },
+    "Run": {
+        "name": "Run",
+        "start": {
+            "adult": "07:30",
+            "junior": "11:15"
+        },
+        "end": {
+            "adult": "10:30",
+            "junior": "2:30"
+        },
+        "role": {
+            "Lead": {
+                "name": "Lead",
+                "qty": {
+                    "adult": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "junior": {
+                        "min": 0,
+                        "max": 1
+                    }
+                }
+            },
+            "Lap Bands": {
+                "name": "Lap Bands",
+                "qty": {
+                    "adult": {
+                        "min": 2,
+                        "max": 2
+                    },
+                    "junior": {
+                        "min": "2",
+                        "max": "2"
+                    }
+                }
+            },
+            "Water": {
+                "name": "Water",
+                "qty": {
+                    "adult": {
+                        "min": 2,
+                        "max": 2
+                    },
+                    "junior": {
+                        "min": 2,
+                        "max": 2
+                    }
+                }
+            },
+            "Finish": {
+                "name": "Finish",
+                "qty": {
+                    "adult": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "junior": {
+                        "min": 1,
+                        "max": 1
+                    }
+                }
+            },
+            "Collect Chips": {
+                "name": "Collect Chips",
+                "qty": {
+                    "adult": {
+                        "min": 2,
+                        "max": 2
+                    },
+                    "junior": {
+                        "min": 2,
+                        "max": 2
+                    }
+                }
+            },
+            "Medals": {
+                "name": "Medals",
+                "qty": {
+                    "adult": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "junior": {
+                        "min": 1,
+                        "max": 1
+                    }
+                }
+            }
+        }
+    },
+    "Transition": {
+        "name": "Transition",
+        "start": {
+            "adult": "06:00",
+            "junior": "10:15"
+        },
+        "end": {
+            "adult": "10:30",
+            "junior": "14:30"
+        },
+        "role": {
+            "Lead": {
+                "name": "Lead",
+                "qty": {
+                    "adult": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "junior": {
+                        "min": 0,
+                        "max": 1
+                    }
+                }
+            },
+            "Marshall": {
+                "name": "Marshall",
+                "qty": {
+                    "adult": {
+                        "min": 6,
+                        "max": 6
+                    },
+                    "junior": {
+                        "min": "8",
+                        "max": "12"
+                    }
+                }
+            }
+        }
+    }
+}

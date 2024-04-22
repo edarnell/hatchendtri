@@ -299,7 +299,7 @@ describe('Volunteer', () => {
         await page.click('[id^="IN_junior"]')
         await page.click('[id^="TT_close"]')
 
-        await sleep(100)
+        await sleep(200)
         expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'blue')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'thank you for volunteering')).toBeTruthy()
         await page.click('[id^="TT_u_greet"]')
