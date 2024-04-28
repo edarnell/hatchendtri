@@ -1,575 +1,267 @@
 {
     "Race Control": {
-        "times": {
-            "adult": [
+        "time": {
+            "a": [
                 "06:00",
                 "10:30"
             ],
-            "junior": [
+            "j": [
                 "11:15",
                 "14:30"
             ]
         },
-        "roles": {
-            "Race Lead": {
-                "adult": 1,
-                "junior": 1,
-                "info": "Heads up the team and is responsible for the overall running of the event."
+        "role": {
+            "Lead": {
+                "t": "Responsible for the overall organisation and running of the event."
             },
-            "Volunteer Lead": {
-                "adult": 1,
-                "junior": 1,
-                "info": "Recruits and assigns team. Registers volunteers, issues food vouchers and supervises race control on the day."
+            "Volunteer Coordinator": {
+                "t": "Recruits and assigns the volunteer team. Registers volunteers, issues food vouchers and supervises race control on the day."
             },
             "Asst. Coordinator": {
-                "adult": 1,
-                "junior": 1,
-                "info": "Assistant to race and volunteer leads."
+                "aj": 0,
+                "t": "Assistant to race and volunteer leads."
             },
             "Safety Officer": {
-                "adult": 1,
-                "junior": 1,
-                "info": "Reviews and refines safety procdedures. Manages any issues on the day."
+                "aj": 0,
+                "t": "Reviews and refines safety procdedures. Manages any issues on the day."
             },
             "Race Briefings": {
-                "adult": 1,
-                "junior": 1,
-                "info": "Pre-race briefings to all competitors. Covers PA announcements during the race."
+                "t": "Pre-race briefings to all competitors. Covers PA announcements during the race."
             },
             "Referee": {
-                "adult": 1,
-                "junior": 1,
-                "info": "British Triathlon approved race referee. Ensures event is safe and well organised and all rules are followed."
+                "t": "British Triathlon approved race referee. Reviews safety and organisation, advises lead, volunteers and competitors to ensure BTF rules are understood and followed. Produces post-event BTF report."
             },
             "Asst. Referee": {
-                "adult": 0,
-                "junior": 0,
-                "info": "Assists the referee"
+                "aj": 0,
+                "t": "Assists the referee"
             },
             "Motor Cycle Marshall": {
-                "adult": 1,
-                "junior": 1,
-                "info": "Monitors adult cycle course. Safety and ruke advice to competitors, reporting any incidents"
+                "aj": 0,
+                "t": "Monitors adult cycle course. Safety and rule advice to competitors, reporting any incidents"
+            }
+        }
+    },
+    "Site": {
+        "time": {
+            "a": [
+                "06:00",
+                "11:00"
+            ],
+            "j": [
+                "12:00",
+                "14:00"
+            ]
+        },
+        "role": {
+            "Lead": {
+                "t": "Lead site team. Work with swim team to fine-tune queue. Ensure smooth and safe flow of competitors through site."
+            },
+            "Swim Bridge": {
+                "t": "Manage flow of competitors to swim. Communicate with pool entry advising briefing and PA to accelerate or slow flow of compeetitors as needed."
+            },
+            "Art Centre": {
+                "t": "Ensure car park only used by Art Centre customers and race officials. Direct competitors to local road parking."
+            },
+            "Spectator Bridge": {
+                "t": "Route to registration and transition for spectators, volunteers and competitors."
+            },
+            "Competitor Bridge": {
+                "t": "Manage flow of competitors over bridge keeping swimmers and cyclists apart. Direct non-competitors to spectator bridge."
             }
         }
     },
     "Registration": {
-        "name": "Registration",
-        "start": {
-            "adult": "06:00",
-            "junior": "9:00"
-        },
-        "end": {
-            "adult": "08:30",
-            "junior": "12:00"
+        "time": {
+            "a": [
+                "06:00",
+                "08:30"
+            ],
+            "j": [
+                "09:00",
+                "12:00"
+            ]
         },
         "role": {
             "Lead": {
-                "name": "Lead",
-                "qty": {
-                    "adult": {
-                        "min": 1,
-                        "max": 1
-                    },
-                    "junior": {
-                        "min": 0,
-                        "max": 1
-                    }
-                }
-            },
-            "Identity Checks": {
-                "name": "Identity Checks",
-                "qty": {
-                    "adult": {
-                        "min": 1,
-                        "max": 1
-                    },
-                    "junior": {
-                        "min": "0",
-                        "max": "0"
-                    }
-                }
+                "t": "Heads up the team, also performing a registration role."
             },
             "Registration": {
-                "name": "Registration",
-                "qty": {
-                    "adult": {
-                        "min": 2,
-                        "max": 2
-                    },
-                    "junior": {
-                        "min": 2,
-                        "max": "3"
-                    }
-                }
+                "t": "Registers competitors using app and provide numbers and timing chips. Directs competitors to marker and foot protectors."
             },
             "Marker": {
-                "name": "Marker",
-                "qty": {
-                    "adult": {
-                        "min": "2",
-                        "max": "3"
-                    },
-                    "junior": {
-                        "min": "2",
-                        "max": "3"
-                    }
-                }
-            }
-        }
-    },
-    "Car Park": {
-        "name": "Car Park",
-        "start": {
-            "adult": "06:00",
-            "junior": "12:00"
-        },
-        "end": {
-            "adult": "11:00",
-            "junior": "14:00"
-        },
-        "role": {
-            "Art Centre": {
-                "name": "Art Centre",
-                "qty": {
-                    "adult": {
-                        "min": 2,
-                        "max": 2
-                    },
-                    "junior": {
-                        "min": "0",
-                        "max": "0"
-                    }
-                }
+                "t": "Write number on left arm. Advise competitors of need to use foot protectors to keep feet clean."
             }
         }
     },
     "Swim": {
-        "name": "Swim",
-        "start": {
-            "adult": "06:30",
-            "junior": "11:15"
-        },
-        "end": {
-            "adult": "09:15",
-            "junior": "13:15"
+        "time": {
+            "a": [
+                "06:30",
+                "09:15"
+            ],
+            "j": [
+                "11:15",
+                "13:15"
+            ]
         },
         "role": {
             "Lead": {
-                "name": "Lead",
-                "qty": {
-                    "adult": {
-                        "min": 1,
-                        "max": 1
-                    },
-                    "junior": {
-                        "min": 0,
-                        "max": 1
-                    }
-                }
+                "t": "Lead swim team. Ensure smooth and safe flow of competitors through swim. Consider improvements for future years."
             },
             "Pool Entry": {
-                "name": "Pool Entry",
-                "qty": {
-                    "adult": {
-                        "min": "1",
-                        "max": "1"
-                    },
-                    "junior": {
-                        "min": 1,
-                        "max": 1
-                    }
-                }
+                "t": "Manage swim queue. Discuss swim ability to allocate competitor to appropriate lane. Ensure clean feet and correct fitting of timing chips."
             },
             "Starter": {
-                "name": "Starter",
-                "qty": {
-                    "adult": {
-                        "min": 3,
-                        "max": 6
-                    },
-                    "junior": {
-                        "min": 3,
-                        "max": 6
-                    }
-                }
+                "aj": 3,
+                "t": "Manage swim lane starts. Brief competitors on start, required lengths, resting, overtaking and finishing process."
             },
             "Lap Counter": {
-                "name": "Lap Counter",
-                "qty": {
-                    "adult": {
-                        "min": 6,
-                        "max": 6
-                    },
-                    "junior": {
-                        "min": 6,
-                        "max": 6
-                    }
-                }
+                "aj": 6,
+                "t": "Count swim laps (paired counters for cross-check). Know categories and laps. Submerge board to signal final 2 lengths."
             },
-            "Marshall": {
-                "name": "Marshall",
-                "qty": {
-                    "adult": {
-                        "min": 2,
-                        "max": "3"
-                    },
-                    "junior": {
-                        "min": 2,
-                        "max": "3"
-                    }
-                }
-            },
-            "Collect Hats": {
-                "name": "Collect Hats",
-                "qty": {
-                    "adult": {
-                        "min": 1,
-                        "max": "2"
-                    },
-                    "junior": {
-                        "min": 2,
-                        "max": 2
-                    }
-                }
-            },
-            "Timing Chips": {
-                "name": "Timing Chips",
-                "qty": {
-                    "adult": {
-                        "min": "0",
-                        "max": "0"
-                    },
-                    "junior": {
-                        "min": "0",
-                        "max": "0"
-                    }
-                }
+            "Pool Exit": {
+                "t": "Guide competitors out of the pool and towards transition. Warn to take care with step."
             }
         }
     },
     "Cycle": {
-        "name": "Cycle",
-        "start": {
-            "adult": "06:30",
-            "junior": "11:15"
-        },
-        "end": {
-            "adult": "10:30",
-            "junior": "14:30"
+        "time": {
+            "a": [
+                "06:30",
+                "10:30"
+            ],
+            "j": [
+                "11:15",
+                "14:30"
+            ]
         },
         "role": {
             "Lead": {
-                "name": "Lead",
-                "qty": {
-                    "adult": {
-                        "min": 1,
-                        "max": 1
-                    },
-                    "junior": {
-                        "min": 0,
-                        "max": 1
-                    }
-                }
-            },
-            "Swim Bridge": {
-                "name": "Swim Bridge",
-                "qty": {
-                    "adult": {
-                        "min": "1",
-                        "max": "3"
-                    },
-                    "junior": {
-                        "min": "1",
-                        "max": "2"
-                    }
-                }
+                "t": "Lead cycle team focussing attention on any evolving safety concerns."
             },
             "Mount/Dismount": {
-                "name": "Mount/Dismount",
-                "qty": {
-                    "adult": {
-                        "min": 2,
-                        "max": 2
-                    },
-                    "junior": {
-                        "min": 2,
-                        "max": 2
-                    }
-                }
-            },
-            "On Course": {
-                "name": "On Course",
-                "qty": {
-                    "adult": {
-                        "min": 0,
-                        "max": 0
-                    },
-                    "junior": {
-                        "min": 3,
-                        "max": 3
-                    }
-                }
-            },
-            "Lap Counter": {
-                "name": "Lap Counter",
-                "qty": {
-                    "adult": {
-                        "min": 0,
-                        "max": 0
-                    },
-                    "junior": {
-                        "min": 2,
-                        "max": 2
-                    }
-                }
+                "name": "Manage cyclist Mount/Dismount line. Prevent early mounting and late dismounting. Adult course is 3 laps."
             },
             "Morrison Roundabout": {
-                "name": "Morrison Roundabout",
-                "qty": {
-                    "adult": {
-                        "min": 2,
-                        "max": 2
-                    },
-                    "junior": {
-                        "min": 0,
-                        "max": 0
-                    }
-                }
+                "a": 1,
+                "t": "Ensure safe flow of cyclists over Morrison Roundabout."
+            },
+            "Bridge Ped. Crossing": {
+                "t": "Ensure cyclists observe Ped. Crossing",
+                "a": 1
             },
             "Hatch End Ped. Crossing": {
-                "name": "Hatch End Ped. Crossing",
-                "qty": {
-                    "adult": {
-                        "min": "1",
-                        "max": "2"
-                    },
-                    "junior": {
-                        "min": 0,
-                        "max": 0
-                    }
-                }
+                "t": "Ensure cyclists observe Ped. Crossing",
+                "a": 1
             },
             "King George Roundabout": {
-                "name": "King George Roundabout",
-                "qty": {
-                    "adult": {
-                        "min": "1",
-                        "max": 2
-                    },
-                    "junior": {
-                        "min": 0,
-                        "max": 0
-                    }
-                }
+                "t": "Direct safe left turn at roundabout.",
+                "a": 1
             },
             "King George Lights": {
-                "name": "King George Lights",
-                "qty": {
-                    "adult": {
-                        "min": "1",
-                        "max": "3"
-                    },
-                    "junior": {
-                        "min": 0,
-                        "max": 0
-                    }
-                }
-            },
-            "Headstone Zebra Crossing": {
-                "name": "Headstone Zebra Crossing",
-                "qty": {
-                    "adult": {
-                        "min": 1,
-                        "max": 1
-                    },
-                    "junior": {
-                        "min": 0,
-                        "max": 0
-                    }
-                }
-            },
-            "Headstone/Uxbridge Left": {
-                "name": "Headstone/Uxbridge Left",
-                "qty": {
-                    "adult": {
-                        "min": 1,
-                        "max": 1
-                    },
-                    "junior": {
-                        "min": 0,
-                        "max": 0
-                    }
-                }
-            },
-            "Field Footbridge": {
-                "name": "Field Footbridge",
-                "qty": {
-                    "adult": {
-                        "min": 2,
-                        "max": 2
-                    },
-                    "junior": {
-                        "min": 0,
-                        "max": 0
-                    }
-                }
+                "a": 2,
+                "t": "Busy left turn at lights onto Headstone Lane. Traffic risk - ensure cyclists are safe and follow the correct route."
             },
             "Headstone Width Restrict": {
-                "name": "Headstone Width Restrict",
-                "qty": {
-                    "adult": {
-                        "min": 3,
-                        "max": 3
-                    },
-                    "junior": {
-                        "min": 0,
-                        "max": 0
-                    }
-                }
+                "a": 2,
+                "t": "Traffic risk at width restriction. Ensure cyclists maximise safety, which may or may not involve use of the cycle/bus lane."
             },
-            "Sign Removal": {
-                "name": "Sign Removal",
-                "qty": {
-                    "adult": {
-                        "min": 0,
-                        "max": 0
-                    },
-                    "junior": {
-                        "min": "1",
-                        "max": "2"
-                    }
-                }
+            "Headstone Zebra Crossing": {
+                "t": "Ensure zebra crossing safety is observed.",
+                "a": 1
+            },
+            "Headstone/Uxbridge Left": {
+                "t": "Final left turn of lap. Ensure cyclists are safe and follow the correct route.",
+                "a": 1
+            },
+            "Cycle Sign Removal": {
+                "t": "Remove signs from adult cycle course after last competitor has finished.",
+                "j": 2
+            },
+            "Junior Course": {
+                "j": 3,
+                "t": "Manage junior off-road course. Ensure competitors are safe and follow the correct route, keeping clear of runners."
             }
         }
     },
     "Run": {
-        "name": "Run",
-        "start": {
-            "adult": "07:30",
-            "junior": "11:15"
-        },
-        "end": {
-            "adult": "10:30",
-            "junior": "2:30"
+        "time": {
+            "a": [
+                "07:30",
+                "10:30"
+            ],
+            "j": [
+                "11:15",
+                "14:30"
+            ]
         },
         "role": {
             "Lead": {
-                "name": "Lead",
-                "qty": {
-                    "adult": {
-                        "min": 1,
-                        "max": 1
-                    },
-                    "junior": {
-                        "min": 0,
-                        "max": 1
-                    }
-                }
+                "t": "Lead team and perform run marshall role."
+            },
+            "Start": {
+                "t": "Direct to run route after cycle."
             },
             "Lap Bands": {
-                "name": "Lap Bands",
-                "qty": {
-                    "adult": {
-                        "min": 2,
-                        "max": 2
-                    },
-                    "junior": {
-                        "min": "2",
-                        "max": "2"
-                    }
-                }
+                "t": "Issue wrist bands at lap 1/2 way point. Know number colours and required laps. Advise on laps remaining if required.",
+                "aj": 2
+            },
+            "Marshall": {
+                "t": "Direct lap or towards finish at end of final lap. Know number colours and required laps."
             },
             "Water": {
-                "name": "Water",
-                "qty": {
-                    "adult": {
-                        "min": 2,
-                        "max": 2
-                    },
-                    "junior": {
-                        "min": 2,
-                        "max": 2
-                    }
-                }
-            },
-            "Finish": {
-                "name": "Finish",
-                "qty": {
-                    "adult": {
-                        "min": 1,
-                        "max": 1
-                    },
-                    "junior": {
-                        "min": 1,
-                        "max": 1
-                    }
-                }
-            },
-            "Collect Chips": {
-                "name": "Collect Chips",
-                "qty": {
-                    "adult": {
-                        "min": 2,
-                        "max": 2
-                    },
-                    "junior": {
-                        "min": 2,
-                        "max": 2
-                    }
-                }
+                "t": "Marshall and distribute bottle water to running competitors as required."
             },
             "Medals": {
-                "name": "Medals",
-                "qty": {
-                    "adult": {
-                        "min": 1,
-                        "max": 1
-                    },
-                    "junior": {
-                        "min": 1,
-                        "max": 1
-                    }
-                }
+                "t": "Issue medals and water to finishers. Collect timing chips."
             }
         }
     },
     "Transition": {
-        "name": "Transition",
-        "start": {
-            "adult": "06:00",
-            "junior": "10:15"
-        },
-        "end": {
-            "adult": "10:30",
-            "junior": "14:30"
+        "time": {
+            "a": [
+                "06:00",
+                "10:30"
+            ],
+            "j": [
+                "10:15",
+                "14:30"
+            ]
         },
         "role": {
             "Lead": {
-                "name": "Lead",
-                "qty": {
-                    "adult": {
-                        "min": 1,
-                        "max": 1
-                    },
-                    "junior": {
-                        "min": 0,
-                        "max": 1
-                    }
-                }
+                "t": "Lead transition team, ensuring bike safety and security, efficient racking of bikes and safe competitor flow."
             },
             "Marshall": {
-                "name": "Marshall",
-                "qty": {
-                    "adult": {
-                        "min": 6,
-                        "max": 6
-                    },
-                    "junior": {
-                        "min": "8",
-                        "max": "12"
-                    }
-                }
+                "t": "Assist competitors as required (juniors in particular). Ensure bikes are racked correctly and safely and help competitors with transition entry and exit routes.",
+                "a": 6,
+                "j": 8
+            }
+        }
+    },
+    "Youth": {
+        "time": {
+            "a": [
+                "9:15",
+                "10:30"
+            ],
+            "j": [
+                "",
+                ""
+            ]
+        },
+        "role": {
+            "Lead": {
+                "a": 1,
+                "t": "Enables youth race to immediately follow adults. Also acts as youth marshall or mount/dismount."
+            },
+            "Mount/Dismount": {
+                "a": 1,
+                "t": "Manage change to youth transition and Mount/Dismount while adults still finishing."
+            },
+            "Marshall": {
+                "a": 2,
+                "t": "Particular care where adult run course and junior cycle course are close."
             }
         }
     }

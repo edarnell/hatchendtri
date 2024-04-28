@@ -170,4 +170,4 @@ class Nav extends Html {
     }
 }
 export default Nav
-export { nav }
+export { nav, debug, error }

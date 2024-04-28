@@ -16,6 +16,7 @@ function load(reload) {
     d.fns['vs'] = f_vs() // also sets ei, vs, _vs, _es, vr
     d.fns['ds'] = f_('ds')
     d.fns['cs'] = f_('cs')
+    d.fns['vrs'] = fv('vrs')
     d.fns['vr'] = fv('vr')
     d.fns['es'] = f_es()
     d.fns['blk'] = fv('blk')
@@ -92,37 +93,42 @@ function saveBlk(m, dt) {
 }
 
 function newV(jv) {
-    const id = Math.max(...Object.keys(d.vs)) + 1,
-        email = d.ei[jv.i],
+    if (!jv.i) {
+        const email = jv.email.toLowerCase()
+        if (d._es[email]) jv.i = d._es[email].i
+        else {
+            const i = Math.max(...Object.values(d._es).map(x => x.i)) + 1
+            d._es[email] = { i, first: jv.first, last: jv.last }
+            d.ei[i] = email
+            save('es', d._es)
+            d.fns['es'] = f_es()
+            jv.i = i
+        }
+    }
+    const id = Math.max(...Object.keys(d.vs)) + 1
+    const email = d.ei[jv.i],
         u = d._es[email],
-        { first, last } = u
-    if (jv.first !== first || jv.last !== last) log.error({ first, last, jv })
+        { first, last } = jv
+    if (first !== u.first || last !== u.last) log.error({ first, last, u })
+    log.info({ id, first, last, email })
     d._vs[id] = { id, first, last, email }
-    save('vs', d._vs)
-    d.fns['vs'] = f_vs()
     return d._vs[id]
 }
 
 function saveV(jv, jr) {
     let v = jv ? jv.id ? d._vs[jv.id] : newV(jv) : null
-    if (v && jr) {
-        //clearVr(jr)
-        d.vr[v.id] = jr
-        d.vr[v.id].upd = new Date().toISOString()
-        save('vr', d.vr)
-        d.fns['vr'] = { date: fs.statSync(`gz/vr.gz`).mtime, data: zip(d.vr, false, true) }
-    }
-    else if (v) {
-        d._vs[v.id] = { v, ...jv }
+    if (v && !jv.id) {
         save('vs', d._vs)
         d.fns['vs'] = f_vs() // could be more efficient
-        const u = d._es[d.ei[v.i]]
-        if (u && u.updated) saveE(u) // needs more work
-        else if (!u) error({ saveV: { v, jv } })
     }
-    else { // only used in testing
+    else if (v && JSON.stringify(v) !== JSON.stringify(jv)) {
+        d._vs[v.id] = { ...v, ...jv }
         save('vs', d._vs)
-        d.fns['vs'] = f_vs()
+        d.fns['vs'] = f_vs() // could be more efficient
+    }
+    if (v && jr) {
+        d.vr[v.id] = jr
+        d.vr[v.id].upd = new Date().toISOString()
         save('vr', d.vr)
         d.fns['vr'] = { date: fs.statSync(`gz/vr.gz`).mtime, data: zip(d.vr, false, true) }
     }

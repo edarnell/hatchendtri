@@ -16,3 +16,4 @@ node/emails
 node/volunteers
 node/photos
 node/images
+node/json/*.json

@@ -14,8 +14,8 @@ fs.createReadStream('lists/2024C.csv')
         const o = {
             ref: r['Ref'].trim(), email: r['Email'].trim(), first: r['First Name'].trim(), last: r['Last Name'].trim(), mf: r['Gender'].trim(),
             cat: r['Category'], club: r['Club'],
-            btf: r['I am a BTF member'],
-            swim: r['(ADULT ENTRIES ONLY) Please select your estimated swim time for 400m'],
+            btf: r['BTF'],
+            swim: r['Adult Swim'],
             btrl: r['race-pass'],
         }
         if (o.email && o.ref) {

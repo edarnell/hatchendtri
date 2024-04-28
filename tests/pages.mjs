@@ -332,4 +332,6 @@ describe('Volunteer', () => {
         await page.goto(url + '/volunteer#' + await token(lead.email))
         expect(await waitSel('[id^="TT_u_greet"]', name(lead), 'green')).toBeTruthy()
     })
+
+    // TODO - add tests for editing details (both individual and admin)
 })

@@ -13,11 +13,11 @@ app.use(express.json())
 
 function resp(j, r, a, rj, status) {
     if (status) {
-        log.error('resp->' + j.req, a ? a.i : '', status, rj)
+        log.error(a ? a.i : '', 'resp->' + j.req, status, rj)
         r.status(status).json(rj)
     }
     else {
-        log.info('resp->', j.req, a ? a.i : '', JSON.stringify(rj).length + ' bytes')
+        log.info(a ? a.i : '', 'resp->', j.req, JSON.stringify(rj).length + ' bytes')
         r.json(rj)
     }
     _resp = true
@@ -112,13 +112,14 @@ function saveVol(j, r, a) {
         const roles = d.vr[v.id], m = {
             i: a.i,
             subject: `volunteer update - ${v.first} ${v.last}`,
-            message: `{vol.${v.id}} ${v.first} ${v.last}\n`
+            message: j.roles ? `{vol.${v.id}} ${v.first} ${v.last}\n`
                 + `${roles ? (!(roles.adult || roles.junior || roles.none) ? 'availability: ? - unset\n'
                     : (roles.none ? 'not available\n'
                         : (`adult: ${roles.adult ? roles.arole ? `${roles.asection},${roles.arole}` : 'yes' : 'no'}\n`
                             + `junior: ${roles.junior ? roles.jrole ? `${roles.jsection},${roles.jrole}` : 'yes' : 'no'}\n`
                         ))) + `notes: ${roles.notes || ''}\n`
                     : 'unset\n'}`
+                : `details updated\n`
         }
         send(m)
     } else resp(j, r, a, { e: 'no vol' }, 400)
@@ -239,6 +240,7 @@ function volReq(j, r, a) {
         const v = d._vs[j.v], u = d._es[a.email]
         if (a.email === v.email.toLowerCase()) v.i = u.i
         if (v && (u.admin || u.i === v.i)) {
+            log.info({ [v.id]: `${v.first} ${v.last}` })
             resp(j, r, a, { v })
         } else resp(j, r, a, { e: 'Unauthorized' }, 401)
     } else resp(j, r, a, { e: 'no vol' }, 400)
@@ -318,7 +320,7 @@ app.post(d.config.url, auth(async (j, r, a) => {
         anon: { filesReq, datesReq, loginReq, sendReq, unsubReq, registerReq, testReq },
         auth: { userReq, volReq, compReq, subReq, saveReq, photoReq, bulksendReq }
     }
-    log.info('req->', j.req, a ? a.i : '')
+    log.info(a ? a.i : '', 'req->', j.req, j.i ? j.i : '')
     if (reqF.anon[j.req + 'Req']) reqF.anon[j.req + 'Req'](j, r, a)
     else if (reqF.auth[j.req + 'Req']) {
         if (a) reqF.auth[j.req + 'Req'](j, r, a)

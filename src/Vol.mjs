@@ -19,6 +19,12 @@ class Vol extends Html {
         }
         else this.v = (vs && vs[n])
         nav._vol = null // prevent popup from opening again
+        if (this.v && this.v.id) {
+            ajax({ req: 'vol', v: this.v.id }).then(r => {
+                this.v = r.v
+                this.reload()
+            })
+        }
     }
     user = () => {
         const d = nav.d.data, u = nav._user, { i, first, last, vs } = u, id = nav._vol || (vs && vs[0])
@@ -30,15 +36,17 @@ class Vol extends Html {
             last: { placeholder: 'last name', width: '50rem', required: true },
             email: { placeholder: 'email', type: 'email', width: '50rem', required: true },
             mobile: { placeholder: 'mobile', type: 'tel', width: '50rem' },
-            notes: { placeholder: 'notes', rows: 1, cols: 20 }
+            notes: { placeholder: 'notes', rows: 1, cols: 20 },
+            child: { class: 'bold', label: 'Child', tip: 'safeguarding' },
         }
         else return { // section and options populated on load
             adult: { class: 'bold', label: 'Adult', tip: 'available for adult race' },
             junior: { class: 'bold', label: 'Junior', tip: 'available for junior race' },
             none: { class: 'bold', label: 'None', tip: `not available in ${year}` },
-            asection: { class: 'form hidden', options: ['Section'].concat(sections) },
+            setup: { class: 'bold hidden', label: 'Setup', tip: 'Saturday setup team' },
+            asection: { class: 'form hidden', options: ['Section'].concat(sections()) },
             arole: { class: 'form hidden', options: ['Role'].concat(roles()) },
-            jsection: { class: 'form hidden', options: ['Section'].concat(sections) },
+            jsection: { class: 'form hidden', options: ['Section'].concat(sections()) },
             jrole: { class: 'form hidden', options: ['Role'].concat(roles()) },
             notes: { placeholder: 'role preference?', rows: 1, cols: 20 }
         }
@@ -49,17 +57,20 @@ class Vol extends Html {
     }
     var = (n) => {
         if (n === 'name') {
-            if (!this.v.i) return '{link.details.New_Volunteer_}'
-            const { first, last } = this.v
-            return `{link.details.${first + '_' + last}_}`
+            if (!this.v.first) return '{link.details.New_Volunteer_}'
+            const nm = _s(this.v.first + ' ' + this.v.last)
+            return `{link.details.${nm}_}`
         }
-        else if (n === 'mobile') return this.edit ? '' : '{link.mobile}'
-        else if (n === 'admin') return nav._user.aed ? '{checkbox.admin}' : ''
+        else if (n == 'contact') {
+            const a = nav._user.admin
+            return a ? '{link.contact}' : ''
+        }
     }
     link = (name) => {
+        const a = nav._user.admin
         if (name === 'details') return { tip: this.edit ? this.dtip : 'edit contact details', icon_: this.edit ? 'save' : 'edit', click: this.details }
         else if (name === 'close') return { class: 'close', tip: this.edit ? 'close' : 'save and close', click: this.edit ? () => this.close() : this.save }
-        else if (name === 'mobile') return { tip: this.mobile, click: this.details }
+        else if (name === 'contact') return a ? { tip: this.contact, popup: `{Contact.${this.v.id}}` } : ''
     }
     rendered = () => {
         //debug({ vol: this.v })
@@ -73,10 +84,9 @@ class Vol extends Html {
             setTimeout(this.tt.close, 1000)
         })
     }
-    mobile = () => {
-        const m = this.v.mobile
-        if (m) return `<span id="mobile">...${m.slice(-3)} click to update</span>`
-        else return 'click to add'
+    contact = () => {
+        if (this.v.mobile || this.v.email) return `<span>${this.v.mobile || ''} ${this.v.email || ''}</span>`
+        else return '?'
     }
     details = (o) => {
         if (!this.edit) ajax({ req: 'vol', v: this.v.id }).then(r => {
@@ -86,8 +96,14 @@ class Vol extends Html {
         })
         else {
             const v = this.v, f = this.getForm()
-            let upd = false
-            if (upd) ajax({ req: 'save', vol: this.v.id, details: f }).then(r => {
+            let upd
+            Object.keys(f).forEach(k => {
+                if ((f[k] || v[k]) && f[k] !== v[k]) {
+                    v[k] = f[k]
+                    upd = true
+                }
+            })
+            if (upd) ajax({ req: 'save', v }).then(r => {
                 this.edit = false
                 this.reload()
             })
@@ -97,7 +113,6 @@ class Vol extends Html {
             }
         }
     }
-
     dtip = () => {
         const l = this.q('#vol'), f = this.getForm(),
             e = f.email.match(/^[^@]+@[^@]+$/),
@@ -105,12 +120,9 @@ class Vol extends Html {
         if (l && !l.checkValidity()) l.reportValidity()
         return e && fn && ln ? 'save' : fn && ln && !e ? 'please enter a valid email' : 'please complete name and email'
     }
-
     updateV = () => {
         const v = this.v
-        if (v.id === 0) {
-            this.edit = true
-        }
+        if (v.id === 0) this.edit = true
         else {
             const vr = nav.d.data.vr, vy = vr && vr[v.id] || {}
             if (vy) {
@@ -128,13 +140,19 @@ class Vol extends Html {
             this.hidden('none')
             return
         }
-        const a = this.fe('adult'),
+        const u = nav._user, admin = u.admin,
+            a = this.fe('adult'),
             j = this.fe('junior'),
             n = this.fe('none'),
+            su = this.fe('setup'),
             as = this.fe('asection'),
             ar = this.fe('arole'),
             js = this.fe('jsection'),
             jr = this.fe('jrole')
+        if (admin) {
+            su.classList.remove('hidden');
+            this.q(`label[for="${su.id}"]`).classList.remove('hidden')
+        }
         if (race === 'none' && n.checked) {
             a.checked = false
             j.checked = false

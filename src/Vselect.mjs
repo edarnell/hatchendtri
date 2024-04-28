@@ -1,7 +1,7 @@
 import Html, { error, debug, nav, _s } from './Html.mjs'
 import select from './html/select.html'
 import selectV from './html/selectV.html'
-import { roles, sections } from './roles.mjs'
+import { sections, roles } from './roles.mjs'
 import { ajax } from './ajax.mjs'
 
 const year = 2024
@@ -21,10 +21,11 @@ class Vselect extends Html {
         else if (n === 'new') return { tip: 'check existing first' }
         else if (n === 'request') return { tip: 'click to request', click: this.request }
         else if (n.charAt(0) === '_') return { theme: 'light', tip: () => this.tip(n.substring(1)), click: () => this.setid(n.substring(1)) }
+        else if (n.charAt(0) === 'i') return { theme: 'light', tip: 'competitor', click: () => this.setid(0, n.substring(1)) }
     }
     html = (n, p) => {
         //debug({ html: this, n, p })
-        if (n === 'names') return this.vol_names()
+        if (n === 'vol_names') return this.vol_names()
         else if (!p) {
             if (nav._user.admin) return select
             else return selectV
@@ -52,7 +53,7 @@ class Vselect extends Html {
             else {
                 const m = name.match(/([sajf])_(\d{1,2})r_(\d{1,2})/),
                     [, aj, s, r] = m || [],
-                    sec = sections[s], rs = roles(sec), role = rs[r],
+                    sec = sections()[s], rs = roles(sec), role = rs[r],
                     t = { a: 'Adult ', j: 'Junior ', s: '', f: '' }
                 if (!m) debug({ m, aj, s, r, sec, rs, role, t })
                 return m ? t[aj] + role : '?'
@@ -68,6 +69,15 @@ class Vselect extends Html {
         if (af > bf) return 1
         return 0
     }
+    eNameSort = (a, b) => {
+        const es = nav.d.data.es
+        const { last: al, first: af } = es[a], { last: bl, first: bf } = es[b]
+        if (al < bl) return -1
+        if (al > bl) return 1
+        if (af < bf) return -1
+        if (af > bf) return 1
+        return 0
+    }
     filter = (id) => {
         const f = this._form, d = nav.d.data, v = d.vs[id], vr = d.vr[id]
         if (f && f.name) {
@@ -76,24 +86,38 @@ class Vselect extends Html {
         }
         else return vr && ((vr.adult && (!vr.arole || vr.arole === 'Role')) || (vr.junior && (!vr.jrole || vr.jrole === 'Role')))
     }
+    efilter = (id) => {
+        const f = this._form, d = nav.d.data, v = d.es[id]
+        if (f && f.name) {
+            const name = v.first + ' ' + v.last
+            return name.toLowerCase().indexOf(f.name.toLowerCase()) > -1
+        }
+        else return null
+    }
     vol_names = () => {
-        const d = nav.d.data, vs = d.vs,
+        const d = nav.d.data, vs = d.vs, es = d.es,
             vols = Object.keys(vs).filter(this.filter).sort(this.nameSort),
-            html = vols.slice(0, 10).map(id => `<div>{link._${id}.${_s(vs[id].first)}_${_s(vs[id].last)}}</div>`)
-                .join(' ')
-        const f = this._form, name = f && f.name
+            users = Object.keys(es).filter(this.efilter).sort(this.eNameSort),
+            html = [...vols, ...users].slice(0, 10).map((id, i) => {
+                const v = i < vols.length,
+                    u = v ? vs[id] : es[id]
+                return `<div>{link.${v ? '_' : 'i'}${id}.${_s(u.first)}_${_s(u.last)}}</div>`
+            }).join(' '),
+            f = this._form, name = f && f.name
         if (name && vols.length === 0) {
             const b = this.fe("new")
             b.classList.remove('hidden')
         }
-        return `<div id="names">${html}</div>`
+        return `<div id="vol_names">${html}</div>`
     }
     tip = (id) => this.p._p('tip')(id)
-    setid = (id) => {
+    setid = (id, i) => {
         const name = this.name,
             [, aj, s, r] = name.match(/([sajf])_(\d{1,2})r_(\d{1,2})/),
-            sec = sections[s], rs = roles(sec), role = rs[r],
-            d = nav.d.data, v = d.vs[id], vy = d.vr[id] || {}
+            sa = sections(), sec = sa[s], rs = roles(sec), role = rs[r],
+            d = nav.d.data, u = i ? d.es[i] : {}, { first, last } = u,
+            v = i ? { first, last, i } : d.vs[id],
+            vy = (id && d.vr[id]) || {}
         if (aj !== 'j') {
             vy.adult = true
             vy.asection = sec
@@ -113,7 +137,7 @@ class Vselect extends Html {
     }
     input = () => {
         this._form = this.getForm()
-        this.reload('names')
+        this.reload('vol_names')
     }
 }
 export default Vselect

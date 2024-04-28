@@ -10,7 +10,7 @@ class Volunteer extends Html {
   constructor() {
     super()
     this.id = 'volunteer'
-    this.data = ['vs', 'vr']
+    this.data = ['vs', 'vr', 'vrs', 'es']
     this._vol = true
   }
   greet = () => {
@@ -96,17 +96,16 @@ class Volunteer extends Html {
   }
   names = () => {
     const f = this._form, nm = f && f.filter,
-      u = nav._user,
+      u = nav._user, a = u && u.admin,
       d = nav.d.data, vs = d.vs,
-      n = this.fe('New'),
+      n = f && this.fe('New'),
       vols = Object.keys(vs).filter(this.filter).sort(this.nameSort),
       html = vols.slice(0, 10).map(id => `<span>{link._${id}.${_s(vs[id].first)}_${_s(vs[id].last)}}</span>`)
         .join(', '),
-      add = nm && !vols.length && u && u.admin
+      add = nm && !vols.length && a
     if (n && add) n.classList.remove('hidden')
     else if (n) n.classList.add('hidden')
-    else error({ n })
-    return `${nm ? 'Historic' : 'Available'}:</b> ${html}`
+    return a ? `${nm ? 'Historic' : 'Available'}:</b> ${html}` : ''
   }
   color = (vid) => {
     const u = nav._user, id = vid || (u && u.vs && u.vs[0]),
@@ -151,11 +150,10 @@ class Volunteer extends Html {
     if (u && u.admin) {
       ajax({ req: 'vol', v: id }).then(r => {
         const l = this.q(`[id=vol_tt_${id}]`),
-          m = r.v.mobile, e = r.v.email
-        if (l) l.innerHTML = `<span>${m ? `<a href="tel:${m}">${m}</a>` : '?mobile'} ${e ? `<a href="mailto:${e}">${e}</a>` : '?email'}</span><br />`
-          + l.innerHTML
+          m = r.v.mobile, e = r.v.email,
+          h = `<span>${m ? `<a href="tel:${m}">${m}</a>` : '?mobile'} ${e ? `<a href="mailto:${e}">${e}</a>` : '?email'}</span><br />`
+        if (l) l.innerHTML = h + l.innerHTML
         else error({ id, r })
-        debug({ rs })
       })
       return `<span id="vol_tt_${id}">${this.vtip(id)}</span><br />${rs}`
     }
@@ -265,14 +263,15 @@ class Vroles extends Html {
       return "<form>{select.section} {select.role} {button.R.C}</form>{div.roles}"
     }
     else if (n === 'roles') {
+      const sa = sections()
       return `<div id="roles">
-      ${sections.map((s, i) => `{table.section${i}.${_s(s)}}`).join('')}
+      ${sa.map((s, i) => `{table.section${i}.${_s(s)}}`).join('')}
       </div>`
     }
   }
   form = () => {
     return {
-      section: { class: "form", options: ['Section'].concat(sections), tip: 'filter section' },
+      section: { class: "form", options: ['Section'].concat(sections()), tip: 'filter section' },
       role: { class: "form", options: ['Role'].concat(roles()), tip: 'filter role' },
       R: { class: 'hidden form red bold', tip: 'clear selection', click: 'submit' }
     }
@@ -282,10 +281,10 @@ class Vroles extends Html {
     let reload = true
     if (name === 'R') {
       this.setForm({ section: 'Section', role: 'Role' })
-      selectSection(this, 'section', 'role')
+      selectSection(this)
     }
-    else if (name === 'section') selectSection(this, 'section', 'role')
-    else if (name === 'role') selectRole(this, 'section', 'role')
+    else if (name === 'section') selectSection(this)
+    else if (name === 'role') selectRole(this)
     else {
       reload = false
       this.pinput(e, o)
@@ -295,21 +294,24 @@ class Vroles extends Html {
     R.classList[r ? 'remove' : 'add']('hidden')
     if (reload) this.reload('roles')
   }
-  link = (n, param) => {
+  link = (n, p) => {
     if (n.startsWith('u_')) {
       const id = n.substring(2), vol = nav.d.data.vs[id], _id = n.substring(1)
       if (vol) return { tip: () => this.tip(id), theme: 'light', class: this.p.color(id) }
     }
     else if (n.charAt(1) === '_') {
-      const u = nav._user, admin = u && u.admin, f = { a: 'adult', j: 'junior', s: 'both', f: 'both' }, ajs = f[n.charAt(0)]
-      return { tip: admin ? `fill ${ajs}` : 'role details', popup: `{Vselect.${n}}` }
+      const u = nav._user, a = u && u.admin,
+        [, aj, s, r] = n.match(/([sajf])_(\d{1,2})r_(\d{1,2})/),
+        sa = sections(), sec = sa[s], so = section(sec),
+        ra = roles(sec), role = ra[r], ro = so.role[role]
+      return { tip: ro.t, class: ' ', theme: 'light', popup: a ? `{Vselect.${n}}` : '{Contact}' }
     }
-    else return this.plink(n, param)
+    else return this.plink(n, p)
   }
   ths = (n, p) => {
     if (n.startsWith('section')) {
-      const sn = _s(p, false), s = section[sn]
-      return [s.name, `${s.start.adult} - ${s.end.adult}`, `${s.start.junior} - ${s.end.junior}`]
+      const sn = _s(p, false), s = section(sn)
+      return [sn, `${s.time.a[0]} - ${s.time.a[1]}`, `${s.time.j[0]} - ${s.time.j[1]}`]
     }
   }
   trs = (n, p) => {
@@ -345,13 +347,17 @@ class Vroles extends Html {
   }
   vname = (id) => {
     const v = nav.d.data.vs[id]
+    if (!v) {
+      error({ vname: id })
+      return 'unknown'
+    }
     return v.first + ' ' + v.last
   }
   fill = (v, r, s) => {
-    const so = section[s], vs = nav.d.data.vs,
-      amin = so.role[r].qty.adult.min, amax = so.role[r].qty.adult.max,
-      jmin = so.role[r].qty.junior.min, jmax = so.role[r].qty.junior.max,
-      si = sections.indexOf(s), ri = roles(s).indexOf(r),
+    const sa = sections(), so = section(s), rl = so.role[r],
+      amin = rl.aj ?? rl.a ?? (!rl.j && 1),
+      jmin = rl.aj ?? rl.j ?? (!rl.a && 1),
+      si = sa.indexOf(s), ri = roles(s).indexOf(r),
       sr = `{link.s_${si}r_${ri}.${_s(r)}}`,
       sf = `{link.f_${si}r_${ri}.${_s(r)}}`,
       reqa = `{link.a_${si}r_${ri}.required}`,
@@ -362,15 +368,15 @@ class Vroles extends Html {
     while (t < amin || t < jmin || i <= j) {
       if (i > j) {
         ret.push([sr,
-          t < amin ? reqa : t < amax ? opta : '',
-          t < jmin ? reqj : t < jmax ? optj : ''])
+          t < amin ? reqa : rl.j ? '' : opta,
+          t < jmin ? reqj : rl.a ? '' : optj])
       }
       else {
         const n = v[i].n, m = v[j].n,
           vi = `{link._${v[i].id}.${_s(this.vname(v[i].id))}}`,
           vj = `{link._${v[j].id}.${_s(this.vname(v[j].id))}}`,
-          bi = t < amin ? reqa : t < amax ? opta : '',
-          bj = t < jmin ? reqj : t < jmax ? optj : ''
+          bi = t < amin ? reqa : rl.j ? '' : opta,
+          bj = t < jmin ? reqj : rl.a ? '' : optj
         if (n === 3) {
           ret.push([sf, vi, vi])
           i++

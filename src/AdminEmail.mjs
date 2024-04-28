@@ -6,7 +6,7 @@ class AdminEmail extends Html {
     constructor() {
         super()
         this.id = 'AdminEmail'
-        this.data = ['es', 'blk', 'cs', 'ds']
+        this.data = ['es', 'blk', 'cs', 'ds', 'vs', 'vr']
     }
     //             save: { tip: `save emails_`, class: 'form danger', click: this.save },
     form = () => {
@@ -92,10 +92,10 @@ class AdminEmail extends Html {
         if (!f) ret = es && es[r[0]].admin
         else {
             const last = this._ml[r[0]] ? this._ml[r[0]][0] : ''
-            if (f.admins) ret = ret && es && es[r[0]].admin
-                ;['jetstream', 'photos', 'cs', 'vs', 'ds'].forEach(k => {
-                    if (f[k]) ret = ret && r[5].includes(k)
-                })
+            if (f.admins) ret = ret && es && es[r[0]].admin;
+            ['jetstream', 'photos', 'cs', 'vs', 'ds'].forEach(k => {
+                if (f[k]) ret = ret && r[5].includes(k)
+            })
             if (f.unsubs) ret = ret && (r[5].includes('unsub') || r[5].includes('bounce'))
             else ret = ret && !r[5].includes('unsub') && !r[5].includes('bounce')
             if (f.since) ret = ret && (last.substring(0, 8) < f.since.substring(0, 8))
