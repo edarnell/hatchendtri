@@ -34,33 +34,41 @@ class AdminEmail extends Html {
     }
     cs = () => {
         const cs = nav.d.data.cs
+        debug({ cs })
         if (cs) {
             const r = {}
             Object.values(cs).forEach(c => {
                 if (c.email) {
-                    r[c.email] = r[c.email] || []
-                    r[c.email].push(c)
+                    const em = c.email
+                    r[em] = r[em] || []
+                    r[em].push(c)
                 }
                 else error({ c })
             })
             this._cs = r
+            debug({ _cs: r })
         }
-        const ds = nav.d.data.ds
-        if (ds) {
+    }
+    vs = () => {
+        const vr = nav.d.data.vr, vs = nav.d.data.vs
+        debug({ vr, vs })
+        if (vr) {
             const r = {}
-            Object.values(ds).forEach(c => {
-                if (c.email) {
-                    r[c.email] = r[c.email] || []
-                    r[c.email].push(c)
+            Object.keys(vr).forEach(id => {
+                const _r = vr[id], _v = vs[id]
+                if (_v.i && (_r.adult || _r.junior)) {
+                    r[_v.i] = r[_v.i] || []
+                    r[_v.i].push(_v)
                 }
-                else error({ c })
             })
-            this._ds = r
+            this._vs = r
+            debug({ _vs: r })
         }
     }
     names = (i) => {
-        const cs = this._cs, ds = this._ds, c = (cs && cs[i]) || (ds && ds[i])
-        if (c) return c.map(c => c.first).join(', ')
+        const f = this.f, cs = this._cs, vs = this._vs, c = (cs && cs[i]), v = (vs && vs[i])
+        if (f && f['cs']) return c ? c.map(c => c.first).join(', ') : ''
+        else if (f && f['vs']) return v ? v.map(c => c.first).join(', ') : ''
         else return ''
     }
     blk = () => {
@@ -94,7 +102,9 @@ class AdminEmail extends Html {
             const last = this._ml[r[0]] ? this._ml[r[0]][0] : ''
             if (f.admins) ret = ret && es && es[r[0]].admin;
             ['jetstream', 'photos', 'cs', 'vs', 'ds'].forEach(k => {
-                if (f[k]) ret = ret && r[5].includes(k)
+                if (k === 'cs' && f[k]) ret = ret && this._cs[r[0]]
+                else if (k === 'vs' && f[k]) ret = ret && this._vs[r[0]]
+                else if (f[k]) ret = ret && r[5].includes(k)
             })
             if (f.unsubs) ret = ret && (r[5].includes('unsub') || r[5].includes('bounce'))
             else ret = ret && !r[5].includes('unsub') && !r[5].includes('bounce')
@@ -115,16 +125,19 @@ class AdminEmail extends Html {
         }).catch(e => error(e))
     }
     loaded = (r) => {
-        //debug({ loaded: { r, d: nav.d.data } })
-        if (r) this.reload(false)
+        debug({ loaded: r })
+        if (r || !this._cs) {
+            this.blk()
+            this.cs()
+            this.vs()
+            this.reload(false)
+        }
     }
     rendered = (id) => {
         const v = this.q('#n')
         if (v && this.rows) v.innerHTML = Object.keys(this.rows).length
     }
     html = (n) => {
-        if (!this._ml) this.blk()
-        if (!this._cs) this.cs()
         if (n === 'emails') {
             return `<div id="emails">${this._ml ? '{table.emails}' : 'no emails'}</div>`
         }

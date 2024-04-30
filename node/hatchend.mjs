@@ -203,6 +203,7 @@ function userReq(j, r, a) {
         const { first, last, i, admin, fi } = u, aed = a.aed && !j.i,
             n = d.ns[email],
             vs = d.ev[i]
+        log.info({ first, last, i, admin, vs })
         resp(j, r, a, { u: { first, last, i, fi, aed, admin, ns: n, vs, ...(j.i && { email }) } })
     }
     else resp(j, r, a, { e: j }, 400)

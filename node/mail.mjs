@@ -45,7 +45,16 @@ async function send_batch(ses, n, m, i) {
     const { subject, message, live, unsub, to } = m, emails = to.slice(i, i + n),
         error = []
     const promises = emails.map(async r => {
-        return ses.send(new SendEmailCommand(email({ to: r.to, to_email: d.ei[r.i], subject, message, live, unsub })))
+        if (!live) {
+            const em = email({ to: r.to, to_email: d.ei[r.i], subject, message, live, unsub }),
+                { Message: msg, Destination: d, ReplyToAddresses: reply } = r,
+                { ToAddresses: to } = d,
+                subject = msg.Subject.Data
+            debug({ subject, to, reply })
+            s('debug')
+            return
+        }
+        else return ses.send(new SendEmailCommand(email({ to: r.to, to_email: d.ei[r.i], subject, message, live, unsub })))
             .then(r => r.MessageId)
             .catch(e => {
                 log.error({ error: e, email: r.i })
@@ -126,7 +135,7 @@ function email(p) {
         Source: d.config.admin_to,
         ReplyToAddresses: [from],
     }
-    if (!d.config.live && test) fs.writeFileSync('test/' + p.subject + '.email', JSON.stringify(ps, null, 2))
+    if (!d.config.live && (!p.live || test)) fs.writeFileSync('test/' + p.subject + '.email', JSON.stringify(ps, null, 2))
     return ps
 }
 
