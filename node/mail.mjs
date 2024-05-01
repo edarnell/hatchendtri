@@ -7,10 +7,12 @@ import { d, log, saveF } from './files.mjs'
 import fs from 'fs' // for testing - write of email files
 
 function send_list(m) {
-    const aws = { ...d.config.aws },
-        { subject, to } = m,
-        length = to.length
-    log.info({ sending: length })
+    log.info({ sending: m.to.length, subject: m.subject })
+    if (!m.live) {
+        send_batches(null, m).then(r => log.info(`${m.subject}\nSent to ${r.s_} of ${m.to.length} recipients (${r.f_} failed)`))
+        return
+    }
+    const aws = { ...d.config.aws }
     aws.clientDefault = { outputFormat: 'json' }
     const sts = new STSClient(aws)
     const stsCommand = new GetSessionTokenCommand({ DurationSeconds: 900 })
@@ -24,35 +26,34 @@ function send_list(m) {
                 sessionToken: r.Credentials.SessionToken
             }
         })
-        const n = 10
-        let s_ = 0, f_ = 0
-        for (var i = 0; i < length; i += n) {
-            const { sent, failed } = await send_batch(ses, n, m, i)
-            s_ += sent, f_ += failed
-            log.info({ sent: s_, failed: f_ })
-            await new Promise(resolve => setTimeout(resolve, 1000))
-        }
+        const s = await send_batches(ses, m)
         send({
             subject: 'bulk send',
-            message: `${subject}\nSent to ${s_} of ${length} recipients (${f_} failed)\n`
+            message: `${m.subject}\nSent to ${s.s_} of ${m.to.length} recipients (${s.f_} failed)\n`
         })
         saveF('blk', 'save', m.start)
     }).catch(e => log.error(e))
 }
 
+async function send_batches(ses, m) {
+    const n = 10;
+    let s_ = 0, f_ = 0;
+    for (var i = 0; i < m.to.length; i += n) {
+        const { sent, failed } = await send_batch(ses, n, m, i);
+        s_ += sent, f_ += failed;
+        log.info({ sent: s_, failed: f_ });
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    return { s_, f_ }
+}
 // should look to modify to bulk send
 async function send_batch(ses, n, m, i) {
     const { subject, message, live, unsub, to } = m, emails = to.slice(i, i + n),
         error = []
     const promises = emails.map(async r => {
         if (!live) {
-            const em = email({ to: r.to, to_email: d.ei[r.i], subject, message, live, unsub }),
-                { Message: msg, Destination: d, ReplyToAddresses: reply } = r,
-                { ToAddresses: to } = d,
-                subject = msg.Subject.Data
-            debug({ subject, to, reply })
-            s('debug')
-            return
+            email({ to: r.to, to_email: d.ei[r.i], subject, message, live, unsub })
+            return r.i
         }
         else return ses.send(new SendEmailCommand(email({ to: r.to, to_email: d.ei[r.i], subject, message, live, unsub })))
             .then(r => r.MessageId)
