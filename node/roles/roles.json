@@ -28,6 +28,9 @@
             "Race Briefings": {
                 "t": "Pre-race briefings to all competitors. Covers PA announcements during the race."
             },
+            "Results": {
+                "t": "Co-ordinate with ATW, VIPs and race winners to deliver results and award prizes."
+            },
             "Referee": {
                 "t": "British Triathlon approved race referee. Reviews safety and organisation, advises lead, volunteers and competitors to ensure BTF rules are understood and followed. Produces post-event BTF report."
             },
@@ -59,6 +62,9 @@
             "Swim Bridge": {
                 "t": "Manage flow of competitors to swim. Communicate with pool entry advising briefing and PA to accelerate or slow flow of compeetitors as needed."
             },
+            "Swim Exit": {
+                "t": "Outdoor swim to transition marshall. Highlight swim exit trip risk and guide competitors to transition. No spectators, guide them to spectator field via non competitor route."
+            },
             "Art Centre": {
                 "t": "Ensure car park only used by Art Centre customers and race officials. Direct competitors to local road parking."
             },
@@ -67,6 +73,10 @@
             },
             "Competitor Bridge": {
                 "t": "Manage flow of competitors over bridge keeping swimmers and cyclists apart. Direct non-competitors to spectator bridge."
+            },
+            "Clear Down": {
+                "j": 1,
+                "t": "Careful collection packing of site equipment."
             }
         }
     },
@@ -90,6 +100,28 @@
             },
             "Marker": {
                 "t": "Write number on left arm. Advise competitors of need to use foot protectors to keep feet clean."
+            }
+        }
+    },
+    "Transition": {
+        "time": {
+            "a": [
+                "06:00",
+                "10:30"
+            ],
+            "j": [
+                "10:15",
+                "14:30"
+            ]
+        },
+        "role": {
+            "Lead": {
+                "t": "Lead transition team, ensuring bike safety and security, efficient racking of bikes and safe competitor flow."
+            },
+            "Marshall": {
+                "t": "Assist competitors as required (juniors in particular). Ensure bikes are racked correctly and safely and help competitors with transition entry and exit routes.",
+                "a": 6,
+                "j": 8
             }
         }
     },
@@ -119,8 +151,8 @@
                 "aj": 6,
                 "t": "Count swim laps (paired counters for cross-check). Know categories and laps. Submerge board to signal final 2 lengths."
             },
-            "Pool Exit": {
-                "t": "Guide competitors out of the pool and towards transition. Warn to take care with step."
+            "Marshall": {
+                "t": "Take care of special needs and assist lifeguards as required. Warn competitors to take care with step on pool exit."
             }
         }
     },
@@ -140,7 +172,12 @@
                 "t": "Lead cycle team focussing attention on any evolving safety concerns."
             },
             "Mount/Dismount": {
-                "name": "Manage cyclist Mount/Dismount line. Prevent early mounting and late dismounting. Adult course is 3 laps."
+                "a": 2,
+                "t": "Marshall adult mount/dismount line. Adult course is 3 laps with single mount/dismount point."
+            },
+            "First Ped. Crossing": {
+                "t": "Ensure cyclists observe Ped. Crossing",
+                "a": 1
             },
             "Morrison Roundabout": {
                 "a": 1,
@@ -178,9 +215,17 @@
                 "t": "Remove signs from adult cycle course after last competitor has finished.",
                 "j": 2
             },
-            "Junior Course": {
-                "j": 3,
+            "Junior Mount": {
+                "j": 1,
+                "t": "Marshall junior mount line. Junior course has distinct mount and dismount points for routes into transition."
+            },
+            "Junior Marshall": {
+                "j": 4,
                 "t": "Manage junior off-road course. Ensure competitors are safe and follow the correct route, keeping clear of runners."
+            },
+            "Junior Dismount": {
+                "j": 1,
+                "t": "Marshall junior dismount mount line. Be aware of required TS,T1,T2,T3 race laps."
             }
         }
     },
@@ -217,28 +262,6 @@
             }
         }
     },
-    "Transition": {
-        "time": {
-            "a": [
-                "06:00",
-                "10:30"
-            ],
-            "j": [
-                "10:15",
-                "14:30"
-            ]
-        },
-        "role": {
-            "Lead": {
-                "t": "Lead transition team, ensuring bike safety and security, efficient racking of bikes and safe competitor flow."
-            },
-            "Marshall": {
-                "t": "Assist competitors as required (juniors in particular). Ensure bikes are racked correctly and safely and help competitors with transition entry and exit routes.",
-                "a": 6,
-                "j": 8
-            }
-        }
-    },
     "Youth": {
         "time": {
             "a": [
@@ -255,13 +278,17 @@
                 "a": 1,
                 "t": "Enables youth race to immediately follow adults. Also acts as youth marshall or mount/dismount."
             },
-            "Mount/Dismount": {
+            "Mount": {
                 "a": 1,
-                "t": "Manage change to youth transition and Mount/Dismount while adults still finishing."
+                "t": "Marshall junior mount line. Manage change to youth transition while adults still finishing."
             },
             "Marshall": {
-                "a": 2,
+                "a": 3,
                 "t": "Particular care where adult run course and junior cycle course are close."
+            },
+            "Dismount": {
+                "a": 1,
+                "t": "Marshall junior dismount mount line. Be aware of required Youth race laps."
             }
         }
     }
