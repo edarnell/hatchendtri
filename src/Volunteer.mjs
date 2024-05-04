@@ -14,10 +14,11 @@ class Volunteer extends Html {
     this._vol = true
   }
   greet = () => {
-    const u = nav._user, v = u && u.vs && u.vs[0], c = this.color(v)
+    const u = nav._user, vs = nav.d.data.vs, v = u && u.vs && u.vs[0], c = this.color(v)
+    debug({ vs })
     if (u && u.aed) return `Welcome <span class="red">${u.first} ${u.last}</span> be careful.`
-    else return u ? `Welcome {link.u.${_s(u.first)}_${_s(u.last)}} ` + (c === 'grey' ? 'please confirm availability.' :
-      c === 'red' ? 'thank you for confirming you are unable to help this year.' : 'thank you for volunteering.')
+    else return u ? `Welcome ${u.vs.map(v => `{link.v${v}.${_s(vs[v].first)}}`).join(', ')}, ` + (c === 'grey' ? 'please confirm availability.' :
+      c === 'red' ? 'thank you for confirming you are unable to help this year.' : 'thank you for volunteering. Hover over your name to see role details, or look below.')
       : 'We need a large volunteer team please {link.register} if you can help. All help is greatly appreciated.'
   }
   var = (n) => {
@@ -122,13 +123,27 @@ class Volunteer extends Html {
     if (c === 'grey') return '<div class="grey">click to set availability</div>'
     else return this.vtip(v)
   }
+  role(id, aj) {
+    const d = nav.d.data, vr = d.vr, v = vr && vr[id],
+      sn = { a: 'adult', j: 'junior' }, y = v && v[sn[aj]], s = y && v[aj + 'section'], r = y && v[aj + 'role'],
+      ro = r && section(s).role[r],
+      ts = s && section(s).time[aj],
+      t = ro && ro.t,
+      h = s === r || s === 'Race Control' ? r : s + ' ' + r
+    return { y, ts, h, t }
+  }
+  tick(y) {
+    return `<span class=${y ? 'green' : 'red'}>${y ? '✓' : '✗'}</span>`
+  }
   vtip = (id) => {
-    const vr = nav.d.data.vr, v = vr && vr[id], cl = this.color(id)
+    const cl = this.color(id), d = nav.d.data, vr = d.vr, v = vr && vr[id]
     if (v) {
-      const ar = v.arole ? v.asection + ' ' + v.arole : '', jr = v.jrole ? v.jsection + ' ' + v.jrole : '',
-        a = v.adult ? ar || '✓' : '✗', ca = v.adult ? v.arole ? 'green' : 'blue' : 'red',
-        j = v.junior ? jr || '✓' : '✗', cj = v.junior ? v.jrole ? 'green' : 'blue' : 'red'
-      return `<span><span class=${cl}>${year}</span> <span class=${ca}>${a}</span>, <span class=${cj}>${j}</span> ${v.notes || ''}</span>`
+      const a = this.role(id, 'a'), j = this.role(id, 'j'), v = nav.d.data.vs[id]
+      return `<div>${year} ${this.tick(a.y)}, ${this.tick(j.y)}  ${v.notes || ''}</div>`
+        + (a.h || j.h ? `<div>${a.h || ''}, ${j.h || ''}</div>` : '')
+        + (a.t ? `<div>${a.t}</div>` : '')
+        + (j.t && j.t !== a.t ? `<div>${j.t}</div>` : '')
+      //<span class=${ay?'green':'red'}>${a.y?a.n?a.n:'✓':'✗'}</span>, <span class=${cj}>${j}</span> </span>`
     }
     else return `<span class=${cl}>${year} ?</span>`
   }
