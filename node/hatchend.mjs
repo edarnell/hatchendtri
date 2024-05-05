@@ -125,6 +125,28 @@ function saveVol(j, r, a) {
     } else resp(j, r, a, { e: 'no vol' }, 400)
 }
 
+function rmReq(j, r, a) {
+    if (j.v && d._vs[j.v.id]) {
+        const id = j.v.id, v = d._vs[id], roles = d.vr[id]
+        saveF('vs', j.v, 'rm')
+        log.info({ v, roles })
+        resp(j, r, a, { rm: v })
+        const m = {
+            i: a.i,
+            subject: `volunteer rm - ${j.v.id} ${j.v.first} ${j.v.last}`,
+            message: roles ? `roles {vol.${v.id}} ${v.first} ${v.last}\n`
+                + `${roles ? (!(roles.adult || roles.junior || roles.none) ? 'availability: ? - unset\n'
+                    : (roles.none ? 'not available\n'
+                        : (`adult: ${roles.adult ? roles.arole ? `${roles.asection},${roles.arole}` : 'yes' : 'no'}\n`
+                            + `junior: ${roles.junior ? roles.jrole ? `${roles.jsection},${roles.jrole}` : 'yes' : 'no'}\n`
+                        ))) + `notes: ${roles.notes || ''}\n`
+                    : 'unset\n'}`
+                : `deleted\n`
+        }
+        send(m)
+    } else resp(j, r, a, { e: 'no vol' }, 400)
+}
+
 function saveComp(j, r, a) {
     if (j.comp) {
         const cn = j.comp,
@@ -319,7 +341,7 @@ function photoReq(j, r, a) {
 app.post(d.config.url, auth(async (j, r, a) => {
     const reqF = {
         anon: { filesReq, datesReq, loginReq, sendReq, unsubReq, registerReq, testReq },
-        auth: { userReq, volReq, compReq, subReq, saveReq, photoReq, bulksendReq }
+        auth: { userReq, volReq, compReq, subReq, saveReq, photoReq, bulksendReq, rmReq }
     }
     log.info(a ? a.i : '', 'req->', j.req, j.i ? j.i : '')
     if (reqF.anon[j.req + 'Req']) reqF.anon[j.req + 'Req'](j, r, a)

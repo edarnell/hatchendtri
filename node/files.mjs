@@ -27,7 +27,10 @@ function load(reload) {
 }
 
 function saveF(n, p, k) {
-    if (n === 'vs') return saveV(p, k)
+    if (n === 'vs') {
+        if (p && k === 'rm') return rmV(p)
+        else return saveV(p, k)
+    }
     else if (n === 'es') return saveE(p)
     else if (n === 'ml') return saveMl(p, k)
     else if (n === 'blk') return saveBlk(p, k)
@@ -113,6 +116,18 @@ function newV(jv) {
     log.info({ id, first, last, email })
     d._vs[id] = { id, first, last, email }
     return d._vs[id]
+}
+
+function rmV(v) {
+    if (d._vs[v.id]) {
+        delete d._vs[v.id]
+        save('vs', d._vs)
+    }
+    if (d.vr[v.id]) {
+        delete d.vr[v.id]
+        save('vr', d.vr)
+    }
+    return v
 }
 
 function saveV(jv, jr) {

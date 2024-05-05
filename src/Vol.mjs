@@ -61,9 +61,12 @@ class Vol extends Html {
             const nm = _s(this.v.first + ' ' + this.v.last)
             return `{link.details.${nm}_}`
         }
-        else if (n == 'contact') {
-            const a = nav._user.admin
-            return a ? '{link.contact}' : ''
+        else if (nav._user.admin) {
+            if (n === 'contact') return '{link.contact}'
+            if (n === 'delete') {
+                const v = this.v, vr = nav.d.data.vr, vy = v.id && vr && vr[v.id] || {}
+                return (vy.none) ? '{link.delete}' : ''
+            }
         }
     }
     link = (name) => {
@@ -71,6 +74,7 @@ class Vol extends Html {
         if (name === 'details') return { tip: this.edit ? this.dtip : 'edit contact details', icon_: this.edit ? 'save' : 'edit', click: this.details }
         else if (name === 'close') return { class: 'close', tip: this.edit ? 'close' : 'save and close', click: this.edit ? () => this.close() : this.save }
         else if (name === 'contact') return a ? { tip: this.contact, popup: `{Contact.${this.v.id}}` } : ''
+        else if (name === 'delete') return a ? { tip: 'delete volunteer', click: this.rm } : ''
     }
     rendered = () => {
         //debug({ vol: this.v })
@@ -189,6 +193,15 @@ class Vol extends Html {
                 return a
             }, {})
         return o
+    }
+    rm = () => {
+        const v = this.v
+        ajax({ req: 'rm', v }).then(r => {
+            this.close('<div class="green">updated</div>', 'vr')
+        }).catch(e => {
+            error({ del: { v, e } })
+            this.close('<div class="red">Error</div>')
+        })
     }
     save = () => {
         const r24 = this.roleRem(this.getForm()), v = this.v, vr = nav.d.data.vr, vy = v.id && vr && vr[v.id] || {},
