@@ -262,11 +262,11 @@ function registerReq(j, r, a) {
 function volReq(j, r, a) {
     if (j.v && a) {
         const v = d._vs[j.v], u = d._es[a.email]
-        if (a.email === v.email.toLowerCase()) v.i = u.i
+        if (v && a.email === v.email.toLowerCase()) v.i = u.i
         if (v && (u.admin || u.i === v.i)) {
             log.info({ [v.id]: `${v.first} ${v.last}` })
             resp(j, r, a, { v })
-        } else resp(j, r, a, { e: 'Unauthorized' }, 401)
+        } else resp(j, r, a, { e: v ? 'Unauthorized' : j.v }, 401)
     } else resp(j, r, a, { e: 'no vol' }, 400)
 }
 

@@ -4,6 +4,7 @@ import { ajax } from './ajax.mjs'
 import html from './html/Volunteer.html'
 import Vselect from './Vselect.mjs'
 import { sections, section, roles, selectSection, selectRole } from './roles.mjs'
+//TODO improve and fix end to end testing
 //TODO names & roles testing - when change availability form realoads showing Roles when Names.
 
 const year = 2024
@@ -17,8 +18,9 @@ class Volunteer extends Html {
   greet = () => {
     const u = nav._user, vs = nav.d.data.vs, v = u && u.vs && u.vs[0], c = this.color(v)
     if (u && u.aed) return `Welcome <span class="red">${u.first} ${u.last}</span> be careful.`
-    else return u ? `Welcome ${u.vs.map(v => `{link.v${v}.${_s(vs[v].first)}}`).join(', ')}, ` + (c === 'grey' ? 'please confirm availability.' :
-      c === 'red' ? 'thank you for confirming you are unable to help this year.' : 'thank you for volunteering. Hover over your name to see role details, or look below.')
+    else return u ? `Welcome ${v ? u.vs.map(v => `{link.v${v}.${_s(vs[v].first)}}`).join(', ') : `{link.u.${_s(u.first)}}`}, `
+      + (c === 'grey' ? 'please confirm availability.' :
+        c === 'red' ? 'thank you for confirming you are unable to help this year.' : 'thank you for volunteering. Hover over your name to see role details, or look below.')
       : 'We need a large volunteer team please {link.register} if you can help. All help is greatly appreciated.'
   }
   var = (n) => {

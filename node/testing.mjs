@@ -21,7 +21,7 @@ function rmU(m, rm, vrm) {
 
 
 function testF(j) {
-    const cmds = ['unsub', 'sub', 'rm', 'reg', 'debug'],
+    const cmds = ['unsub', 'sub', 'rm', 'reg', 'debug', 'vol'],
         f = cmds.find(cmd => j[cmd]), // only 1 command
         p = f && j[f],
         a = typeof p === 'string' && p.includes('epdarnell+'),
@@ -43,7 +43,7 @@ function testF(j) {
         return { rm: i, vrm }
     }
     if (j.reg && p) {
-        let u // beware of shadowing
+        let u, v // beware of shadowing
         const { first, last, email, vol } = p,
             c = first && last && email && email.includes('epdarnell+')
         u = c && d._es[email]
@@ -54,11 +54,11 @@ function testF(j) {
         if (vol === 'lead') {
             const vid = u && u.vs && u.vs[0], vr = vid && d.vr[vid]
             if (!vr || !vr.arole || vr.arole !== 'Lead') {
-                saveF('vs', u, { adult: true, asection: 'Race Control', junior: true, arole: 'Lead', jsection: 'Race Control', jrole: 'Lead' })
+                v = saveF('vs', u, { adult: true, asection: 'Race Control', junior: true, arole: 'Lead', jsection: 'Race Control', jrole: 'Lead' })
             }
         }
         if (vrm.length) saveF('vs')
-        return { reg: email, i: u && u.i, added, vrm }
+        return { u }
     }
     else if (u && j.unsub) {
         const { first, last, i } = u,
@@ -69,6 +69,11 @@ function testF(j) {
     else if (u && j.sub) {
         if (u.fi.unsub) saveF('unsub', u, 'sub')
         return { sub: u.i, changed: u.fi.unsub ? true : false }
+    }
+    else if (j.vol) {
+        const u = d._es[p],
+            vs = u && d.ev && d.ev[u.i]
+        return { i: u.i, vs, id: vs && vs[0] }
     }
     else return { f, p, u }
 }

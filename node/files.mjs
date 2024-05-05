@@ -207,7 +207,8 @@ function f_vs() {
         const o = d._vs[v], u = o.email && d._es[o.email.toLowerCase()]
         if (u) {
             const i = u.i, { id, first, last, year, mobile } = o
-            d.vs[v] = { id, first, last, i, year }
+            d.vs[v] = { first, last, i, year }
+            d.vs[v].id = v
             if (!d.ev[i]) d.ev[i] = []
             if (first === u.first && last === u.last) {
                 d.ev[i].unshift(v)

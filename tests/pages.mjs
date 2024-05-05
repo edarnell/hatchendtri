@@ -263,11 +263,11 @@ describe('Volunteer', () => {
     beforeEach(async () => await logout())
     afterEach(async () => setDebug(false, true))
 
-    test('Volunteer', async () => {
+    test.only('Volunteer', async () => {
         //setDebug(true)
         await ajax({ req: 'test', reg: vol })
         await page.goto(url + '/volunteer#' + await token(vol.email))
-        expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'grey')).toBeTruthy()
+        expect(await waitSel('[id^="TT_u_greet"]', vol.first, 'grey')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'please confirm availability')).toBeTruthy()
         expect(await waitSel(('[id^="popup_TT_u_greet"]'), l => l)).toBeTruthy()
         expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(false)
@@ -279,7 +279,7 @@ describe('Volunteer', () => {
         await page.click('[id^="TT_close"]')
 
         await sleep(100)
-        expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'grey')).toBeTruthy()
+        expect(await waitSel('[id^="TT_u_greet"]', vol.first, 'grey')).toBeTruthy()
         await page.click('[id^="TT_u_greet"]')
         expect(await waitSel(('[id^="popup_TT_u_greet"]'), l => l)).toBeTruthy()
         expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(false)
@@ -289,10 +289,11 @@ describe('Volunteer', () => {
         await page.click('[id^="TT_close"]')
 
         await sleep(200)
-        expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'blue')).toBeTruthy()
+        const v = await ajax({ req: 'test', vol: vol.email }), tt = `TT_v${v.id}_greet`
+        expect(await waitSel(`[id^="${tt}"]`, vol.first, 'blue')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'thank you for volunteering')).toBeTruthy()
-        await page.click('[id^="TT_u_greet"]')
-        expect(await waitSel(('[id^="popup_TT_u_greet"]'), l => l)).toBeTruthy()
+        await page.click(`[id^="${tt}"]`)
+        expect(await waitSel((`[id^="popup_${tt}"]`), l => l)).toBeTruthy()
         expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(true)
         expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(false)
         expect(await page.$eval('[id^="IN_none"]', l => l.checked)).toBe(false)
@@ -300,10 +301,10 @@ describe('Volunteer', () => {
         await page.click('[id^="TT_close"]')
 
         await sleep(200)
-        expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'blue')).toBeTruthy()
+        expect(await waitSel(`[id^="${tt}"]`, vol.first, 'blue')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'thank you for volunteering')).toBeTruthy()
-        await page.click('[id^="TT_u_greet"]')
-        expect(await waitSel(('[id^="popup_TT_u_greet"]'), l => l)).toBeTruthy()
+        await page.click(`[id^="${tt}"]`)
+        expect(await waitSel((`[id^="popup_${tt}"]`), l => l)).toBeTruthy()
         expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(true)
         expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(true)
         expect(await page.$eval('[id^="IN_none"]', l => l.checked)).toBe(false)
@@ -311,10 +312,10 @@ describe('Volunteer', () => {
         await page.click('[id^="TT_close"]')
 
         await sleep(100)
-        expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'red')).toBeTruthy()
+        expect(await waitSel(`[id^="${tt}"]`, vol.first, 'red')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'thank you for confirming you are unable to help this year')).toBeTruthy()
-        await page.click('[id^="TT_u_greet"]')
-        expect(await waitSel(('[id^="popup_TT_u_greet"]'), l => l)).toBeTruthy()
+        await page.click(`[id^="${tt}"]`)
+        expect(await waitSel((`[id^="popup_${tt}"]`), l => l)).toBeTruthy()
         expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(false)
         expect(await page.$eval('[id^="IN_junior"]', l => l.checked)).toBe(false)
         expect(await page.$eval('[id^="IN_none"]', l => l.checked)).toBe(true)
@@ -322,7 +323,7 @@ describe('Volunteer', () => {
         await page.click('[id^="TT_close"]')
 
         await sleep(100)
-        expect(await waitSel('[id^="TT_u_greet"]', name(vol), 'grey')).toBeTruthy()
+        expect(await waitSel(`[id^="${tt}"]`, vol.first, 'grey')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'please confirm availability')).toBeTruthy()
     })
 
