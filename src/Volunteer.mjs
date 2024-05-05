@@ -4,6 +4,7 @@ import { ajax } from './ajax.mjs'
 import html from './html/Volunteer.html'
 import Vselect from './Vselect.mjs'
 import { sections, section, roles, selectSection, selectRole } from './roles.mjs'
+//TODO names & roles testing - when change availability form realoads showing Roles when Names.
 
 const year = 2024
 class Volunteer extends Html {
@@ -15,7 +16,6 @@ class Volunteer extends Html {
   }
   greet = () => {
     const u = nav._user, vs = nav.d.data.vs, v = u && u.vs && u.vs[0], c = this.color(v)
-    debug({ vs })
     if (u && u.aed) return `Welcome <span class="red">${u.first} ${u.last}</span> be careful.`
     else return u ? `Welcome ${u.vs.map(v => `{link.v${v}.${_s(vs[v].first)}}`).join(', ')}, ` + (c === 'grey' ? 'please confirm availability.' :
       c === 'red' ? 'thank you for confirming you are unable to help this year.' : 'thank you for volunteering. Hover over your name to see role details, or look below.')
@@ -25,7 +25,7 @@ class Volunteer extends Html {
     if (n === 'year') return '' + year
   }
   loaded = (r) => {
-    dbg({ loaded: r })
+    debug({ loaded: r })
     if (r) this.reload(false)
   }
   volClose = () => this.updated()
@@ -332,7 +332,6 @@ class Vroles extends Html {
   trs = (n, p) => {
     if (n.startsWith('section')) {
       const s = _s(p, false), f = this._form, sf = f && f.section
-      //debug({ s, sf, f, name, param })
       if (sf && sf !== 'Section' && sf !== s) return []
       else return this.role_rows(s)
     }
@@ -349,7 +348,6 @@ class Vroles extends Html {
   }
   sr = (id, s, r) => {
     const v = nav.d.data.vr[id], { asection, arole, jsection, jrole } = v || {}
-    //if (!v.year) debug({ id, v })
     let n = 0
     n += (asection === s && arole === r) ? 2 : 0
     n += (jsection === s && jrole === r) ? 1 : 0
@@ -428,7 +426,6 @@ class Vroles extends Html {
     let ret = []
     rs.forEach(r => ret = ret.concat(this.fill(this.vs(s, r), r, s)))
     if (ul && ul.length > 1) ret = ret.filter(r => this.role_filter(r, ul))
-    //debug({ ul, ret })
     return ret
   }
 }

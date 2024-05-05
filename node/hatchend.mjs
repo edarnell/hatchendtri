@@ -108,6 +108,7 @@ function saveVol(j, r, a) {
         let v
         if (j.roles) v = saveF('vs', j.v, j.roles)
         else v = saveF('vs', j.v)
+        log.info({ v })
         resp(j, r, a, { v })
         const roles = d.vr[v.id], m = {
             i: a.i,

@@ -9,7 +9,6 @@ function sections() {
     secs.forEach(s => {
         Object.keys(vrs[y][s].role).forEach(r => roleMap.push({ s, r }))
     })
-    debug({ secs, roleMap })
     return secs
 }
 

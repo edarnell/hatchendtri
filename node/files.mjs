@@ -122,10 +122,12 @@ function rmV(v) {
     if (d._vs[v.id]) {
         delete d._vs[v.id]
         save('vs', d._vs)
+        d.fns['vs'] = f_vs()
     }
     if (d.vr[v.id]) {
         delete d.vr[v.id]
         save('vr', d.vr)
+        d.fns['vr'] = { date: fs.statSync(`gz/vr.gz`).mtime, data: zip(d.vr, false, true) }
     }
     return v
 }

@@ -77,7 +77,6 @@ class Vol extends Html {
         else if (name === 'delete') return a ? { tip: 'delete volunteer', click: this.rm } : ''
     }
     rendered = () => {
-        //debug({ vol: this.v })
         if (this.edit) this.setForm(this.v)
         else this.updateV()
     }
@@ -164,14 +163,15 @@ class Vol extends Html {
             js.classList.add('hidden')
             ar.classList.add('hidden')
             jr.classList.add('hidden')
-            //selectSection(this, 'asection', 'arole')
-            //selectSection(this, 'jsection', 'jrole')
+            as.value = 'Section'
+            js.value = 'Section'
+            ar.value = 'Role'
+            jr.value = 'Role'
         }
         else if (race === 'adult' || race === 'junior') {
             const x = race === 'adult' ? a : j,
                 s = race === 'adult' ? as : js,
-                r = race === 'adult' ? ar : jr,
-                c = race.charAt(0)
+                r = race === 'adult' ? ar : jr
             if (x.checked) {
                 n.checked = false
                 if (nav._user.admin) {
@@ -182,7 +182,8 @@ class Vol extends Html {
             else {
                 s.classList.add('hidden')
                 r.classList.add('hidden')
-                //selectSection(this, c + 'section', c + 'role')
+                s.value = 'Section'
+                r.value = 'Role'
             }
         }
     }
@@ -207,7 +208,6 @@ class Vol extends Html {
         const r24 = this.roleRem(this.getForm()), v = this.v, vr = nav.d.data.vr, vy = v.id && vr && vr[v.id] || {},
             { upd, ...vp } = vy,
             roles = (JSON.stringify(r24) !== JSON.stringify(vp)) && r24
-        debug({ roles, r24, vy })
         if (roles) {
             ajax({ req: 'save', v, roles }).then(r => {
                 this.close('<div class="green">updated</div>', 'vr')

@@ -41,6 +41,10 @@
             "Motor Cycle Marshall": {
                 "aj": 0,
                 "t": "Monitors adult cycle course. Safety and rule advice to competitors, reporting any incidents"
+            },
+            "Pinner CC": {
+                "aj": 0,
+                "t": "Organising team contact for Pinner Camera Club."
             }
         }
     },
@@ -66,6 +70,7 @@
                 "t": "Outdoor swim to transition marshall. Highlight swim exit trip risk and guide competitors to transition. No spectators, guide them to spectator field via non competitor route."
             },
             "Art Centre": {
+                "a": 1,
                 "t": "Ensure car park only used by Art Centre customers and race officials. Direct competitors to local road parking."
             },
             "Spectator Bridge": {
@@ -252,13 +257,20 @@
                 "aj": 2
             },
             "Marshall": {
+                "aj": 0,
+                "t": "General run Marshall. Know number colours and required laps."
+            },
+            "Finish Marshall": {
                 "t": "Direct lap or towards finish at end of final lap. Know number colours and required laps."
             },
             "Water": {
                 "t": "Marshall and distribute bottle water to running competitors as required."
             },
             "Medals": {
-                "t": "Issue medals and water to finishers. Collect timing chips."
+                "t": "Issue medals and water to finishers. May also collect timing chips."
+            },
+            "Timing Chips": {
+                "t": "Collect timing chips. May also issue medals and water to finishers."
             }
         }
     },
