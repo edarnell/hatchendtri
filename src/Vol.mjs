@@ -61,11 +61,12 @@ class Vol extends Html {
             const nm = _s(this.v.first + ' ' + this.v.last)
             return `{link.details.${nm}_}`
         }
-        else if (nav._user.admin) {
-            if (n === 'contact') return '{link.contact}'
+        else {
+            const a = nav._user.admin
+            if (n === 'contact') return a ? '{link.contact}' : ''
             if (n === 'delete') {
                 const v = this.v, vr = nav.d.data.vr, vy = v.id && vr && vr[v.id] || {}
-                return (vy.none) ? '{link.delete}' : ''
+                return (a && vy.none) ? '{link.delete}' : ''
             }
         }
     }

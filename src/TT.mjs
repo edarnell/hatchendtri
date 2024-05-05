@@ -7,7 +7,7 @@ class TT {
     constructor(p, type, name, param, fm) {
         Object.assign(this, { p, type, name, param, fm })
         if (!fm && type !== 'img') {
-            if (!name) error({ TT: this })
+            if (!name) error({ TTe1: this })
             else {
                 if (!p.tt) p.tt = {}
                 this.id = 'TT_' + name.toLowerCase() + '_' + p.id + '_' + Object.keys(this.p.tt).length
@@ -17,7 +17,10 @@ class TT {
     }
     listen = (set = true) => {
         const lk = this.lk, l = this.el()
-        if (!l) error({ TT: this })
+        if (!l) {
+            const { id, p, type, name, param, fm } = this
+            error({ TTe2: { id, type, name, param, fm } })
+        }
         else if (lk && set) {
             if (lk.popup || lk.drag || lk.click || lk.nav || lk.submit || lk.close) {
                 l.addEventListener("click", this.click)
@@ -48,7 +51,7 @@ class TT {
         this.pop = this.pdiv = this.pO = null
         if (listeners) {
             const lk = this.lk, l = this.el()
-            if (!l) error({ TT: this })
+            if (!l) error({ TTe3: this })
             else if (lk.hover || lk.tip) {
                 l.removeEventListener("mouseenter", this.tooltip)
                 l.removeEventListener("mouseleave", this.remove)
@@ -72,7 +75,7 @@ class TT {
                         else error({ close: this })
                     }
                 })
-        if (!link) error({ TT: this, type, name, param })
+        if (!link) error({ TTe4: this, type, name, param })
         else {
             this.lk = link
             if (link.id) this.id = link.id

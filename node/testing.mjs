@@ -1,12 +1,11 @@
 import { saveF, d } from './files.mjs'
 
 function rmV(m, rm) {
-    for (const id in d._vs) {
-        if (d._vs[id].email === m) {
-            rm.push(id)
-            delete d._vs[id]
-            if (d.vr[id]) delete d.vr[id]
-        }
+    const u = d._es[m], vs = u && d.ev[u.i]
+    if (vs) for (const id in vs) {
+        delete d._vs[id]
+        rm.push(id)
+        if (d.vr[id]) delete d.vr[id]
     }
 }
 
@@ -18,7 +17,6 @@ function rmU(m, rm, vrm) {
         rmV(m, vrm)
     }
 }
-
 
 function testF(j) {
     const cmds = ['unsub', 'sub', 'rm', 'reg', 'debug', 'vol'],

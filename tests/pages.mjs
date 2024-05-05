@@ -263,9 +263,11 @@ describe('Volunteer', () => {
     beforeEach(async () => await logout())
     afterEach(async () => setDebug(false, true))
 
-    test.only('Volunteer', async () => {
+    test('Volunteer', async () => {
         //setDebug(true)
         await ajax({ req: 'test', reg: vol })
+        //const v1 = await ajax({ req: 'test', vol: vol.email }), tt1 = `TT_v${v1.id}_greet`
+        //debug({ v1, tt1 })
         await page.goto(url + '/volunteer#' + await token(vol.email))
         expect(await waitSel('[id^="TT_u_greet"]', vol.first, 'grey')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'please confirm availability')).toBeTruthy()
@@ -327,11 +329,13 @@ describe('Volunteer', () => {
         expect(await waitSel('[id^="greet"]', 'please confirm availability')).toBeTruthy()
     })
 
-    test('Lead', async () => {
+    test.only('Lead', async () => {
         //setDebug(true)
         await ajax({ req: 'test', reg: lead })
         await page.goto(url + '/volunteer#' + await token(lead.email))
-        expect(await waitSel('[id^="TT_u_greet"]', name(lead), 'green')).toBeTruthy()
+        const v = await ajax({ req: 'test', vol: lead.email }), tt = `TT_v${v.id}_greet`
+        debug({ v, tt })
+        expect(await waitSel(`[id^="${tt}"]`, lead.first, 'green')).toBeTruthy()
     })
 
     // TODO - add tests for editing details (both individual and admin)

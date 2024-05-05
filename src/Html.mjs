@@ -71,7 +71,13 @@ class Html {
         }
         const _html = this.replace(o)
         const e = this.q(`#${id}`)
-        if (e) e.innerHTML = _html
+        if (e) { // prevent nested divs with same id
+            const t = document.createElement('div')
+            t.innerHTML = _html
+            const t1 = t.firstChild
+            if (t1.id === id) e.innerHTML = t1.innerHTML
+            else e.innerHTML = _html
+        }
         else error({ render: this, id })
         requestAnimationFrame(() => {
             this.listen(o) // may need delay for pupeteer
@@ -153,7 +159,7 @@ class Html {
         }
         else if (t === 'var') {
             const vf = o._p('var'), v = vf && vf(n, p)
-            if (v === undefined) error({ var: o, n, p })
+            if (v === undefined) error({ var: n, p })
             return v && this.replace(o, v)
         }
         else if (t === 'table') {
