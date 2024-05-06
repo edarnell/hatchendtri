@@ -1,2 +1,2 @@
 scp -p -i ../.ssh/epdarnell.pem ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/node/gz/*.gz node/live
-scp -p -i ../.ssh/epdarnell.pem ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/node/gz/backups/* node/live/backups
+REM scp -p -i ../.ssh/epdarnell.pem ubuntu@ec2.freemaths.uk:/var/www/hatchendtri/node/gz/backups/* node/live/backups
