@@ -329,7 +329,7 @@ describe('Volunteer', () => {
         expect(await waitSel('[id^="greet"]', 'please confirm availability')).toBeTruthy()
     })
 
-    test.only('Lead', async () => {
+    test('Lead', async () => {
         //setDebug(true)
         await ajax({ req: 'test', reg: lead })
         await page.goto(url + '/volunteer#' + await token(lead.email))

@@ -230,6 +230,12 @@ h5 {
     margin: 1rem 0 0 0;
 }
 
+h6 {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin: 0 0 0 0;
+}
+
 .enter-button {
     background-color: #003366;
     color: #fff;

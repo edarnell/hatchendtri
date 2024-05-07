@@ -39,7 +39,7 @@ class Vol extends Html {
             notes: { placeholder: 'notes', rows: 1, cols: 20 },
             child: { class: 'bold', label: 'Child', tip: 'safeguarding' },
         }
-        else return { // section and options populated on load
+        else if (this.fm) return { // section and options populated on load
             adult: { class: 'bold', label: 'Adult', tip: 'available for adult race' },
             junior: { class: 'bold', label: 'Junior', tip: 'available for junior race' },
             none: { class: 'bold', label: 'None', tip: `not available in ${year}` },
@@ -50,9 +50,19 @@ class Vol extends Html {
             jrole: { class: 'form hidden', options: ['Role'].concat(roles()) },
             notes: { placeholder: 'role preference?', rows: 1, cols: 20 }
         }
+        else return {}
     }
     html = (n) => {
-        if (n === 'vol') return `<form id="vol">${this.edit ? volD : volE}</form>`
+        if (n === 'vol') {
+            const v = this.v,
+                a = this._p('admin')(),
+                vtip = v && this._p('vtip')(v.id)
+            if (!a && vtip) return `<div id="roles" style="width: 400px;">${vtip}</div>`
+            else {
+                this.fm = true
+                return `<form id="vol">${this.edit ? volD : volE}</form>`
+            }
+        }
         else return html
     }
     var = (n) => {
@@ -73,13 +83,15 @@ class Vol extends Html {
     link = (name) => {
         const a = nav._user.admin
         if (name === 'details') return { tip: this.edit ? this.dtip : 'edit contact details', icon_: this.edit ? 'save' : 'edit', click: this.details }
-        else if (name === 'close') return { class: 'close', tip: this.edit ? 'close' : 'save and close', click: this.edit ? () => this.close() : this.save }
+        else if (name === 'close') return this.fm ? { class: 'close', tip: this.edit ? 'close' : 'save and close', click: this.edit ? () => this.close() : this.save } : ''
         else if (name === 'contact') return a ? { tip: this.contact, popup: `{Contact.${this.v.id}}` } : ''
         else if (name === 'delete') return a ? { tip: 'delete volunteer', click: this.rm } : ''
     }
     rendered = () => {
-        if (this.edit) this.setForm(this.v)
-        else this.updateV()
+        if (this.fm) {
+            if (this.edit) this.setForm(this.v)
+            else this.updateV()
+        }
     }
     send = () => {
         const f = this.getForm(email)
