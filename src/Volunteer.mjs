@@ -18,10 +18,14 @@ class Volunteer extends Html {
   greet = () => {
     const u = nav._user, vs = nav.d.data.vs, v = u && u.vs && u.vs[0], c = this.color(v)
     if (u && u.aed) return `Welcome <span class="red">${u.first} ${u.last}</span> be careful.`
-    else return u ? `Welcome ${v ? u.vs.map(v => `{link.v${v}.${_s(vs[v].first)}}`).join(', ') : `{link.u.${_s(u.first)}}`}, `
+    else return u ? `Welcome ${u.admin ? `{checkbox.admin}` : ''}${v ? u.vs.map(v => `{link.v${v}.${_s(vs[v].first)}}`).join(', ') : `{link.u.${_s(u.first)}}`}, `
       + (c === 'grey' ? 'please confirm availability.' :
         c === 'red' ? 'thank you for confirming you are unable to help this year.' : 'thank you for volunteering. Hover over your name to see role details, or look below.')
       : 'We need a large volunteer team please {link.register} if you can help. All help is greatly appreciated.'
+  }
+  admin = () => {
+    const u = nav._user, f = this._form
+    return u && u.admin && f && f.admin
   }
   var = (n) => {
     if (n === 'year') return '' + year
@@ -48,10 +52,11 @@ class Volunteer extends Html {
   }
   form = () => {
     return { // section and options populated on load
+      admin: { class: 'form red bold', tip: 'enable admin functions' },
       filter: { placeholder: 'name filter', width: '50rem' },
-      nr: { class: "form", options: ['Roles', 'Names'], tip: 'Display by role or name' },
+      nr: { class: "hidden form", options: ['Roles', 'Names'], tip: 'Display by role or name' },
       C: { class: 'hidden form red bold', tip: 'clear name', click: 'submit' },
-      New: { class: 'form green hidden', tip: 'add new volunteer', popup: 'Vselect', placement: 'bottom' }
+      New: { class: 'hidden form green', tip: 'add new volunteer', popup: 'Vselect', placement: 'bottom' }
     }
   }
   link = (n) => {
@@ -60,7 +65,7 @@ class Volunteer extends Html {
       const id = n.substring(1), vs = nav.d.data.vs, v = vs[id], u = nav._user
       if (v && u) {
         if (n.charAt(0) === 'v') return { tip: () => this.tip(id, 2024), theme: 'light', class: 'span ' + this.color(id), popup: `{Vol.${id}}` }
-        else return u.admin ? { tip: () => this.tip(id), theme: 'light', class: this.color(id), popup: `{Vol.${id}}` }
+        else return this.admin() ? { tip: () => this.tip(id), theme: 'light', class: this.color(id), popup: `{Vol.${id}}` }
           : { tip: `contact ${v.first} ${v.last}`, class: this.color(id), theme: 'light', popup: `{Contact.${id}}` }
       }
       else return { tip: 'login or register', class: this.color(id), theme: 'light', popup: 'User' } // not logged in
@@ -99,7 +104,7 @@ class Volunteer extends Html {
   }
   names = () => {
     const f = this._form, nm = f && f.filter,
-      u = nav._user, a = u && u.admin,
+      a = this.admin(),
       d = nav.d.data, vs = d.vs,
       n = f && this.fe('New'),
       vols = Object.keys(vs).filter(this.filter).sort(this.nameSort),
@@ -142,10 +147,8 @@ class Volunteer extends Html {
     if (v) {
       const a = this.role(id, 'a'), j = this.role(id, 'j'), v = nav.d.data.vs[id]
       return `<div>${year} ${this.tick(a.y)}, ${this.tick(j.y)}  ${v.notes || ''}</div>`
-        + (a.h || j.h ? `<div>${a.h || ''}, ${j.h || ''}</div>` : '')
-        + (a.t ? `<div>${a.t}</div>` : '')
-        + (j.t && j.t !== a.t ? `<div>${j.t}</div>` : '')
-      //<span class=${ay?'green':'red'}>${a.y?a.n?a.n:'✓':'✗'}</span>, <span class=${cj}>${j}</span> </span>`
+        + (a.h ? `<div><h6>${a.h}</h6>${a.t}</div>` : '')
+        + (j.h && j.h !== a.h ? `<div><h6>${j.h}</h6>${j.t}</div>` : '')
     }
     else return `<span class=${cl}>${year} ?</span>`
   }
@@ -164,7 +167,7 @@ class Volunteer extends Html {
   tip = (id, y) => {
     const u = nav._user,
       rs = this.roles(id).filter(r => r).join('<br />')
-    if (u && u.admin) {
+    if (u && this.admin()) {
       ajax({ req: 'vol', v: id }).then(r => {
         const l = this.q(`[id=vol_tt_${id}]`),
           m = r.v.mobile, e = r.v.email,
@@ -194,7 +197,7 @@ class Volunteer extends Html {
       fd = this._form = this.getForm(),
       filter = fd.filter
     C.classList[filter ? 'remove' : 'add']('hidden')
-    this.reload('names')
+    if (this.admin()) this.reload('names')
     this.reload('nr')
   }
 }
