@@ -238,20 +238,14 @@ function f_(fn) {
         ts = fe ? fs.statSync(`gz/${fn}.gz`).mtime : new Date(),
         r = {}
     let h = 0, n = 0, e = 0
+    d.ec = {}
     for (let k in j) {
         if (j[k].email) {
-            const o = j[k], { first, last, cat, mf, club, ag, swim } = o,
+            const o = j[k], { num, first, last, cat, mf, club, ag, swim, brief, start } = o,
                 email = o.email.toLowerCase(),
                 u = d._es[email]
             let i = u ? u.i : d.ei.length
-            if (u) {
-                u.fi[fn] = u.fi[fn] || []
-                if (!u.fi[fn].includes(k)) {
-                    u.fi[fn].push(k)
-                    h++
-                }
-            }
-            else {
+            if (!u) {
                 const m = Math.max(...Object.values(d._es).map(x => x.i)) + 1
                 if (i !== m) {
                     log.error({ i: { i, m } })
@@ -261,7 +255,10 @@ function f_(fn) {
                 d.ei[i] = email
                 n++
             }
-            r[k] = { first, last, cat, mf, club, ag, email: i, swim, n }
+            if (!d.ec[i]) d.ec[i] = []
+            if (u && first === u.first && last === u.last) d.ec[i].unshift(k)
+            else d.ec[i].push(k)
+            r[k] = { num, first, last, cat, mf, club, ag, email: i, swim, brief, start }
         }
         else {
             log.error({ k, o: j[k] })

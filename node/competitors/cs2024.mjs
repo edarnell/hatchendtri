@@ -7,19 +7,21 @@ const emails = fz('gz/es.gz') || {}, ei = []
 Object.keys(emails).forEach(e => ei[emails[e].i] = e)
 let hs, n = 0, w = 0, e = 0
 const cs = {}
-fs.createReadStream('lists/2024C.csv')
+fs.createReadStream('competitors/HEstart.csv')
     .pipe(csv())
     .on('headers', h => hs = h)
     .on('data', r => {
         const o = {
-            ref: r['Ref'].trim(), email: r['Email'].trim(), first: r['First Name'].trim(), last: r['Last Name'].trim(), mf: r['Gender'].trim(),
+            //Category,Ref,Brief,Start,First Name,Last Name,Club,Swim,Category,Phone,Email
+            num: r['Num'].trim(), email: r['Email'].trim(), first: r['First Name'].trim(),
+            last: r['Last Name'].trim(), mf: r['Gender'].trim(),
             cat: r['Category'], club: r['Club'],
-            btf: r['BTF'],
-            swim: r['Adult Swim'],
-            btrl: r['race-pass'],
+            swim: r['Swim'],
+            brief: r['Brief'],
+            start: r['Start']
         }
-        if (o.email && o.ref) {
-            cs[o.ref] = o
+        if (o.email && o.num) {
+            cs[o.num] = o
             if (!emails[o.email.toLowerCase()]) {
                 const { first, last } = o
                 emails[o.email] = { i: emails.length, first, last }
@@ -28,12 +30,13 @@ fs.createReadStream('lists/2024C.csv')
             n++
         }
         else {
-            debug({ error: o })
-            e++
+            if (o.first !== 'Spare' && !(o.first === '' && o.last === '')) {
+                e++
+                debug({ error: o })
+            }
         }
     })
     .on('end', () => {
-        debug({ cs })
         debug({ n, w, e })
         save('cs', cs)
     })

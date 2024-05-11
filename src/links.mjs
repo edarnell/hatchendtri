@@ -27,6 +27,7 @@ const year = '2024',
         atw: { tip: 'Active Training World', href: 'https://www.atwevents.co.uk/' },
         hatch_end_scouts: { tip: '1st Hatch End Scout Group', href: 'https://www.harrowscouts.org.uk/1st-hatch-end' },
         everyone_active: { tip: 'Everyone Active', href: 'https://www.everyoneactive.com/' },
-        harrow_council: { tip: 'Harrow Council', href: 'https://www.harrow.gov.uk/' }
+        harrow_council: { tip: 'Harrow Council', href: 'https://www.harrow.gov.uk/' },
+        start_list: { tip: 'Race numbers briefing and start times', href: 'StartList.pdf' },
     }
 export { links }

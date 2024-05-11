@@ -225,9 +225,10 @@ function userReq(j, r, a) {
     if (u) {
         const { first, last, i, admin, fi } = u, aed = a.aed && !j.i,
             n = d.ns[email],
-            vs = d.ev[i]
-        log.info({ first, last, i, admin, vs })
-        resp(j, r, a, { u: { first, last, i, fi, aed, admin, ns: n, vs, ...(j.i && { email }) } })
+            vs = d.ev[i],
+            cs = d.ec[i]
+        log.info({ first, last, i, vs, cs })
+        resp(j, r, a, { u: { first, last, i, fi, aed, admin, ns: n, vs, cs, ...(j.i && { email }) } })
     }
     else resp(j, r, a, { e: j }, 400)
 }

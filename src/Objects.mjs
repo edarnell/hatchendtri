@@ -14,6 +14,7 @@ import CSV from './CSV.mjs'
 import Photos, { PhotosP } from './Photos.mjs'
 import Vselect from './Vselect.mjs'
 import Vol from './Vol.mjs'
+import VolD from './VolD.mjs'
 
 const cs = {
     Home,
@@ -28,7 +29,8 @@ const cs = {
     Photos,
     PhotosP,
     Vselect,
-    Vol
+    Vol,
+    VolD
 }
 class H {
     O = (n, ...args) => {

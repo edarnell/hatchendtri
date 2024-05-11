@@ -41,8 +41,17 @@ class Competitor extends Html {
       C: { class: 'hidden form red bold', tip: 'clear name', click: 'submit' },
     }
   }
+  greet = () => {
+    const u = nav._user
+    debug({ greet: u })
+    if (u.cs) {
+      const cs = nav.d.data.cs
+      return `<span>Welcome ${u.cs.map(c => `{link.c_${c}.${_s(cs[c].first)}}`).join(', ')} search or hover over your name for details.</span>`
+    }
+    else return ''
+  }
   html = (name) => {
-    if (name === 'greet') return `<p>Entries last updated ${this.upd()}. See {nav.results} for previous years.</p>`
+    if (name === 'greet') return this.greet() + `<p>Entries last updated ${this.upd()}. See {nav.results} for previous years.</p>`
     else if (name === 'entries') return '<div id="entries">{table.entries}</div>'
     else if (!name) return `<div id='competitor'>${html}</div>`
     else error({ html: name })
@@ -55,21 +64,16 @@ class Competitor extends Html {
     if (r) this.reload()
   }
   ths = (name) => {
-    if (name === 'entries') return ['First', 'Last', 'Age Group', 'M/F', 'Club']
+    if (name === 'entries') return ['{link.num.#}', 'First', 'Last', 'Briefing', 'Start', 'Age Group', 'M/F', 'Club']
   }
   trs = (name) => {
     if (name === 'entries') {
       return this.comp2024()
     }
   }
-  greet = () => {
-    const u = nav._user, cs = u && u.comp
-    if (cs) return greet
-    else return ''
-  }
   comptip = (id) => {
-    const c = page.cs[id]
-    return `Briefing ${c.brief}, Start ${c.start}<br />Register and rack your bike before the briefing.` // TODO: add link to update
+    const cs = nav.d.data.cs, c = cs[id]
+    return `Number ${c.num}<br />Briefing ${c.brief}, Start ${c.start}<br />Register and rack your bike before the briefing.<br />Swim estimate ${c.swim}` // TODO: add link to update
   }
   tip = (e, o) => {
     const { name, param } = o
@@ -77,17 +81,24 @@ class Competitor extends Html {
     else if (name === 'cat') return rCat[param]
     else if (name === 'Entries') return `${this.rows} rows selected`
   }
-  link = (name) => {
-    if (name.startsWith('u_')) {
-      const id = name.substring(2), comp = page.cs[id], _id = name.substring(1)
-      return { tip: () => this.comptip(id) }
+  link = (n) => {
+    if (n.startsWith('c_')) {
+      return { tip: () => this.comptip(n.substring(2)), theme: 'light' }
     }
-    const tt = {
-      cat: { tip: this.tip },
-      mf: { tip: this.tip },
-      Entries: { tip: this.tip }
+    else {
+      const tt = {
+        num: {
+          tip: this.n ? 'sort by name' : 'sort by number', click: () => {
+            this.n = !this.n
+            this.reload('entries')
+          }
+        },
+        cat: { tip: this.tip },
+        mf: { tip: this.tip },
+        Entries: { tip: this.tip }
+      }
+      return tt[n]
     }
-    return tt[name]
   }
   input = (e, o) => {
     const name = o && o.name
@@ -108,12 +119,16 @@ class Competitor extends Html {
     if (f && !r.join(',').includes(f)) return false
     return true
   }
+  sort = (a, b) => {
+    if (this.n) return a[0] > b[0]
+    else return a[2] > b[2] ? 1 : -1
+  }
   comp2024 = () => {
     const cs = nav.d.data.cs, ret = cs ? Object.values(cs).filter(this.filter)
-      .map(c => [c.first, c.last,
+      .map(c => [c.num, c.first, c.last, c.brief, c.start,
       cmap[c.cat] ? `{link.cat.${cmap[c.cat]}}` : c.cat,
       mfmap[c.mf] ? `{link.mf.${mfmap[c.mf]}}` : c.mf, c.club || ''])
-      .sort((a, b) => a[1] > b[1] ? 1 : -1)
+      .sort(this.sort)
       : []
     this.rows = ret.length
     return ret

@@ -341,10 +341,15 @@ class Send extends Html {
         }
         //debug({ input: o, f })
     }
+    names(n) {
+        return (n.length === 0) ? '' : (n.length === 1) ? n[0] : `${n.slice(0, -1).join(', ')} & ${n[n.length - 1]}`
+    }
     send = (l) => {
         const fm = this.getForm(), live = l === true, rows = live ? this.p.rows : this.p.rows.slice(0, 20),
-            d = nav.d.data, emails = d.es,
-            to = rows.map(email => (emails[email] && { to: emails[email].first, i: email })).filter(r => r),
+            d = nav.d.data, emails = d.es, p = this.p, fp = p.f, vs = fp.vs && p._vs, cs = fp.cs && p._cs,
+            to = vs ? rows.map(email => (vs[email] && { to: this.names(vs[email].map(v => v.first)), i: email })) :
+                cs ? rows.map(email => (cs[email] && { to: this.names(cs[email].map(c => c.first)), i: email })) :
+                    rows.map(email => (emails[email] && { to: emails[email].first, i: email })).filter(r => r),
             { subject, message, unsub, time } = fm
         if (to.length) ajax({ req: 'bulksend', subject, message, unsub, time, to, live }).then(r => {
             this.close(`<div class="green">Sent ${r.blk.subject} to ${r.blk.to.length} emails</div>`)

@@ -56,7 +56,7 @@ class Volunteer extends Html {
       filter: { placeholder: 'name filter', width: '50rem' },
       nr: { class: "hidden form", options: ['Roles', 'Names'], tip: 'Display by role or name' },
       C: { class: 'hidden form red bold', tip: 'clear name', click: 'submit' },
-      New: { class: 'hidden form green', tip: 'add new volunteer', popup: 'Vselect', placement: 'bottom' }
+      New: { class: 'hidden form green', tip: 'add new volunteer', popup: 'VolD', placement: 'bottom' }
     }
   }
   link = (n) => {

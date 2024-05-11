@@ -1,7 +1,6 @@
 import Html, { debug, nav, _s, error } from './Html.mjs'
 import { sections, roles, selectSection, selectRole, setVol } from './roles.mjs'
 import html from './html/Vol.html'
-import volD from './html/volD.html'
 import volE from './html/volE.html'
 import { ajax } from './ajax.mjs'
 
@@ -31,15 +30,7 @@ class Vol extends Html {
         return id ? d.vs[id] : { i, first, last }
     }
     form = () => {
-        if (this.edit) return { // section and options populated on load
-            first: { placeholder: 'first name', width: '50rem', required: true },
-            last: { placeholder: 'last name', width: '50rem', required: true },
-            email: { placeholder: 'email', type: 'email', width: '50rem', required: true },
-            mobile: { placeholder: 'mobile', type: 'tel', width: '50rem' },
-            notes: { placeholder: 'notes', rows: 1, cols: 20 },
-            child: { class: 'bold', label: 'Child', tip: 'safeguarding' },
-        }
-        else if (this.fm) return { // section and options populated on load
+        if (this.fm) return { // section and options populated on load
             adult: { class: 'bold', label: 'Adult', tip: 'available for adult race' },
             junior: { class: 'bold', label: 'Junior', tip: 'available for junior race' },
             none: { class: 'bold', label: 'None', tip: `not available in ${year}` },
@@ -53,15 +44,15 @@ class Vol extends Html {
         else return {}
     }
     html = (n) => {
-        if (n === 'vol') {
+        if (n === 'role') {
             const v = this.v,
                 a = this._p('admin')(),
                 vtip = v && this._p('vtip')(v.id)
-            if (!a && vtip) return `<div id="roles" style="width: 400px;">${vtip}</div>`
-            else {
+            if (a) {
                 this.fm = true
-                return `<form id="vol">${this.edit ? volD : volE}</form>`
+                return `<form id="vol">${volE}</form>`
             }
+            else return `<div id="roles" style="width: 400px;">${vtip}</div>`
         }
         else return html
     }
@@ -82,9 +73,9 @@ class Vol extends Html {
     }
     link = (name) => {
         const a = nav._user.admin
-        if (name === 'details') return { tip: this.edit ? this.dtip : 'edit contact details', icon_: this.edit ? 'save' : 'edit', click: this.details }
+        if (name === 'details') return { tip: this.contact, icon_: 'edit', popup: `{VolD.${this.v.id}}` }
         else if (name === 'close') return this.fm ? { class: 'close', tip: this.edit ? 'close' : 'save and close', click: this.edit ? () => this.close() : this.save } : ''
-        else if (name === 'contact') return a ? { tip: this.contact, popup: `{Contact.${this.v.id}}` } : ''
+        else if (name === 'contact') return '' // TODO remover? a ? { tip: this.contact, popup: `{Contact.${this.v.id}}` } : ''
         else if (name === 'delete') return a ? { tip: 'delete volunteer', click: this.rm } : ''
     }
     rendered = () => {
