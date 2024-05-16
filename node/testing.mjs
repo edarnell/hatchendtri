@@ -13,8 +13,8 @@ function rmU(m, rm, vrm) {
     const u = d._es[m]
     if (u) {
         rm.push(u.i)
-        delete d._es[m]
         rmV(m, vrm)
+        delete d._es[m]
     }
 }
 

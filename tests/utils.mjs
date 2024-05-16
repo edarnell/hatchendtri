@@ -32,7 +32,7 @@ function setPage(p) {
     page.on('console', async m => {
         const a = await Promise.all(m.args().map(a => rC(a).catch(e => e.toString())))
         const f = a.map(a => typeof a === 'object' ? JSON.stringify(a) : a).filter(x => x)
-        const t = m.type() === 'error' && f.length ? _e = 'Error' : dbg && 'Debug'
+        const t = (m.type() === 'error' && f.length) ? _e = 'Error' : dbg && 'Debug'
         if (t) console.log(`${t}: ${f.join(' ').substring(0, 100)}`)
     })
 }

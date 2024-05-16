@@ -47,8 +47,9 @@ class Vol extends Html {
         if (n === 'role') {
             const v = this.v,
                 a = this._p('admin')(),
-                vtip = v && this._p('vtip')(v.id)
-            if (a) {
+                r = v && v.adult || v.junior,
+                vtip = r ? this._p('vtip')(v.id) : 'Thank you for confirming you are not available this year.'
+            if (a || !(r || v.none)) {
                 this.fm = true
                 return `<form id="vol">${volE}</form>`
             }

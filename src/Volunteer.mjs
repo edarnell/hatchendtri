@@ -24,8 +24,12 @@ class Volunteer extends Html {
       : 'We need a large volunteer team please {link.register} if you can help. All help is greatly appreciated.'
   }
   admin = () => {
-    const u = nav._user, f = this._form
-    return u && u.admin && f && f.admin
+    const u = nav._user, f = this._form,
+      a = u && u.admin && f && f.admin,
+      nr = this._form && this.fe('nr')
+    if (a && nr) nr.classList.remove('hidden')
+    else if (nr) nr.classList.add('hidden')
+    return a
   }
   var = (n) => {
     if (n === 'year') return '' + year
@@ -39,15 +43,14 @@ class Volunteer extends Html {
     this.reload()
   }
   rendered = () => {
-    dbg('rendered')
-    const u = nav._user, vs = nav.d.data.vs
-    if (u && vs && ((this._vol && this.color() === 'grey') || nav._vol)) {
+    const u = nav._user, vs = nav.d.data.vs, v = this._vol, c = this.color(), nv = nav._vol
+    if (u && vs && ((v && c === 'grey') || nv)) {
       this._vol = null
-      dbg({ popup: u })
-      const l = this.q(`[id="TT_u_greet_0"]`)
+      debug({ popup: u })
+      const l = this.q(`[id=TT_v${u.vs[0]}_greet_0]`)
       if (l) l.click()
     }
-    dbg('no popup')
+    debug({ u, vs, v, c, nv })
 
   }
   form = () => {
@@ -68,8 +71,17 @@ class Volunteer extends Html {
         else return this.admin() ? { tip: () => this.tip(id), theme: 'light', class: this.color(id), popup: `{Vol.${id}}` }
           : { tip: `contact ${v.first} ${v.last}`, class: this.color(id), theme: 'light', popup: `{Contact.${id}}` }
       }
-      else return { tip: 'login or register', class: this.color(id), theme: 'light', popup: 'User' } // not logged in
+      else {
+        const vr = nav.d.data.vr[id]
+        if (vr && !v) return { tip: 'click to remove (missing from vs)', theme: 'light', click: () => this.rmv(id), class: 'red' }
+        else return { tip: 'login or register', class: this.color(id), theme: 'light', popup: 'User' } // not logged in
+      }
     }
+  }
+  rmv = (id) => {
+    ajax({ req: 'rm', v: id }).then(r => {
+      this.reload()
+    })
   }
   html = (n) => {
     const vs = nav.d.data.vs
@@ -364,10 +376,10 @@ class Vroles extends Html {
     return fvs
   }
   vname = (id) => {
-    const v = nav.d.data.vs[id]
+    const v = nav.d.data.vs[id], vr = nav.d.data.vr[id]
     if (!v) {
-      error({ vname: id })
-      return 'unknown'
+      error({ id, v, vr })
+      return 'e' + id
     }
     return v.first + ' ' + v.last
   }

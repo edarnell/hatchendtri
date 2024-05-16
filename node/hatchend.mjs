@@ -127,7 +127,7 @@ function saveVol(j, r, a) {
 }
 
 function rmReq(j, r, a) {
-    if (j.v && d._vs[j.v.id]) {
+    if (j.v) {
         const id = j.v.id, v = d._vs[id], roles = d.vr[id]
         saveF('vs', j.v, 'rm')
         log.info({ v, roles })

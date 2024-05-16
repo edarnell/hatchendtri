@@ -263,7 +263,7 @@ describe('Volunteer', () => {
     beforeEach(async () => await logout())
     afterEach(async () => setDebug(false, true))
 
-    test('Volunteer', async () => {
+    test.only('Volunteer', async () => {
         //setDebug(true)
         await ajax({ req: 'test', reg: vol })
         //const v1 = await ajax({ req: 'test', vol: vol.email }), tt1 = `TT_v${v1.id}_greet`
