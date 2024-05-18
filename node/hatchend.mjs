@@ -128,13 +128,13 @@ function saveVol(j, r, a) {
 
 function rmReq(j, r, a) {
     if (j.v) {
-        const id = j.v.id, v = d._vs[id], roles = d.vr[id]
-        saveF('vs', j.v, 'rm')
-        log.info({ v, roles })
+        const id = j.v, v = d._vs[id], roles = d.vr[id]
+        saveF('vs', v, 'rm')
+        log.info({ id, v, roles })
         resp(j, r, a, { rm: v })
         const m = {
             i: a.i,
-            subject: `volunteer rm - ${j.v.id} ${j.v.first} ${j.v.last}`,
+            subject: `volunteer rm - ${id} ${v.first} ${v.last}`,
             message: roles ? `roles {vol.${v.id}} ${v.first} ${v.last}\n`
                 + `${roles ? (!(roles.adult || roles.junior || roles.none) ? 'availability: ? - unset\n'
                     : (roles.none ? 'not available\n'
