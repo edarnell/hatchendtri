@@ -64,6 +64,7 @@ let config
 async function token(email) {
     if (!config) await conf()
     const tok = jwt.sign({ email }, config.key)
+    await fs.writeFile('tests/token.html', tok)
     return tok
 }
 
@@ -195,7 +196,7 @@ function waitForFile(fn, i = 100, t = 1000) {
 async function waitSel(s, t, c) {
     try {
         const p = await page.content() // for debug
-        await fs.writeFile('sel.html', p)
+        await fs.writeFile('tests/sel.html', p)
         const l = await page.waitForSelector(s),
             r = (t || c) ? await page.$eval(s, (el, t, c) => {
                 const txt = el.textContent,
@@ -210,7 +211,7 @@ async function waitSel(s, t, c) {
         return r ? r.r && l : l
     } catch (e) {
         const ln = new Error().stack.split('\n')[3].trim()
-        console.log(`Timeout '${s}' at ${ln} - see sel.html`)
+        console.log(`Timeout '${s}' at ${ln} - see tests/sel.html`)
         throw e
     }
 }

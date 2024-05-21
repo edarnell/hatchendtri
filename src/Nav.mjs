@@ -82,6 +82,9 @@ class Nav extends Html {
             this.userIcon(r)
             this.load()
             if (this._path) this.q(`[id*="TT_user_nav"]`).click()
+        }).catch(() => {
+            this.userIcon(false)
+            this.load()
         })
     }
     wrap = () => {

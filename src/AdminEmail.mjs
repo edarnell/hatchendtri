@@ -1,4 +1,4 @@
-import Html, { debug, error, nav, snakeCase, jsonToHtml } from './Html.mjs'
+import Html, { debug, error, nav, snakeCase, _s } from './Html.mjs'
 import { ajax } from './ajax.mjs'
 import { zip } from './unzip.mjs'
 import html from './html/AdminEmail.html'
@@ -184,7 +184,7 @@ class AdminEmail extends Html {
             const rs = Object.keys(es).map(i => {
                 const r = es[i],
                     sent = ml[i] ? ml[i].map(dt => `{link.s${dt}_${i}.${dt.replace(/^(\d{2})(\d{2})(\d{2})(\d{2}).*$/, '$4/$3/$2')}}`).join(' ') : ''
-                return [i, `{link.fe_${i}.${r.first}}`, this.color(r.last, r), this.names(i), sent, Object.keys(r.fi || {}).join(' ')]
+                return [i, `{link.fe_${i}.${_s(r.first)}}`, this.color(r.last, r), this.names(i), sent, Object.keys(r.fi || {}).join(' ')]
             })
             ret = rs.filter(this.filter).sort((a, b) => a[2].toLowerCase().localeCompare(b[2].toLowerCase()))
             this.rows = ret.map(r => r[0])
@@ -223,7 +223,8 @@ class Email extends Html {
         debug({ Email: this })
     }
     link = (n) => {
-        if (n === 'name') return { tip: 'save', icon_: 'save', click: this.save }
+        if (n === 'save') return { tip: 'save', icon: 'save', click: this.save }
+        else if (n === 'switch') return { tip: 'switch user', icon: 'user', click: this.switch }
     }
     form = () => {
         return { // section and options populated on load
@@ -245,13 +246,10 @@ class Email extends Html {
                     : `loading...`}
             </div>`
         }
-        else if (n === 'name') {
-            return `<span id='name'>${this.u ? `{link.name.Email}` : 'Email'}</span>`
-        }
         else return `<div class="card fit">
                 <div class="card-header">
                 {link.close.×}
-                    <span class="title">{div.name}</span>
+                    <span class="title">{link.switch} {link.save}</span>
                 </div>
                 <div class="card-body">
                 {div.details}

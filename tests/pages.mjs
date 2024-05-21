@@ -271,6 +271,7 @@ describe('Volunteer', () => {
         await page.goto(url + '/volunteer#' + await token(vol.email))
         expect(await waitSel('[id^="TT_u_greet"]', vol.first, 'grey')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'please confirm availability')).toBeTruthy()
+        await sleep(100)
         expect(await waitSel(('[id^="popup_TT_u_greet"]'), l => l)).toBeTruthy()
         expect(await page.$eval('[id^="IN_adult"]', l => l.checked)).toBe(false)
         await hover('IN_adult', 'available for adult race')
