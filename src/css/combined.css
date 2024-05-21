@@ -573,6 +573,10 @@ label {
     cursor: pointer;
 }
 
+.right {
+    float: right;
+}
+
 .close:hover {
     opacity: 1;
 }

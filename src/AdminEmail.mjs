@@ -223,7 +223,7 @@ class Email extends Html {
         debug({ Email: this })
     }
     link = (n) => {
-        if (n === 'save') return { tip: 'save', icon: 'save', click: this.save }
+        if (n === 'save') return { tip: 'save', icon: 'save', class: 'right', click: this.save }
         else if (n === 'switch') return { tip: 'switch user', icon: 'user', click: this.switch }
     }
     form = () => {
