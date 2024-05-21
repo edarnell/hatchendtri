@@ -224,7 +224,7 @@ class Email extends Html {
     }
     link = (n) => {
         if (n === 'save') return { tip: 'save', icon: 'save', class: 'right', click: this.save }
-        else if (n === 'switch') return { tip: 'switch user', icon: 'user', click: this.switch }
+        else if (n === 'switch') return { tip: 'switch user', class: 'red', icon: 'user', click: this.switch }
     }
     form = () => {
         return { // section and options populated on load
