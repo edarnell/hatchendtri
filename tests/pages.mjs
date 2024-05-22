@@ -266,8 +266,6 @@ describe('Volunteer', () => {
     test.only('Volunteer', async () => {
         //setDebug(true)
         await ajax({ req: 'test', reg: vol })
-        //const v1 = await ajax({ req: 'test', vol: vol.email }), tt1 = `TT_v${v1.id}_greet`
-        //debug({ v1, tt1 })
         await page.goto(url + '/volunteer#' + await token(vol.email))
         expect(await waitSel('[id^="TT_u_greet"]', vol.first, 'grey')).toBeTruthy()
         expect(await waitSel('[id^="greet"]', 'please confirm availability')).toBeTruthy()

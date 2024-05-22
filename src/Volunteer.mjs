@@ -47,7 +47,7 @@ class Volunteer extends Html {
     if (u && vs && ((v && c === 'grey') || nv)) {
       this._vol = null
       debug({ popup: u })
-      const l = this.q(`[id=TT_v${u.vs[0]}_greet_0]`)
+      const l = this.q(`[id=TT_${u.vs.length?'v'+u.vs[0]:'u'}_greet_0]`)
       if (l) l.click()
     }
     debug({ u, vs, v, c, nv })

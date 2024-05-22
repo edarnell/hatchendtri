@@ -71,11 +71,12 @@ const dev = {
         historyApiFallback: {
             index: '/'
         },
-        proxy: {
-            '/ajax': {
+        proxy: [
+            {
+                context: ['/ajax'],
                 target: 'http://localhost:4000',
             },
-        },
+        ],
     },
 };
 
