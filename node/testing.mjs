@@ -38,7 +38,7 @@ function testF(j) {
         else rmU(p, i, vrm)
         if (i.length) saveF('es')
         if (vrm.length) saveF('vs')
-        return { rm: i, vrm }
+        return { rm: p, i, vrm }
     }
     if (j.reg && p) {
         let u, v // beware of shadowing

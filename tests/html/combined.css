@@ -564,6 +564,8 @@ label {
 .close {
     color: #000;
     float: right;
+    margin-left: 10px;
+    /* space x from float .right icons */
     font-size: 1.5rem;
     font-weight: bold;
     line-height: 1;
@@ -571,6 +573,10 @@ label {
     opacity: 0.5;
     transition: opacity 0.2s ease-out;
     cursor: pointer;
+}
+
+.right {
+    float: right;
 }
 
 .close:hover {

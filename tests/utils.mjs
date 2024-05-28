@@ -193,10 +193,10 @@ function waitForFile(fn, i = 100, t = 1000) {
     })
 }
 
-async function waitSel(s, t, c) {
+async function waitSel(s, t, c, n) {
     try {
         const p = await page.content() // for debug
-        await fs.writeFile('tests/sel.html', p)
+        await fs.writeFile(`tests/${n || 'sel'}.html`, p)
         const l = await page.waitForSelector(s),
             r = (t || c) ? await page.$eval(s, (el, t, c) => {
                 const txt = el.textContent,
@@ -207,11 +207,10 @@ async function waitSel(s, t, c) {
                     r = tt && ct
                 return { r, txt, tt, nbsp, cl, ct }
             }, t, c) : false
-        if (!l || (r && !r.r)) debug({ waitSel: { s, t, c, l: l ? true : false, r } })
+        if (!l || (r && !r.r)) debug({ waitSel: { s, n } })
         return r ? r.r && l : l
     } catch (e) {
-        const ln = new Error().stack.split('\n')[3].trim()
-        console.log(`Timeout '${s}' at ${ln} - see tests/sel.html`)
+        debug(`waitSel ${s} - see tests/${n || 'sel'}.html`)
         throw e
     }
 }

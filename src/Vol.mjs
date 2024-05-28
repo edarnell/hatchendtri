@@ -73,9 +73,9 @@ class Vol extends Html {
         }
     }
     link = (name) => {
-        const a = nav._user.admin
+        const a = nav._user.admin, v = this.v, c = this.fm || (v && !v.id)
         if (name === 'details') return { tip: this.contact, icon_: 'edit', popup: `{VolD.${this.v.id}}` }
-        else if (name === 'close') return this.fm ? { class: 'close', tip: this.edit ? 'close' : 'save and close', click: this.edit ? () => this.close() : this.save } : ''
+        else if (name === 'close') return c ? { class: 'close', tip: this.edit ? 'close' : 'save and close', click: this.edit ? () => this.close() : this.save } : ''
         else if (name === 'contact') return '' // TODO remover? a ? { tip: this.contact, popup: `{Contact.${this.v.id}}` } : ''
         else if (name === 'delete') return a ? { tip: 'delete volunteer', click: this.rm } : ''
     }

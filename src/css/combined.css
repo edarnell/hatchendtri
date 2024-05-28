@@ -565,7 +565,7 @@ label {
     color: #000;
     float: right;
     margin-left: 10px;
-    /* Adjust this value as needed */
+    /* space x from float .right icons */
     font-size: 1.5rem;
     font-weight: bold;
     line-height: 1;

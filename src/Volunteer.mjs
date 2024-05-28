@@ -46,12 +46,9 @@ class Volunteer extends Html {
     const u = nav._user, vs = nav.d.data.vs, v = this._vol, c = this.color(), nv = nav._vol
     if (u && vs && ((v && c === 'grey') || nv)) {
       this._vol = null
-      debug({ popup: u })
-      const l = this.q(`[id=TT_${u.vs.length?'v'+u.vs[0]:'u'}_greet_0]`)
+      const l = this.q(`[id=TT_${u.vs.length ? 'v' + u.vs[0] : 'u'}_greet_0]`)
       if (l) l.click()
     }
-    debug({ u, vs, v, c, nv })
-
   }
   form = () => {
     return { // section and options populated on load
