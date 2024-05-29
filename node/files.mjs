@@ -113,7 +113,7 @@ function newV(jv) {
         u = d._es[email],
         { first, last } = jv
     if (first !== u.first || last !== u.last) log.error({ first, last, u })
-    log.info({ id, first, last, email })
+    //log.info({ id, first, last, email })
     d._vs[id] = { id, first, last, email }
     return d._vs[id]
 }
@@ -221,14 +221,14 @@ function f_vs() {
         }
         else e++
     }
-    log.info({ vs: { n, m, p, e } })
+    debug({ vs: { n, m, p, e } })
     return { date: ts, data: zip(d.vs, false, true) }
 }
 
 function fv(fn) {
     const fe = fs.existsSync(`gz/${fn}.gz`)
     d[fn] = fe ? fz(`gz/${fn}.gz`) : {}
-    log.info({ [fn]: Object.keys(d[fn]).length })
+    debug({ [fn]: Object.keys(d[fn]).length })
     return fe ? f(`gz/${fn}.gz`) : { date: new Date(), data: zip({}, false, true) }
 }
 
@@ -266,7 +266,7 @@ function f_(fn) {
         }
     }
     const rn = Object.keys(r).length
-    log.info({ [fn]: { h, n, rn, e } })
+    debug({ [fn]: { h, n, rn, e } })
     if (n || h) save('es', d._es)
     return { date: ts, data: zip(r, false, true) }
 }
@@ -282,7 +282,12 @@ function f_es() {
     Object.values(d._es).forEach(u => {
         if (!u.fi) u.fi = {}
         const { i, first, last, fi, admin } = u
-        if (first !== first.trim()) log.error({ i, first })
+        if (first !== first.trim() || last !== last.trim()) {
+            log.error({ trim:i, first,last })
+            u.first = first.trim()
+            u.last = last.trim()
+            save('es', d._es)
+        }
         if (unsub[i]) fi.unsub = unsub[i].date
         if (bounce[i]) fi.bounce = bounce[i].mail.timestamp
         d.es[i] = { first: first.trim(), last: last.trim(), i, fi, admin }
@@ -290,7 +295,7 @@ function f_es() {
     })
     d.ei = {}
     Object.keys(d._es).forEach(e => d.ei[d._es[e].i] = e)
-    log.info({ es: n })
+    debug({ es: n })
     return { date: ts, data: zip(d.es, false, true) }
 }
 function photoN() {

@@ -108,7 +108,7 @@ function saveVol(j, r, a) {
         let v
         if (j.roles) v = saveF('vs', j.v, j.roles)
         else v = saveF('vs', j.v)
-        log.info({ v })
+        debug(`${v.i}: ${v.first} ${v.last} ${v.id}`)
         resp(j, r, a, { v })
         const roles = d.vr[v.id], m = {
             i: a.i,
@@ -171,12 +171,11 @@ function saveReq(j, r, a) {
 }
 
 function unsubReq(j, r, a) {
-    log.info({ j, a })
-    if (a && j.u) resp(j, r, a, { u: a }) // get unsub user details
-    else if (a) {
+    if (a) {
         const reason = j.reason || '', { first, last } = a,
             un = { i: a.i, first, last, reason, date: new Date().toISOString() }
         saveF('unsub', un)
+        debug(`${a.i} ${d.ei[a.i]} ${first} ${last} ${reason||''}`)
         resp(j, r, a, { unsub: true })
         const m = {
             to_email: d.ei[a.i],
@@ -417,7 +416,6 @@ function testReq(j, r, a) {
     if (d.config.live !== false) resp(j, r, a, { e: 'live' }, 401)
     else {
         const v = testF(j)
-        debug(v)
         resp(j, r, a, v)
     }
 }

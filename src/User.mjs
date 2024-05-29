@@ -12,7 +12,7 @@ class User extends Contact {
     constructor(n) {
         super()
         this.n = n
-        if (nav._path === 'unsubscribe') ajax({ req: 'unsub', u: true }).then(r => {
+        if (nav._path === 'unsubscribe') ajax({ req: 'user' }).then(r => {
             this.u = r.u
             this.reload('unsub_name')
         }).catch(e => this.close('Unsubscribed.'))

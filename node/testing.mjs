@@ -1,3 +1,4 @@
+const debug = console.log.bind(console)
 import { saveF, d } from './files.mjs'
 
 function rmV(m, rm) {
@@ -26,6 +27,7 @@ function testF(j) {
         u = a && d._es[p]
     if (j.debug) {
         saveF('debug', j.debug)
+        debug({ debug: j.debug })
         return { debug: d.debug }
     }
     else if (j.rm && (u || p === 'epdarnell+')) {
@@ -38,6 +40,7 @@ function testF(j) {
         else rmU(p, i, vrm)
         if (i.length) saveF('es')
         if (vrm.length) saveF('vs')
+            debug({ rm: p, i, vrm })
         return { rm: p, i, vrm }
     }
     if (j.reg && p) {
@@ -56,6 +59,7 @@ function testF(j) {
             }
         }
         if (vrm.length) saveF('vs')
+        debug(`reg: ${email} ${first} ${last} ${vol||''} ${added ? 'added' : 'exists'} ${u.vs||''}`)
         return { u }
     }
     else if (u && j.unsub) {

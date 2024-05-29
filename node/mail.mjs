@@ -144,9 +144,9 @@ function send(m) {
     return new Promise((s, f) => {
         if (d.debug && d.debug.email) {
             const r = email(m), { Message: msg, Destination: d, ReplyToAddresses: reply } = r,
-                { ToAddresses: to } = d, subject = msg.Subject.Data
-            debug({ subject, to, reply })
-            s('debug')
+                { ToAddresses: to } = d
+            debug(`${m.subject}.email ${reply[0]}=>${to[0]}`)
+            s('debug') 
             return
         }
         const aws = { ...d.config.aws },
