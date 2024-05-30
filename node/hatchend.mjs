@@ -33,7 +33,7 @@ function filesReq(j, r, a) {
             else error.push(fn)
         })
         if (!error.length) {
-            log.info(Object.entries(zips).map(([n, z]) => `${n}:${z.data.length}`))
+            debug(Object.entries(zips).map(([n, z]) => `${n}:${z.data.length}`))
             resp(j, r, a, { zips })
         }
         else resp(j, r, a, { error }, 400)
@@ -43,7 +43,7 @@ function filesReq(j, r, a) {
 function datesReq(j, r, a) {
     if (j.files) {
         const { files } = j, date = {}, e = []
-        log.info({ files })
+        debug({ files })
         files.forEach(fn => {
             if (d.fns[fn]) date[fn] = d.fns[fn].date
             else e.push(fn)
@@ -130,7 +130,7 @@ function rmReq(j, r, a) {
     if (j.v) {
         const id = j.v, v = d._vs[id], roles = d.vr[id]
         saveF('vs', v, 'rm')
-        log.info({ id, v, roles })
+        debug({ id, v, roles })
         resp(j, r, a, { rm: v })
         const m = {
             i: a.i,
@@ -175,7 +175,7 @@ function unsubReq(j, r, a) {
         const reason = j.reason || '', { first, last } = a,
             un = { i: a.i, first, last, reason, date: new Date().toISOString() }
         saveF('unsub', un)
-        debug(`${a.i} ${d.ei[a.i]} ${first} ${last} ${reason||''}`)
+        debug(`${a.i} ${d.ei[a.i]} ${first} ${last} ${reason || ''}`)
         resp(j, r, a, { unsub: true })
         const m = {
             to_email: d.ei[a.i],
@@ -224,9 +224,9 @@ function userReq(j, r, a) {
     if (u) {
         const { first, last, i, admin, fi } = u, aed = a.aed && !j.i,
             n = d.ns[email],
-            vs = (d.ev[i] || []).map(Number),
-            cs = (d.ec[i] || []).map(Number)
-        log.info(`${i} ${first} ${last}`, { vs, cs })
+            vs = d.ev[i] && d.ev[i].map(Number),
+            cs = d.ec[i] && d.ec[i].map(Number)
+        debug(`${i} ${first} ${last} ${vs ? `vs:[${vs}]` : ''} ${cs ? `cs:[${cs}]` : ''}`)
         resp(j, r, a, { u: { first, last, i, fi, aed, admin, ns: n, vs, cs, ...(j.i && { email }) } })
     }
     else resp(j, r, a, { e: j }, 400)
@@ -264,7 +264,7 @@ function volReq(j, r, a) {
         const v = d._vs[j.v], u = d._es[a.email]
         if (v && a.email === v.email.toLowerCase()) v.i = u.i
         if (v && (u.admin || u.i === v.i)) {
-            log.info({ [v.id]: `${v.first} ${v.last}` })
+            debug({ [v.id]: `${v.first} ${v.last}` })
             resp(j, r, a, { v })
         } else resp(j, r, a, { e: v ? 'Unauthorized' : j.v }, 401)
     } else resp(j, r, a, { e: 'no vol' }, 400)
@@ -287,7 +287,7 @@ function bulksendReq(j, r, a) {
     const { subject, message, to, live, time } = j
     if (subject && message && to && to.length && a.aed) {
         const blk = saveF('blk', { subject, message, to, time, live })
-        log.info({ bulksend: { to: to.length, subject, time } })
+        debug({ bulksend: { to: to.length, subject, time } })
         if (time) delaySend(blk)
         else send_list(blk)
         resp(j, r, a, { blk })
@@ -298,7 +298,8 @@ function compReq(j, r, a) {
     if (j.cid && a.aed) {
         const c = cs[j.cid]
         if (c) {
-            //log.info('req->', req, { id: c.cid, name: `${c.first} ${c.last}` })
+            const { first, last, i, cid } = c
+            debug(`${cid}: ${first} ${last} i:${i}`)
             resp(j, r, a, {})
         } else resp(j, r, a, { e: 'no comp' }, 400)
     } else resp(j, r, a, { e: 'Unauthorized' }, 401)
@@ -334,7 +335,7 @@ function photoReq(j, r, a) {
         }
         else d.ps[y] = { [n]: [ph] }
         const pn = saveF('ps', y, n), pp = d.ps[y][n]
-        log.info({ pp })
+        debug({ pp })
         resp(j, r, a, { pp, pn })
     } else resp(j, r, a, { e: 'no photo' }, 400)
 }
