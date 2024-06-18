@@ -1,22 +1,17 @@
 const debug = console.log.bind(console),
     error = console.error.bind(console)
-import { saveF, d } from './files.mjs'
-
-function rmV(i, rm) {
-    const vs = d.ev[i]
-    if (vs) vs.forEach(id => {
-        rm[i].vs = rm[i].vs || []
-        rm[i].vs.push(id)
-        delete d._vs[id]
-        if (d.vr[id]) delete d.vr[id]
-    })
-}
+import { saveF, d, rmV } from './files.mjs'
 
 function rmU(email, rm) {
-    const u = d._es[email], { i, first, last } = u
+    const u = d._es[email], { i, first, last } = u,
+        vs = d.ev[i]
     if (u) {
         rm[i] = { i, first, last, email }
-        rmV(i, rm)
+        if (vs) vs.forEach(id => {
+            rm[i].vs = rm[i].vs || []
+            rm[i].vs.push(id)
+            rmV(d.vs[id])
+        })
         delete d._es[email]
     }
 }

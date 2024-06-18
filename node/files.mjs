@@ -283,7 +283,7 @@ function f_es() {
         if (!u.fi) u.fi = {}
         const { i, first, last, fi, admin } = u
         if (first !== first.trim() || last !== last.trim()) {
-            log.error({ trim:i, first,last })
+            log.error({ trim: i, first, last })
             u.first = first.trim()
             u.last = last.trim()
             save('es', d._es)
@@ -315,4 +315,4 @@ function photoN() {
     return { date: ts, data: zip(d.pp, false, true) }
 }
 
-export { load, saveF, version, d, log }
+export { load, saveF, version, d, log, rmV }
