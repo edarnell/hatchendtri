@@ -301,7 +301,8 @@ function f_es() {
 function photoN() {
     d.photos = fs.existsSync(`gz/photos.gz`) ? fz('gz/photos.gz') : {} // number to photos mapping
     d.ns = fs.existsSync(`gz/ns.gz`) ? fz('gz/ns.gz') : {} // email to number mapping - used for permissions
-    const pf = fs.existsSync(`gz/ps.gz`), ts = pf ? fs.statSync(`gz/ps.gz`).mtime : new Date()
+    const pf = fs.existsSync(`gz/ps.gz`),
+        ps = fs.statSync(`gz/ps.gz`).mtime || 0, photos = fs.statSync(`gz/photos.gz`).mtime || 0, ts = Math.max(ps, photos)
     d.ps = pf ? fz('gz/ps.gz') : {}, d.pp = {}
     Object.keys(d.photos).forEach(y => {
         d.pp[y] = {}

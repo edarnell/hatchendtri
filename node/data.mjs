@@ -10,9 +10,9 @@ if (!f) {
     process.exit(1)
 }
 
-const o = fz(`gz/${f}.gz`)
-const n = k && parseInt(k)
-const r = Object.entries(o).filter(([_, v]) => !k || JSON.stringify(v).includes(k))
+const o = fz(`gz/${f}.gz`), n = k && parseInt(k),
+    rs = Array.isArray(o) ? o.entries() : Object.entries(o),
+    r = rs.filter(([i, v]) => !k || k === i || JSON.stringify(v).includes(k))
 
 d(u.inspect(r.slice(-10), { depth: null }))
 if (!k) console.log('2nd arg optional - filter by string - or n(0=all default 10) for n entries')

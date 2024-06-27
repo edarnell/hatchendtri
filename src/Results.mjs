@@ -8,7 +8,7 @@ class Results extends Html {
     this.data = ['results', 'ps']
   }
   loaded = (r) => {
-    //debug({ loaded: r, data: nav.d.data })
+    debug({ loaded: r, data: nav.d.data })
     if (r) this.refresh()
   }
   updated = (r) => {
@@ -25,7 +25,7 @@ class Results extends Html {
       cat: { tip: 'select category', options: ['Cat', 'Junior', 'TS', 'T1', 'T2', 'T3', 'Y', 'Adult', 'S*', 'SY', 'S1', 'S2', 'S3', 'S4', 'V*', 'V1', 'V2', 'V3', 'V4'] },
       year: {
         tip: 'select year',
-        options: ['Year', '2023', '2022', '2019', '2018', '2017', '2014', '2013', '2012', '2011', '2010', '2009', '2008', '2007', '2006', '2005', '2004', '2003', '2002', '2001', '2000']
+        options: ['Year', '2024', '2023', '2022', '2019', '2018', '2017', '2014', '2013', '2012', '2011', '2010', '2009', '2008', '2007', '2006', '2005', '2004', '2003', '2002', '2001', '2000']
       },
       n: { tip: 'show first N results', options: ['N', '1', '3', '5', '10', '20'] },
       C: { tip: 'clear all filters', class: 'form red bold hidden', click: this.C },
@@ -130,7 +130,7 @@ class Results extends Html {
     let [h, m, s] = hms.split(':')
     let secs = (h ? h * 3600 : 0) + m * 60 + s * 1
     if (!secs && hms !== 'DNF') console.log('ts', a, h, m, s)
-    return secs
+    return secs || ''
   }
   round(time) {
     let ret = time
@@ -151,6 +151,7 @@ class Results extends Html {
     for (var i = 1; i < results[yr].length; i++) {
       let r = results[yr][i]
       if (!r
+        || r[c.Pos] === ''
         || (year && year !== yr)
         || (mf && mf !== r[c.MF])
         || (cat && cat.indexOf('*') === -1 && cat !== r[c.Cat]
@@ -187,7 +188,7 @@ class Results extends Html {
       if (rr) {
         const ps = nav.d.data.ps, y = ps && ps[yr], nm = r[c['#']], p = y && y[nm]
         if (p) r[c.Pos] = `${_n} {link.photos.${yr}_${nm}}`
-        rr = rr.map(x => x.length && x.includes(':') ? x.replace(/^0+:?0?/, '') : x)
+        rr = rr.map(x => x && x.length && x.includes(':') ? x.replace(/^0+:?0?/, '') : x || '')
         filtered.push(rr)
       }
     })

@@ -48,6 +48,7 @@ function datesReq(j, r, a) {
             if (d.fns[fn]) date[fn] = d.fns[fn].date
             else e.push(fn)
         })
+        debug({ date })
         if (!e.length) resp(j, r, a, { date })
         else resp(j, r, a, { e }, 400)
     } else resp(j, r, a, { e: 'no files' }, 400)
@@ -319,7 +320,7 @@ function photoReq(j, r, a) {
     const { y, n } = (j.get || j.pub), np = d.ns[a.email],
         u = np && np[y] && np[y].includes(n)
     if (j.get) {
-        const pp = d.ps[y][n] || (a.admin && d.photos[y][n]), // public photos for number n
+        const pp = (d.ps[y] && d.ps[y][n]) || (a.admin && d.photos[y][n]), // public photos for number n
             op = u && d.photos[y][n]
         resp(j, r, a, { pp, op })
     }
