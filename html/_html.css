@@ -640,7 +640,7 @@ label {
     display: block;
     width: 20px;
     height: 20px;
-    background-image: url('../icon/tick.svg');
+    background-image: url('../img/tick.svg');
     background-size: contain;
     background-repeat: no-repeat;
     position: absolute;
