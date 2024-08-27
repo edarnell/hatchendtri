@@ -94,7 +94,7 @@ class Html {
         }
         const html_ = this.replace(this.pg, `{${pg}}`),
             p = this.qId('page')
-            p.innerHTML = html_
+        p.innerHTML = html_
         if (p) p.innerHTML = html_
         else error({ page: this, p, pg })
         requestAnimationFrame(() => {
@@ -113,9 +113,11 @@ class Html {
     }
     replace = (o, html) => {
         if (!html && o && o.data) this.checkData(o)
+        return this.rep(o, html)
+        /*
         const c = html || nav._html[o.id],
             html_ = (typeof c === 'object') ? this.replace(c) : c
-        return html_ && this.rep(o, html_)
+        return html_ && this.rep(o, html_)*/
     }
     rep = (o, h) => {
         let r = /\{([\w_]+)(?:\.([^\s{}]+))?\}/g
@@ -167,7 +169,7 @@ class Html {
     }
     links = (o, n, p) => {
         const t = n.toLowerCase(),
-            h = nav._html[t],
+            //h = nav._html[t],
             l = nav._link[t],
             pop = nav._popup[t],
             f = nav._form[t]
